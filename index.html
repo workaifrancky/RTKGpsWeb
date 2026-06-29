@@ -192,15 +192,20 @@
   <!-- ONGLET 4 : CAMÉRA                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-camera" class="screen">
-    <div style="padding:12px 12px 0">
-      <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:10px;border:1px solid var(--border)">
+    <div class="camera-mode-bar">
+      <button id="btnCameraTargetMode" class="btn-map-tool active" onclick="setMode('target')">🎯 Rejoindre un point</button>
+      <button id="btnCameraDistanceMode" class="btn-map-tool" onclick="setMode('distance')">📏 Mesurer une distance</button>
+    </div>
+    <div class="camera-top">
+      <div class="camera-card" id="cameraTargetCard">
         <div class="card-key" style="margin-bottom:6px">POINT CIBLE</div>
         <select id="targetSelect" style="width:100%;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:700"
-          onchange="selectTargetPoint(parseInt(this.value))">
+          onchange="selectTargetPoint(parseInt(this.value, 10))">
           <option value="">— Sélectionnez un point cible —</option>
         </select>
       </div>
-    </div>
+      <div class="camera-card" id="cameraModeSettings"></div>
+      </div>
     <div class="camera-container">
       <video id="cameraVideo" autoplay playsinline muted></video>
       <div id="cameraOverlay">
