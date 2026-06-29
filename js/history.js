@@ -1,120 +1,59 @@
 // ============================================================
-// history.js — Historique des sessions précédentes
-// RTKGpsWeb
-// Dépend de : points.js (loadSessions), map.js, export.js
+// history.js — Historique des sessions v2
+// RTKGpsWeb v2
 // ============================================================
 
-// ─── CHARGER ET AFFICHER L'HISTORIQUE ────────────────────────
 function loadHistory() {
-  const sessions  = loadSessions();
-  const container = document.getElementById('historyList');
+  const container=document.getElementById('historyList');
   if (!container) return;
-
-  if (sessions.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        Aucune session enregistrée.<br>
-        Les sessions sont sauvegardées automatiquement<br>
-        quand vous effacez les points.
-      </div>`;
+  const projects=loadProjects();
+  if (projects.length===0) {
+    container.innerHTML='<div class="empty-state"><div class="empty-state-icon">🕐</div>Aucune session enregistrée.</div>';
     return;
   }
-
-  // Affiche les sessions de la plus récente à la plus ancienne
-  container.innerHTML = [...sessions].reverse().map(s => {
-    const date     = new Date(s.startedAt)
-                       .toLocaleDateString('fr-FR');
-    const time     = new Date(s.startedAt)
-                       .toLocaleTimeString('fr-FR');
-    const duration = formatDuration(
-      (new Date(s.endedAt) - new Date(s.startedAt)) / 1000
-    );
-
-    return `
-      <div class="session-item">
-        <div class="session-header">
-          <span class="session-date">${date} à ${time}</span>
-          <span class="session-count">
-            ${s.count} point(s)
-          </span>
-        </div>
-        <div class="session-meta">
-          Durée : ${duration}
-        </div>
-        <div class="session-actions">
-          <button class="btn-action"
-            onclick="reloadSession('${s.id}')">
-            📂 Recharger
-          </button>
-          <button class="btn-action"
-            onclick="exportSessionCSV('${s.id}')">
-            ⬇ CSV
-          </button>
-          <button class="btn-action btn-danger"
-            onclick="deleteSession('${s.id}')">
-            ✕
-          </button>
-        </div>
-      </div>`;
-  }).join('');
+  container.innerHTML=projects.map(p=>{
+    const date=new Date(p.createdAt).toLocaleDateString('fr-FR');
+    const tonte=p.points.filter(pt=>pt.type==='tonte').length;
+    const interdit=p.points.filter(pt=>pt.type==='interdit').length;
+    const obstacle=p.points.filter(pt=>pt.type==='obstacle').length;
+    return `<div class="session-item">
+      <div class="session-header">
+        <span class="session-name">🌾 ${p.name}</span>
+        <span class="session-count">${p.points.length} pts</span>
+      </div>
+      <div class="session-meta">
+        Créé le ${date} &nbsp;·&nbsp;
+        🟢 ${tonte} tonte &nbsp;·&nbsp;
+        🔴 ${interdit} interdit &nbsp;·&nbsp;
+        🟡 ${obstacle} obstacle(s)
+      </div>
+      <div class="session-actions">
+        <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-data')">📂 Ouvrir</button>
+        <button class="btn-action-bar" onclick="exportProjectCSV('${p.id}')">⬇ CSV</button>
+        <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">🗑 Suppr.</button>
+      </div>
+    </div>`;
+  }).reverse().join('');
 }
 
-// ─── RECHARGER UNE SESSION ────────────────────────────────────
-function reloadSession(sessionId) {
-  const sessions = loadSessions();
-  const session  = sessions.find(s => s.id === sessionId);
-  if (!session) return;
-
-  if (!confirm(
-    `Recharger la session du ${
-      new Date(session.startedAt).toLocaleDateString('fr-FR')
-    } ? Les points actuels seront remplacés.`
-  )) return;
-
-  // Recharge les points dans localStorage
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(session.points)
-  );
-
-  // Recharge la page pour tout réinitialiser proprement
-  location.reload();
+function exportProjectCSV(projectId) {
+  const projects=loadProjects();
+  const proj=projects.find(p=>p.id===projectId);
+  if (!proj) return;
+  const headers='Point,Type,SousType,Latitude,Longitude,Altitude,Fix,Horodatage\n';
+  const rows=proj.points.map(p=>`${p.index},${p.type},${p.subtype||''},${p.lat},${p.lon},${p.alt||''},${p.fix},${p.timestamp}`).join('\n');
+  const blob=new Blob([headers+rows],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`RTK_${proj.name}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('✅ CSV exporté','info');
 }
 
-// ─── EXPORTER UNE SESSION EN CSV ─────────────────────────────
-function exportSessionCSV(sessionId) {
-  const sessions = loadSessions();
-  const session  = sessions.find(s => s.id === sessionId);
-  if (!session) return;
-
-  const headers = [
-    'Point','Latitude','Longitude','Altitude',
-    'Fix','Satellites','HDOP','Horodatage'
-  ].join(',');
-
-  const rows = session.points.map(p => [
-    p.index, p.lat, p.lon, p.alt || '',
-    p.fix || '', p.satellites || '',
-    p.hdop || '', p.timestamp,
-  ].join(','));
-
-  const csv = [headers, ...rows].join('\n');
-  downloadFile(
-    csv,
-    `RTK_session_${sessionId}.csv`,
-    'text/csv'
-  );
-  showToast('✅ Session exportée en CSV');
-}
-
-// ─── SUPPRIMER UNE SESSION ────────────────────────────────────
-function deleteSession(sessionId) {
-  if (!confirm('Supprimer cette session ?')) return;
-
-  const sessions = loadSessions().filter(
-    s => s.id !== sessionId
-  );
-  localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
+function deleteProject(projectId) {
+  if (!confirm('Supprimer cette parcelle ?')) return;
+  const projects=loadProjects().filter(p=>p.id!==projectId);
+  localStorage.setItem('rtkProjects',JSON.stringify(projects));
   loadHistory();
-  showToast('Session supprimée');
+  showToast('Parcelle supprimée','info');
 }

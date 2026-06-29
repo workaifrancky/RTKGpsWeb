@@ -1,49 +1,48 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
-  <meta name="description"
-    content="RTK GPS App — Suivi GPS RTK avec BLE et carte OSM">
-  <title>RTKGpsApp</title>
-
-  <!-- CSS dans l'ordre -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>RTK Mower GPS</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/map.css">
   <link rel="stylesheet" href="css/theme.css">
-
-  <!-- Leaflet.js -->
-  <link rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
-
 <div class="app-wrapper">
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- HEADER                                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <header>
-    <div class="logo">RTK<span>GPS</span><span class="version-flag" title="Version 2">V2</span></div>
+    <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
     <div class="header-actions">
-      <button id="btnTheme"
-        onclick="toggleTheme()"
-        title="Changer le thème">☀️</button>
-      <button id="btnBle"
-        onclick="toggleBle()">⬡ CONNECTER BLE</button>
+      <button id="btnTheme" onclick="toggleTheme()" title="Thème">🌙</button>
+      <button id="btnBle" class="off" onclick="toggleBle()">⬡ CONNECTER BLE</button>
     </div>
   </header>
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- BARRE DE STATUT                                         -->
+  <!-- BARRE FIX GPS                                           -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="statusBar">
-    <div class="dot" id="dotBle"></div>
-    <span id="statusText">
-      Non connecté — activez le Bluetooth
-    </span>
+  <div id="fixBar">
+    <div class="fix-dot none" id="fixDot"></div>
+    <span class="fix-name" id="fixName">AUCUN FIX</span>
+    <span class="fix-prec" id="fixPrec">Non connecté</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BARRE PROJET                                            -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="projectBar">
+    <span class="project-label">PARCELLE</span>
+    <select id="projectSelect" onchange="switchProject(this.value)"></select>
+    <button id="btnNewProject" onclick="openNewProjectModal()" title="Nouvelle parcelle">＋</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -55,338 +54,316 @@
   <!-- ONGLETS                                                 -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="tabs">
-    <div class="tab active"
-      data-tab="tab-data"
-      onclick="showTab('tab-data')">📡 DONNÉES</div>
-    <div class="tab"
-      data-tab="tab-points"
-      onclick="showTab('tab-points')">📍 POINTS</div>
-    <div class="tab"
-      data-tab="tab-map"
-      onclick="showTab('tab-map')">🗺 CARTE</div>
-    <div class="tab"
-      data-tab="tab-camera"
-      onclick="showTab('tab-camera')">📷 CAMÉRA</div>
-    <div class="tab"
-      data-tab="tab-stats"
-      onclick="showTab('tab-stats')">📊 STATS</div>
-    <div class="tab"
-      data-tab="tab-history"
-      onclick="showTab('tab-history')">🕐 HISTORIQUE</div>
+    <div class="tab active" data-tab="tab-data"    onclick="showTab('tab-data')">📡 DONNÉES</div>
+    <div class="tab"        data-tab="tab-points"  onclick="showTab('tab-points')">📍 POINTS</div>
+    <div class="tab"        data-tab="tab-map"     onclick="showTab('tab-map')">🗺 CARTE</div>
+    <div class="tab"        data-tab="tab-camera"  onclick="showTab('tab-camera')">📷 CAMÉRA</div>
+    <div class="tab"        data-tab="tab-stats"   onclick="showTab('tab-stats')">📊 STATS</div>
+    <div class="tab"        data-tab="tab-history" onclick="showTab('tab-history')">🕐 HISTORIQUE</div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 1 : DONNÉES GPS                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-data" class="screen active">
+    <div style="padding:12px 12px 0">
 
-    <!-- Grille données principales -->
-    <div class="data-grid">
-      <div class="data-card">
-        <div class="data-label">LATITUDE</div>
-        <div class="data-value accent" id="dLat">—</div>
+      <!-- Carte précision -->
+      <div class="prec-card prec-none" id="precCard">
+        <div class="prec-icon icon-none" id="precIcon">🚫</div>
+        <div class="prec-info">
+          <div class="prec-title" id="precTitle">MESURE BLOQUÉE</div>
+          <div class="prec-sub"   id="precSub">Float RTK minimum requis pour enregistrer</div>
+        </div>
+        <div class="prec-badge badge-none" id="precBadge">NONE</div>
       </div>
-      <div class="data-card">
-        <div class="data-label">LONGITUDE</div>
-        <div class="data-value accent" id="dLon">—</div>
-      </div>
-      <div class="data-card">
-        <div class="data-label">ALTITUDE</div>
-        <div class="data-value" id="dAlt">
-          —<span class="data-unit">m</span>
+
+      <!-- Grille données -->
+      <div class="data-grid">
+        <div class="data-card">
+          <div class="data-label">LATITUDE</div>
+          <div class="data-value sm" id="dLat">—</div>
+        </div>
+        <div class="data-card">
+          <div class="data-label">LONGITUDE</div>
+          <div class="data-value sm" id="dLon">—</div>
+        </div>
+        <div class="data-card">
+          <div class="data-label">ALTITUDE</div>
+          <div class="data-value" id="dAlt">—</div>
+        </div>
+        <div class="data-card">
+          <div class="data-label">SATELLITES</div>
+          <div class="data-value" id="dSat">—</div>
+        </div>
+        <div class="data-card">
+          <div class="data-label">HDOP</div>
+          <div class="data-value" id="dHdop">—</div>
+        </div>
+        <div class="data-card">
+          <div class="data-label">VITESSE</div>
+          <div class="data-value" id="dSpeed">—</div>
         </div>
       </div>
-      <div class="data-card">
-        <div class="data-label">SATELLITES</div>
-        <div class="data-value" id="dSat">—</div>
+
+      <!-- Détail -->
+      <div class="card-full">
+        <div class="card-row">
+          <span class="card-key">REL_X</span>
+          <span class="card-val" id="dRelX">—</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">REL_Y</span>
+          <span class="card-val" id="dRelY">—</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">CAP</span>
+          <span class="card-val" id="dCap">—</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">DATE / HEURE</span>
+          <span class="card-val" id="dDate">—</span>
+        </div>
       </div>
-      <div class="data-card">
-        <div class="data-label">HDOP</div>
-        <div class="data-value" id="dHdop">—</div>
-      </div>
-      <div class="data-card">
-        <div class="data-label">VITESSE</div>
-        <div class="data-value" id="dSpeed">—</div>
-      </div>
+
+      <!-- Trame brute -->
+      <div class="section-title">TRAME BRUTE ESP32</div>
+      <div id="rawData">En attente de connexion BLE...</div>
     </div>
-
-    <!-- Carte détail -->
-    <div class="card-full">
-
-      <!-- Fix GPS -->
-      <div class="card-row">
-        <span class="card-key">TYPE DE FIX</span>
-        <span id="dFix">
-          <span class="fix-badge fix-none">NONE</span>
-        </span>
-      </div>
-
-      <!-- Synthèse précision estimée -->
-      <div class="card-row">
-        <span class="card-key">PRÉCISION</span>
-        <span id="dPrecision">
-          <span class="precision-summary precision-0">
-            Aucune — inconnue
-          </span>
-        </span>
-      </div>
-
-      <div class="card-row">
-        <span class="card-key">REL_X</span>
-        <span class="card-val" id="dRelX">— m</span>
-      </div>
-      <div class="card-row">
-        <span class="card-key">REL_Y</span>
-        <span class="card-val" id="dRelY">— m</span>
-      </div>
-      <div class="card-row">
-        <span class="card-key">CAP</span>
-        <span class="card-val" id="dCap">—</span>
-      </div>
-      <div class="card-row">
-        <span class="card-key">DATE / HEURE</span>
-        <span class="card-val" id="dDate">—</span>
-      </div>
-    </div>
-
-    <!-- Raison du blocage enregistrement -->
-    <div id="recordReason"
-      style="font-size:11px;
-             color:var(--text3);
-             text-align:center;
-             margin-bottom:8px;
-             letter-spacing:1px;
-             min-height:18px">
-    </div>
-
-    <!-- Bouton enregistrer -->
-    <button id="btnRecord"
-      disabled
-      onclick="recordPoint()">
-      ⊕ ENREGISTRER POSITION
-    </button>
-
-    <!-- Trame brute -->
-    <div class="section-title"
-      style="margin-top:16px">
-      TRAME BRUTE ESP32
-    </div>
-    <div id="rawData">En attente de connexion BLE...</div>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ONGLET 2 : POINTS ENREGISTRÉS                           -->
+  <!-- ONGLET 2 : POINTS                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-points" class="screen">
-
-    <div style="display:flex;
-                justify-content:space-between;
-                align-items:center;
-                margin-bottom:12px">
-      <div class="section-title"
-        style="margin:0;border:none">
-        POSITIONS ENREGISTRÉES
+    <div style="padding:12px 12px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
+        <span id="pointCount" style="font-size:11px;color:var(--text3);font-weight:700">0 point(s)</span>
       </div>
-      <span id="pointCount"
-        style="font-size:11px;color:var(--text3)">
-        0 point(s)
-      </span>
+      <div id="pointsList"></div>
+      <div class="actions-bar">
+        <button class="btn-action-bar" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn-action-bar" onclick="exportGPX()">⬇ GPX</button>
+        <button class="btn-action-bar" onclick="exportGeoJSON()">⬇ GeoJSON</button>
+        <button class="btn-action-bar danger" onclick="clearAllPoints()">🗑 Effacer</button>
+      </div>
     </div>
-
-    <!-- Liste des points -->
-    <div id="pointsList"></div>
-
-    <!-- Boutons d'export -->
-    <div class="actions-bar">
-      <button class="btn-bar btn-csv"
-        onclick="exportCSV()">⬇ CSV</button>
-      <button class="btn-bar btn-gpx"
-        onclick="exportGPX()">⬇ GPX</button>
-      <button class="btn-bar btn-geo"
-        onclick="exportGeoJSON()">⬇ GeoJSON</button>
-      <button class="btn-bar btn-clear"
-        onclick="clearAllPoints()">🗑 Effacer</button>
-    </div>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 3 : CARTE                                        -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-map" class="screen">
-
-    <!-- Contrôles carte -->
     <div class="map-controls">
-      <button id="btnSurface"
-        class="btn-bar"
-        onclick="toggleSurfaceMode()">
-        📐 MESURER SURFACE
-      </button>
+      <button id="btnSurface" class="btn-map-tool" onclick="toggleSurfaceMode()">📐 Surface</button>
+      <button class="btn-map-tool" onclick="exportGeoJSON()">📤 Exporter</button>
+      <button class="btn-map-tool danger" onclick="clearAllPoints()">🗑 Effacer</button>
     </div>
-
-    <!-- Carte Leaflet -->
     <div id="map"></div>
-
-    <!-- Résultat surface -->
     <div id="surfaceResult"></div>
-
-    <!-- Légende -->
     <div class="map-legend">
-      <div class="legend-item">
-        <div class="legend-dot"
-          style="background:var(--color-rtk)"></div>
-        RTK Fix
+      <div class="leg-item">
+        <div class="leg-color" style="background:rgba(22,163,74,0.2);border:2px solid #16a34a"></div>Zone tonte
       </div>
-      <div class="legend-item">
-        <div class="legend-dot"
-          style="background:var(--color-float)"></div>
-        Float RTK
+      <div class="leg-item">
+        <div class="leg-color" style="background:rgba(220,38,38,0.15);border:2px solid #dc2626"></div>Zone interdite
       </div>
-      <div class="legend-item">
-        <div class="legend-dot"
-          style="background:var(--color-dgps)"></div>
-        DGPS
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#d97706"></div>Obstacle
       </div>
-      <div class="legend-item">
-        <div class="legend-dot"
-          style="background:#94a3b8"></div>
-        GPS
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot"
-          style="background:var(--color-none)"></div>
-        None
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#1a6b1a"></div>Position live
       </div>
     </div>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 4 : CAMÉRA                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-camera" class="screen">
-
-    <!-- Sélecteur de point cible -->
-    <div class="target-selector">
-      <div class="card-key">POINT CIBLE</div>
-      <select id="targetSelect"
-        onchange="selectTargetPoint(
-          parseInt(this.value)
-        )">
-        <option value="">— Sélectionnez un point —</option>
-      </select>
-    </div>
-
-    <!-- Flux caméra + overlay -->
-    <div class="camera-container">
-      <video id="cameraVideo"
-        autoplay playsinline muted></video>
-      <div id="cameraOverlay">
-        <div class="cam-message">
-          Sélectionnez un point cible<br>
-          puis activez l'onglet CAMÉRA
-        </div>
+    <div style="padding:12px 12px 0">
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:10px;border:1px solid var(--border)">
+        <div class="card-key" style="margin-bottom:6px">POINT CIBLE</div>
+        <select id="targetSelect" style="width:100%;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:700"
+          onchange="selectTargetPoint(parseInt(this.value))">
+          <option value="">— Sélectionnez un point cible —</option>
+        </select>
       </div>
     </div>
-
+    <div class="camera-container">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div id="cameraOverlay">
+        <div class="cam-message">Sélectionnez un point cible<br>puis activez l'onglet CAMÉRA</div>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 5 : STATISTIQUES                                 -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-stats" class="screen">
-
-    <div class="section-title">SESSION EN COURS</div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">POINTS</div>
-        <div class="stat-value" id="statCount">0</div>
+    <div style="padding:12px 12px 0">
+      <div class="section-title">SESSION EN COURS</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">TOTAL POINTS</div>
+          <div class="stat-value" id="statCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SURFACE TONTE</div>
+          <div class="stat-value" id="statArea" style="font-size:18px">—</div>
+        </div>
+        <div class="stat-card" style="border-top-color:var(--color-tonte)">
+          <div class="stat-label">🟢 TONTE</div>
+          <div class="stat-value" id="statTonte" style="color:var(--color-tonte)">0</div>
+        </div>
+        <div class="stat-card" style="border-top-color:var(--color-interdit)">
+          <div class="stat-label">🔴 INTERDIT</div>
+          <div class="stat-value" id="statInterdit" style="color:var(--color-interdit)">0</div>
+        </div>
+        <div class="stat-card" style="border-top-color:var(--color-obstacle)">
+          <div class="stat-label">🟡 OBSTACLES</div>
+          <div class="stat-value" id="statObstacle" style="color:var(--color-obstacle)">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">DISTANCE</div>
+          <div class="stat-value" id="statDistance" style="font-size:18px">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">HDOP MOYEN</div>
+          <div class="stat-value" id="statHdop" style="font-size:18px">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SAT MOYEN</div>
+          <div class="stat-value" id="statSat" style="font-size:18px">—</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">DISTANCE</div>
-        <div class="stat-value" id="statDistance">—</div>
+      <div class="card-full">
+        <div class="card-row">
+          <span class="card-key">MEILLEUR FIX</span>
+          <span id="statBestFix" class="card-val">—</span>
+        </div>
+        <div class="card-row">
+          <span class="card-key">DURÉE SESSION</span>
+          <span id="statDuration" class="card-val">—</span>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">SURFACE</div>
-        <div class="stat-value" id="statArea">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">HDOP MOYEN</div>
-        <div class="stat-value" id="statHdop">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">SAT MOYEN</div>
-        <div class="stat-value" id="statSat">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">DURÉE</div>
-        <div class="stat-value" id="statDuration">—</div>
-      </div>
+      <button class="btn-action-bar" style="width:100%;margin-top:4px" onclick="updateStatsDisplay()">↺ Actualiser</button>
     </div>
-
-    <div class="card-full">
-      <div class="card-row">
-        <span class="card-key">MEILLEUR FIX</span>
-        <span id="statBestFix">
-          <span class="fix-badge fix-none">—</span>
-        </span>
-      </div>
-    </div>
-
-    <button class="btn-bar"
-      style="width:100%;margin-top:8px"
-      onclick="updateStatsDisplay()">
-      ↺ ACTUALISER
-    </button>
-
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 6 : HISTORIQUE                                   -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-history" class="screen">
-
-    <div class="section-title">SESSIONS PRÉCÉDENTES</div>
-    <div id="historyList"></div>
-
+    <div style="padding:12px 12px 0">
+      <div class="section-title">PARCELLES / SESSIONS</div>
+      <div id="historyList"></div>
+    </div>
   </div>
 
 </div><!-- fin .app-wrapper -->
 
-<!-- ─── TOAST ─────────────────────────────────────────────── -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- BARRE TERRAIN FIXE EN BAS                                   -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="terrain-bar">
+  <div class="terrain-bar-title">ENREGISTRER UN POINT</div>
+  <div class="terrain-btns">
+    <div class="terrain-btn" onclick="recordTonte()">
+      <div class="terrain-btn-circle tonte disabled" id="btnTonte">🟢</div>
+      <div class="terrain-btn-label">ZONE<br>TONTE</div>
+    </div>
+    <div class="terrain-btn" onclick="recordInterdit()">
+      <div class="terrain-btn-circle interdit disabled" id="btnInterdit">🔴</div>
+      <div class="terrain-btn-label">ZONE<br>INTERDITE</div>
+    </div>
+    <div class="terrain-btn" onclick="openObstacleMenu()">
+      <div class="terrain-btn-circle obstacle disabled" id="btnObstacle">🟡</div>
+      <div class="terrain-btn-label">OBSTACLE<br>ISOLÉ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL OBSTACLE                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="obstacleModal" onclick="if(event.target===this)closeObstacleMenu()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🟡 Type d'obstacle</div>
+    <div class="obstacle-grid">
+      <div class="obstacle-option" onclick="selectObstacleType('Arbre','🌳')">
+        <div class="obstacle-option-icon">🌳</div>
+        <div class="obstacle-option-label">Arbre</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Piquet','📍')">
+        <div class="obstacle-option-icon">📍</div>
+        <div class="obstacle-option-label">Piquet</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Souche','🪵')">
+        <div class="obstacle-option-icon">🪵</div>
+        <div class="obstacle-option-label">Souche</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Talus','⛰')">
+        <div class="obstacle-option-icon">⛰</div>
+        <div class="obstacle-option-label">Talus</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Bordure','▬')">
+        <div class="obstacle-option-icon">▬</div>
+        <div class="obstacle-option-label">Bordure</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Poteau','🪝')">
+        <div class="obstacle-option-icon">🪝</div>
+        <div class="obstacle-option-label">Poteau</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Pierre','🪨')">
+        <div class="obstacle-option-icon">🪨</div>
+        <div class="obstacle-option-label">Pierre</div>
+      </div>
+      <div class="obstacle-option" onclick="selectObstacleType('Autre','❓')">
+        <div class="obstacle-option-icon">❓</div>
+        <div class="obstacle-option-label">Autre</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL NOUVEAU PROJET                                         -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="projectModal" onclick="if(event.target===this)closeProjectModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🌾 Nouvelle parcelle</div>
+    <div class="project-form">
+      <input type="text" id="projectNameInput" class="form-input"
+        placeholder="Ex: Jardin Nord, Prairie Sud..."
+        onkeydown="if(event.key==='Enter')createProject()">
+      <button class="btn-primary" onclick="createProject()">✓ Créer la parcelle</button>
+      <button class="btn-secondary" onclick="closeProjectModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
 <div id="toast"></div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- SCRIPTS — ordre obligatoire                                 -->
 <!-- ═══════════════════════════════════════════════════════════ -->
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
-
-<!-- 1. Utilitaires de base (pas de dépendances) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/parser.js"></script>
-
-<!-- 2. Coordination globale -->
 <script src="js/app.js"></script>
-
-<!-- 3. Données et logique métier -->
+<script src="js/projects.js"></script>
 <script src="js/ble.js"></script>
 <script src="js/points.js"></script>
-
-<!-- 4. Carte et calculs géographiques -->
 <script src="js/map.js"></script>
 <script src="js/stats.js"></script>
-
-<!-- 5. Export -->
 <script src="js/export.js"></script>
-
-<!-- 6. Périphériques -->
 <script src="js/camera.js"></script>
 <script src="js/history.js"></script>
-
-<!-- 7. UI en dernier (dépend de tout le reste) -->
 <script src="js/ui.js"></script>
 
 </body>
