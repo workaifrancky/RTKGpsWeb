@@ -3,6 +3,7 @@
 // ============================================================
 
 const NTRIP_STORAGE_KEY = 'rtkSelectedNtripStation';
+const NTRIP_DEFAULT_STATION_ID = 'bod1';
 
 const NTRIP_STATIONS = [
   {
@@ -24,7 +25,9 @@ function loadSelectedNtripStationId() {
   const saved = localStorage.getItem(NTRIP_STORAGE_KEY);
   return NTRIP_STATIONS.some(station => station.id === saved)
     ? saved
-    : (NTRIP_STATIONS[0]?.id || null);
+    : (NTRIP_STATIONS.some(station => station.id === NTRIP_DEFAULT_STATION_ID)
+      ? NTRIP_DEFAULT_STATION_ID
+      : (NTRIP_STATIONS[0]?.id || null));
 }
 
 function saveSelectedNtripStationId(stationId) {
