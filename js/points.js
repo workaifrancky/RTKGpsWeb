@@ -147,6 +147,7 @@ function renderGroup(title, pts, color, type) {
 }
 
 function renderPointItem(p) {
+  const date = new Date(p.timestamp).toLocaleDateString('fr-FR');
   const time  = fmtTime(p.timestamp);
   const name  = p.subtype
     ? `${p.icon} ${p.subtype} #${p.index}`
@@ -165,6 +166,7 @@ function renderPointItem(p) {
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <span class="point-date">${date}</span>
         <span class="point-time">${time}</span>
         <button class="btn-del" onclick="deletePoint(${p.id})" title="Supprimer">✕</button>
       </div>

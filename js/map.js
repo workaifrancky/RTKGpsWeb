@@ -4,8 +4,10 @@
 
 const BOD1_LAT = 44.832223988119964;
 const BOD1_LON = -0.7019923801219144;
+const MAP_BASE_LAYER_KEY = 'rtkMapBaseLayer';
 
 let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
+let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
 let surfaceMode=false, surfacePolygon=null;
 
@@ -24,8 +26,17 @@ function initMap() {
   const centerLat = station?.lat ?? BOD1_LAT;
   const centerLon = station?.lon ?? BOD1_LON;
   map = L.map('map', { center:[centerLat,centerLon], zoom:17, zoomControl:true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { attribution:'© OpenStreetMap', maxZoom:22 }).addTo(map);
+  reliefLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:22,
+  });
+  satelliteLayer = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution:'Tiles © Esri', maxZoom:22 }
+  );
+
+  activeBaseLayer = localStorage.getItem(MAP_BASE_LAYER_KEY) || 'relief';
+  if (activeBaseLayer === 'satellite') satelliteLayer.addTo(map);
+  else reliefLayer.addTo(map);
 
   layerTonte    = L.layerGroup().addTo(map);
   layerInterdit = L.layerGroup().addTo(map);
@@ -36,7 +47,38 @@ function initMap() {
     radius:6, fillColor:'#fff', color:'#888', weight:2, fillOpacity:1
   }).addTo(map).bindPopup(`<b>Station ${station?.name || 'NTRIP'}</b><br>${station?.mountpoint || 'Référence NTRIP'}`);
 
+  syncMapBaseLayerButtons();
+
   renderMap();
+}
+
+function setMapBaseLayer(layerId) {
+  const nextLayer = layerId === 'satellite' ? 'satellite' : 'relief';
+  if (!map) {
+    activeBaseLayer = nextLayer;
+    localStorage.setItem(MAP_BASE_LAYER_KEY, activeBaseLayer);
+    syncMapBaseLayerButtons();
+    return;
+  }
+
+  if (activeBaseLayer === nextLayer) return;
+
+  if (activeBaseLayer === 'satellite' && map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+  if (activeBaseLayer === 'relief' && map.hasLayer(reliefLayer)) map.removeLayer(reliefLayer);
+
+  activeBaseLayer = nextLayer;
+  if (activeBaseLayer === 'satellite') satelliteLayer.addTo(map);
+  else reliefLayer.addTo(map);
+
+  localStorage.setItem(MAP_BASE_LAYER_KEY, activeBaseLayer);
+  syncMapBaseLayerButtons();
+}
+
+function syncMapBaseLayerButtons() {
+  const reliefBtn = document.getElementById('btnBaseRelief');
+  const satelliteBtn = document.getElementById('btnBaseSatellite');
+  if (reliefBtn) reliefBtn.classList.toggle('active', activeBaseLayer === 'relief');
+  if (satelliteBtn) satelliteBtn.classList.toggle('active', activeBaseLayer === 'satellite');
 }
 
 function renderMap() {

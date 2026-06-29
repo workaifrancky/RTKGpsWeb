@@ -164,6 +164,8 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-map" class="screen">
     <div class="map-controls">
+      <button id="btnBaseRelief" class="btn-map-tool active" onclick="setMapBaseLayer('relief')">🗺 Relief</button>
+      <button id="btnBaseSatellite" class="btn-map-tool" onclick="setMapBaseLayer('satellite')">🛰 Satellite</button>
       <button id="btnSurface" class="btn-map-tool" onclick="toggleSurfaceMode()">📐 Surface</button>
       <button class="btn-map-tool" onclick="exportGeoJSON()">📤 Exporter</button>
       <button class="btn-map-tool danger" onclick="clearAllPoints()">🗑 Effacer</button>
