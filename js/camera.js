@@ -295,7 +295,7 @@ function recordPointHere() {
     return;
   }
 
-  const pt = buildPoint('obstacle', 'Piquet', '📍');
+  const pt = buildPoint('obstacle', 'Perso', '📍');
   savePoint(pt);
   distanceModeReference = pt;
   updateCameraOverlay();
