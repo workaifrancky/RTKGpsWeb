@@ -1,0 +1,72 @@
+/* ============================================================
+   map.css — Styles carte Leaflet v2
+   RTKGpsWeb v2
+   ============================================================ */
+
+#map {
+  height:      calc(100vh - 320px);
+  min-height:  280px;
+  width:       100%;
+  z-index:     1;
+}
+
+/* Popup Leaflet — thème clair */
+.leaflet-popup-content-wrapper {
+  background:    var(--bg2) !important;
+  color:         var(--text) !important;
+  border-radius: var(--radius) !important;
+  box-shadow:    var(--shadow) !important;
+  font-family:   var(--font) !important;
+  font-size:     12px !important;
+  border:        2px solid var(--border) !important;
+}
+
+.leaflet-popup-tip         { background: var(--bg2) !important; }
+.leaflet-popup-content     { margin: 10px 14px !important; }
+.leaflet-popup-content b   { color: var(--green-main); }
+
+/* Contrôles zoom */
+.leaflet-control-zoom a {
+  background:    var(--bg2) !important;
+  color:         var(--text) !important;
+  border:        1px solid var(--border) !important;
+  font-size:     18px !important;
+  width:         36px !important;
+  height:        36px !important;
+  line-height:   34px !important;
+}
+
+.leaflet-control-zoom a:hover { background: var(--green-light) !important; }
+
+.leaflet-control-attribution {
+  background: rgba(255,255,255,0.85) !important;
+  font-size:  9px !important;
+  color:      #666 !important;
+}
+
+/* Marqueur position live */
+.live-marker-pulse {
+  animation: pulse-map 2s infinite;
+}
+
+@keyframes pulse-map {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.7; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Thème sombre Leaflet */
+[data-theme="dark"] .leaflet-popup-content-wrapper {
+  background: var(--bg2) !important;
+  border-color: var(--border2) !important;
+}
+
+[data-theme="dark"] .leaflet-control-zoom a {
+  background: var(--bg2) !important;
+  border-color: var(--border2) !important;
+}
+
+[data-theme="dark"] .leaflet-control-attribution {
+  background: rgba(15,17,23,0.85) !important;
+  color: var(--text3) !important;
+}

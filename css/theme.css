@@ -1,0 +1,121 @@
+/* ============================================================
+   theme.css — Mode nuit / mode jour + styles caméra
+   RTKGpsWeb v2
+   ============================================================ */
+
+/* ─── MODE NUIT — overrides spécifiques ─────────────────────── */
+[data-theme="dark"] header         { background: #14532d; }
+[data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
+[data-theme="dark"] #projectBar    { background: var(--bg2); }
+[data-theme="dark"] .tabs          { background: #052e16; }
+[data-theme="dark"] .terrain-bar   { background: #14532d; border-color: #052e16; }
+
+[data-theme="dark"] .data-card,
+[data-theme="dark"] .card-full,
+[data-theme="dark"] .prec-card,
+[data-theme="dark"] .point-item,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .session-item  { box-shadow: none; }
+
+[data-theme="dark"] .obstacle-option:hover,
+[data-theme="dark"] .obstacle-option:active {
+  background: #1c1000;
+  border-color: var(--color-obstacle);
+}
+
+[data-theme="dark"] .obstacle-option-label { color: var(--text2); }
+
+[data-theme="dark"] #projectSelect {
+  background: var(--bg3);
+  border-color: var(--border2);
+}
+
+[data-theme="dark"] .alert-bar.alert-warning {
+  background:   #1c1000;
+  color:        #fbbf24;
+  border-color: #d97706;
+}
+
+[data-theme="dark"] .alert-bar.alert-danger {
+  background:   #1c0a0a;
+  color:        #f87171;
+  border-color: #dc2626;
+}
+
+[data-theme="dark"] .stat-value { color: #4ade80; }
+
+/* ─── CAMÉRA ────────────────────────────────────────────────── */
+.camera-container {
+  position:      relative;
+  width:         100%;
+  height:        calc(100vh - 320px);
+  min-height:    260px;
+  background:    #000;
+  overflow:      hidden;
+}
+
+#cameraVideo {
+  width:      100%;
+  height:     100%;
+  object-fit: cover;
+}
+
+#cameraOverlay {
+  position:       absolute;
+  inset:          0;
+  pointer-events: none;
+  display:        flex;
+  align-items:    center;
+  justify-content:center;
+}
+
+.cam-message {
+  background:    rgba(0,0,0,0.6);
+  color:         white;
+  padding:       16px 24px;
+  border-radius: var(--radius);
+  text-align:    center;
+  font-size:     13px;
+  line-height:   2;
+}
+
+.cam-overlay-content {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            14px;
+  width:          100%;
+  padding:        20px;
+}
+
+.cam-arrow {
+  font-size:  72px;
+  filter:     drop-shadow(0 0 12px currentColor);
+  transition: transform 0.4s ease;
+}
+
+.cam-distance {
+  font-size:   40px;
+  font-weight: 800;
+  text-shadow: 0 0 14px currentColor;
+}
+
+.cam-target-info {
+  background:    rgba(0,0,0,0.6);
+  color:         rgba(255,255,255,0.85);
+  padding:       8px 18px;
+  border-radius: var(--radius-lg);
+  font-size:     12px;
+  font-weight:   700;
+  letter-spacing:1px;
+}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .cam-arrow    { font-size: 56px; }
+  .cam-distance { font-size: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-marker-pulse { animation: none; }
+}

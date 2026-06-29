@@ -1,0 +1,616 @@
+/* ============================================================
+   components.css — Composants UI v2 Haute Visibilité Terrain
+   RTKGpsWeb v2 — RTK Mower
+   ============================================================ */
+
+/* ─── CARTE PRÉCISION GPS ───────────────────────────────────── */
+.prec-card {
+  background:    var(--bg2);
+  border-radius: var(--radius);
+  padding:       14px 16px;
+  margin-bottom: 12px;
+  display:       flex;
+  align-items:   center;
+  gap:           12px;
+  box-shadow:    var(--shadow-sm);
+  border-left:   5px solid var(--green-mid);
+}
+
+.prec-card.prec-rtk    { border-left-color: var(--color-rtk); }
+.prec-card.prec-float  { border-left-color: var(--color-float); }
+.prec-card.prec-dgps   { border-left-color: var(--color-dgps); }
+.prec-card.prec-none   { border-left-color: var(--color-none); }
+
+.prec-icon {
+  width:           44px;
+  height:          44px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       20px;
+  flex-shrink:     0;
+}
+
+.prec-icon.icon-rtk   { background: #dcfce7; }
+.prec-icon.icon-float { background: #fef3c7; }
+.prec-icon.icon-dgps  { background: #dbeafe; }
+.prec-icon.icon-none  { background: #fee2e2; }
+
+.prec-info { flex: 1; }
+
+.prec-title {
+  font-size:      12px;
+  font-weight:    800;
+  color:          var(--text);
+  letter-spacing: 0.5px;
+  margin-bottom:  2px;
+}
+
+.prec-sub {
+  font-size:  11px;
+  color:      var(--text3);
+  line-height:1.4;
+}
+
+.prec-badge {
+  font-size:      11px;
+  font-weight:    800;
+  padding:        5px 12px;
+  border-radius:  var(--radius-lg);
+  border:         2px solid;
+  white-space:    nowrap;
+  letter-spacing: 0.5px;
+}
+
+.badge-rtk   { background:#dcfce7; color:#14532d; border-color:#4ade80; }
+.badge-float { background:#fef3c7; color:#78350f; border-color:#fbbf24; }
+.badge-dgps  { background:#dbeafe; color:#1e3a8a; border-color:#60a5fa; }
+.badge-gps   { background:#f3f4f6; color:#374151; border-color:#9ca3af; }
+.badge-none  { background:#fee2e2; color:#7f1d1d; border-color:#f87171; }
+
+/* ─── GRILLE DONNÉES GPS ────────────────────────────────────── */
+.data-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   10px;
+  margin-bottom:         12px;
+}
+
+.data-card {
+  background:    var(--bg2);
+  border-radius: var(--radius);
+  padding:       14px 12px;
+  border-left:   4px solid var(--green-mid);
+  box-shadow:    var(--shadow-sm);
+  transition:    var(--transition);
+}
+
+.data-card:hover  { box-shadow: var(--shadow); }
+.data-card.wide   { grid-column: 1 / -1; }
+
+.data-label {
+  font-size:      9px;
+  font-weight:    700;
+  color:          var(--text3);
+  letter-spacing: 1.5px;
+  margin-bottom:  5px;
+}
+
+.data-value {
+  font-size:   22px;
+  font-weight: 800;
+  color:       var(--text);
+  line-height: 1;
+}
+
+.data-value.sm  { font-size: 15px; }
+.data-value.green { color: var(--color-rtk); }
+.data-value.orange{ color: var(--color-float); }
+.data-value.red   { color: var(--color-none); }
+
+.data-unit {
+  font-size:   11px;
+  color:       var(--text4);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* ─── CARTE DÉTAIL ──────────────────────────────────────────── */
+.card-full {
+  background:    var(--bg2);
+  border-radius: var(--radius);
+  overflow:      hidden;
+  margin-bottom: 12px;
+  box-shadow:    var(--shadow-sm);
+}
+
+.card-row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  padding:         11px 16px;
+  border-bottom:   1px solid var(--border);
+}
+
+.card-row:last-child { border-bottom: none; }
+
+.card-key {
+  font-size:      10px;
+  font-weight:    700;
+  color:          var(--text3);
+  letter-spacing: 1px;
+}
+
+.card-val {
+  font-size:   14px;
+  font-weight: 700;
+  color:       var(--text);
+}
+
+/* ─── TRAME BRUTE ─────────────────────────────────────────────── */
+#rawData {
+  background:    var(--bg3);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       12px;
+  font-size:     11px;
+  font-family:   var(--font-mono);
+  color:         var(--text3);
+  white-space:   pre-wrap;
+  line-height:   1.8;
+  max-height:    160px;
+  overflow-y:    auto;
+}
+
+/* ─── BARRE TERRAIN FIXE EN BAS ─────────────────────────────── */
+.terrain-bar {
+  position:    fixed;
+  bottom:      0;
+  left:        50%;
+  transform:   translateX(-50%);
+  width:       100%;
+  max-width:   480px;
+  background:  var(--green-main);
+  padding:     12px 16px 20px;
+  border-top:  3px solid var(--green-dark);
+  z-index:     300;
+  box-shadow:  0 -4px 20px rgba(0,0,0,0.2);
+}
+
+.terrain-bar-title {
+  color:          rgba(255,255,255,0.6);
+  font-size:      9px;
+  font-weight:    700;
+  letter-spacing: 2px;
+  text-align:     center;
+  margin-bottom:  10px;
+}
+
+.terrain-btns {
+  display:         flex;
+  justify-content: space-around;
+  align-items:     center;
+  gap:             8px;
+}
+
+.terrain-btn {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            6px;
+  cursor:         pointer;
+  user-select:    none;
+  -webkit-user-select: none;
+}
+
+.terrain-btn-circle {
+  width:           64px;
+  height:          64px;
+  border-radius:   50%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       24px;
+  border:          3px solid rgba(255,255,255,0.25);
+  transition:      all 0.15s ease;
+  box-shadow:      0 4px 12px rgba(0,0,0,0.3);
+  active-scale:    0.92;
+}
+
+.terrain-btn-circle.tonte    { background: var(--color-tonte); }
+.terrain-btn-circle.interdit { background: var(--color-interdit); }
+.terrain-btn-circle.obstacle { background: var(--color-obstacle); }
+
+.terrain-btn-circle:hover,
+.terrain-btn:active .terrain-btn-circle {
+  transform:    scale(1.08);
+  border-color: rgba(255,255,255,0.7);
+  box-shadow:   0 6px 18px rgba(0,0,0,0.4);
+}
+
+.terrain-btn-circle.disabled {
+  opacity: 0.35;
+  cursor:  not-allowed;
+}
+
+.terrain-btn-circle.disabled:hover {
+  transform: none;
+}
+
+.terrain-btn-label {
+  color:          white;
+  font-size:      9px;
+  font-weight:    800;
+  letter-spacing: 0.5px;
+  text-align:     center;
+  line-height:    1.3;
+}
+
+/* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
+.obstacle-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   8px;
+  margin-top:            8px;
+}
+
+.obstacle-option {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             6px;
+  padding:         14px 8px;
+  background:      var(--bg3);
+  border:          2px solid var(--border);
+  border-radius:   var(--radius);
+  cursor:          pointer;
+  transition:      var(--transition);
+  text-align:      center;
+}
+
+.obstacle-option:hover,
+.obstacle-option:active {
+  border-color: var(--color-obstacle);
+  background:   #fef3c7;
+}
+
+.obstacle-option-icon { font-size: 24px; }
+
+.obstacle-option-label {
+  font-size:   10px;
+  font-weight: 700;
+  color:       var(--text2);
+  line-height: 1.2;
+}
+
+/* ─── MODAL NOUVEAU PROJET ──────────────────────────────────── */
+.project-form {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+}
+
+.form-input {
+  width:         100%;
+  padding:       12px 14px;
+  background:    var(--bg3);
+  border:        2px solid var(--border);
+  border-radius: var(--radius);
+  color:         var(--text);
+  font-family:   var(--font);
+  font-size:     15px;
+  font-weight:   600;
+  transition:    var(--transition);
+}
+
+.form-input:focus {
+  outline:      none;
+  border-color: var(--green-mid);
+  background:   var(--bg2);
+}
+
+.form-input::placeholder { color: var(--text4); }
+
+.btn-primary {
+  width:          100%;
+  padding:        14px;
+  background:     var(--green-mid);
+  color:          white;
+  border:         none;
+  border-radius:  var(--radius);
+  font-family:    var(--font);
+  font-size:      15px;
+  font-weight:    800;
+  cursor:         pointer;
+  transition:     var(--transition);
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover  { background: var(--green-main); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-secondary {
+  width:          100%;
+  padding:        12px;
+  background:     transparent;
+  color:          var(--text3);
+  border:         2px solid var(--border);
+  border-radius:  var(--radius);
+  font-family:    var(--font);
+  font-size:      13px;
+  font-weight:    700;
+  cursor:         pointer;
+  transition:     var(--transition);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-none);
+  color:        var(--color-none);
+}
+
+/* ─── LISTE DES POINTS ──────────────────────────────────────── */
+.point-item {
+  background:      var(--bg2);
+  border-radius:   var(--radius);
+  padding:         12px 14px;
+  margin-bottom:   8px;
+  display:         flex;
+  align-items:     center;
+  gap:             12px;
+  box-shadow:      var(--shadow-sm);
+  transition:      var(--transition);
+}
+
+.point-item:hover { box-shadow: var(--shadow); }
+
+.point-dot {
+  width:         14px;
+  height:        14px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  border:        2px solid rgba(255,255,255,0.8);
+  box-shadow:    0 1px 4px rgba(0,0,0,0.2);
+}
+
+.point-dot.tonte    { background: var(--color-tonte); }
+.point-dot.interdit { background: var(--color-interdit); }
+.point-dot.obstacle { background: var(--color-obstacle); }
+
+.point-info { flex: 1; min-width: 0; }
+
+.point-name {
+  font-size:     13px;
+  font-weight:   700;
+  color:         var(--text);
+  margin-bottom: 2px;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.point-coords {
+  font-size:     11px;
+  color:         var(--text3);
+  font-family:   var(--font-mono);
+}
+
+.point-meta {
+  font-size:  10px;
+  color:      var(--text4);
+  margin-top: 2px;
+}
+
+.point-time {
+  font-size:   11px;
+  color:       var(--text4);
+  flex-shrink: 0;
+}
+
+.btn-del {
+  background:    none;
+  border:        1px solid var(--border);
+  color:         var(--text4);
+  width:         30px;
+  height:        30px;
+  border-radius: 50%;
+  cursor:        pointer;
+  font-size:     14px;
+  display:       flex;
+  align-items:   center;
+  justify-content:center;
+  flex-shrink:   0;
+  transition:    var(--transition);
+}
+
+.btn-del:hover {
+  border-color: var(--color-none);
+  color:        var(--color-none);
+  background:   #fee2e2;
+}
+
+/* ─── BARRE D'ACTIONS ───────────────────────────────────────── */
+.actions-bar {
+  display:    flex;
+  gap:        8px;
+  margin:     12px 0;
+  flex-wrap:  wrap;
+}
+
+.btn-action-bar {
+  flex:           1;
+  min-width:      80px;
+  padding:        11px 8px;
+  border-radius:  var(--radius);
+  border:         2px solid var(--border);
+  background:     var(--bg2);
+  color:          var(--text2);
+  font-family:    var(--font);
+  font-size:      11px;
+  font-weight:    700;
+  cursor:         pointer;
+  transition:     var(--transition);
+  text-align:     center;
+  letter-spacing: 0.3px;
+}
+
+.btn-action-bar:hover { border-color: var(--green-mid); color: var(--green-mid); }
+.btn-action-bar.danger:hover {
+  border-color: var(--color-none);
+  color:        var(--color-none);
+}
+
+/* ─── CARTE STATS ───────────────────────────────────────────── */
+.stats-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   10px;
+  margin-bottom:         12px;
+}
+
+.stat-card {
+  background:    var(--bg2);
+  border-radius: var(--radius);
+  padding:       16px 12px;
+  text-align:    center;
+  box-shadow:    var(--shadow-sm);
+  border-top:    4px solid var(--green-mid);
+}
+
+.stat-label {
+  font-size:      9px;
+  font-weight:    700;
+  color:          var(--text3);
+  letter-spacing: 1.5px;
+  margin-bottom:  6px;
+}
+
+.stat-value {
+  font-size:   26px;
+  font-weight: 800;
+  color:       var(--green-dark);
+  line-height: 1;
+}
+
+.stat-unit {
+  font-size:   12px;
+  color:       var(--text3);
+  font-weight: 500;
+}
+
+/* ─── HISTORIQUE SESSIONS ───────────────────────────────────── */
+.session-item {
+  background:    var(--bg2);
+  border-radius: var(--radius);
+  padding:       14px;
+  margin-bottom: 8px;
+  box-shadow:    var(--shadow-sm);
+}
+
+.session-header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   6px;
+}
+
+.session-name {
+  font-size:   14px;
+  font-weight: 800;
+  color:       var(--text);
+}
+
+.session-count {
+  font-size:      11px;
+  font-weight:    700;
+  color:          var(--green-mid);
+  background:     var(--green-light);
+  padding:        3px 10px;
+  border-radius:  var(--radius-lg);
+}
+
+.session-meta {
+  font-size:     11px;
+  color:         var(--text3);
+  margin-bottom: 10px;
+}
+
+.session-actions {
+  display:  flex;
+  gap:      6px;
+  flex-wrap:wrap;
+}
+
+/* ─── CARTE ÉCRAN ───────────────────────────────────────────── */
+.map-controls {
+  display:  flex;
+  gap:      8px;
+  padding:  10px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap:wrap;
+}
+
+.btn-map-tool {
+  flex:          1;
+  min-width:     80px;
+  padding:       9px 8px;
+  background:    var(--bg3);
+  border:        2px solid var(--border);
+  border-radius: var(--radius-sm);
+  color:         var(--text2);
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   700;
+  cursor:        pointer;
+  transition:    var(--transition);
+  text-align:    center;
+}
+
+.btn-map-tool:hover       { border-color: var(--green-mid); color: var(--green-mid); }
+.btn-map-tool.active      { background: var(--green-mid); color: white; border-color: var(--green-mid); }
+.btn-map-tool.danger:hover{ border-color: var(--color-none); color: var(--color-none); }
+
+.map-legend {
+  display:     flex;
+  gap:         12px;
+  padding:     8px 14px;
+  background:  var(--bg2);
+  border-top:  1px solid var(--border);
+  flex-wrap:   wrap;
+}
+
+.leg-item {
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+  font-size:   10px;
+  font-weight: 700;
+  color:       var(--text2);
+}
+
+.leg-color {
+  width:         12px;
+  height:        12px;
+  border-radius: 3px;
+  flex-shrink:   0;
+}
+
+.leg-dot {
+  width:         12px;
+  height:        12px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  border:        2px solid white;
+  box-shadow:    0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* ─── RESPONSIVE MOBILE COMPACT ──────────────────────────────── */
+@media (max-width: 360px) {
+  .data-value               { font-size: 19px; }
+  .terrain-btn-circle       { width: 56px; height: 56px; font-size: 20px; }
+  .terrain-btn-label        { font-size: 8px; }
+  .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
+  .obstacle-option          { padding: 10px 4px; }
+  .obstacle-option-icon     { font-size: 20px; }
+}

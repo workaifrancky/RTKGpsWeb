@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="RTK GPS App — Suivi GPS RTK avec BLE et carte OSM">
+  <title>RTKGpsApp</title>
+
+  <!-- CSS dans l'ordre -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/theme.css">
+
+  <!-- Leaflet.js -->
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <header>
+    <div class="logo">RTK<span>GPS</span><span class="version-flag" title="Version 2">V2</span></div>
+    <div class="header-actions">
+      <button id="btnTheme"
+        onclick="toggleTheme()"
+        title="Changer le thème">☀️</button>
+      <button id="btnBle"
+        onclick="toggleBle()">⬡ CONNECTER BLE</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BARRE DE STATUT                                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="statusBar">
+    <div class="dot" id="dotBle"></div>
+    <span id="statusText">
+      Non connecté — activez le Bluetooth
+    </span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ALERTE GPS                                              -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="alertBar"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLETS                                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="tabs">
+    <div class="tab active"
+      data-tab="tab-data"
+      onclick="showTab('tab-data')">📡 DONNÉES</div>
+    <div class="tab"
+      data-tab="tab-points"
+      onclick="showTab('tab-points')">📍 POINTS</div>
+    <div class="tab"
+      data-tab="tab-map"
+      onclick="showTab('tab-map')">🗺 CARTE</div>
+    <div class="tab"
+      data-tab="tab-camera"
+      onclick="showTab('tab-camera')">📷 CAMÉRA</div>
+    <div class="tab"
+      data-tab="tab-stats"
+      onclick="showTab('tab-stats')">📊 STATS</div>
+    <div class="tab"
+      data-tab="tab-history"
+      onclick="showTab('tab-history')">🕐 HISTORIQUE</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 1 : DONNÉES GPS                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-data" class="screen active">
+
+    <!-- Grille données principales -->
+    <div class="data-grid">
+      <div class="data-card">
+        <div class="data-label">LATITUDE</div>
+        <div class="data-value accent" id="dLat">—</div>
+      </div>
+      <div class="data-card">
+        <div class="data-label">LONGITUDE</div>
+        <div class="data-value accent" id="dLon">—</div>
+      </div>
+      <div class="data-card">
+        <div class="data-label">ALTITUDE</div>
+        <div class="data-value" id="dAlt">
+          —<span class="data-unit">m</span>
+        </div>
+      </div>
+      <div class="data-card">
+        <div class="data-label">SATELLITES</div>
+        <div class="data-value" id="dSat">—</div>
+      </div>
+      <div class="data-card">
+        <div class="data-label">HDOP</div>
+        <div class="data-value" id="dHdop">—</div>
+      </div>
+      <div class="data-card">
+        <div class="data-label">VITESSE</div>
+        <div class="data-value" id="dSpeed">—</div>
+      </div>
+    </div>
+
+    <!-- Carte détail -->
+    <div class="card-full">
+
+      <!-- Fix GPS -->
+      <div class="card-row">
+        <span class="card-key">TYPE DE FIX</span>
+        <span id="dFix">
+          <span class="fix-badge fix-none">NONE</span>
+        </span>
+      </div>
+
+      <!-- Synthèse précision estimée -->
+      <div class="card-row">
+        <span class="card-key">PRÉCISION</span>
+        <span id="dPrecision">
+          <span class="precision-summary precision-0">
+            Aucune — inconnue
+          </span>
+        </span>
+      </div>
+
+      <div class="card-row">
+        <span class="card-key">REL_X</span>
+        <span class="card-val" id="dRelX">— m</span>
+      </div>
+      <div class="card-row">
+        <span class="card-key">REL_Y</span>
+        <span class="card-val" id="dRelY">— m</span>
+      </div>
+      <div class="card-row">
+        <span class="card-key">CAP</span>
+        <span class="card-val" id="dCap">—</span>
+      </div>
+      <div class="card-row">
+        <span class="card-key">DATE / HEURE</span>
+        <span class="card-val" id="dDate">—</span>
+      </div>
+    </div>
+
+    <!-- Raison du blocage enregistrement -->
+    <div id="recordReason"
+      style="font-size:11px;
+             color:var(--text3);
+             text-align:center;
+             margin-bottom:8px;
+             letter-spacing:1px;
+             min-height:18px">
+    </div>
+
+    <!-- Bouton enregistrer -->
+    <button id="btnRecord"
+      disabled
+      onclick="recordPoint()">
+      ⊕ ENREGISTRER POSITION
+    </button>
+
+    <!-- Trame brute -->
+    <div class="section-title"
+      style="margin-top:16px">
+      TRAME BRUTE ESP32
+    </div>
+    <div id="rawData">En attente de connexion BLE...</div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 2 : POINTS ENREGISTRÉS                           -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-points" class="screen">
+
+    <div style="display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:12px">
+      <div class="section-title"
+        style="margin:0;border:none">
+        POSITIONS ENREGISTRÉES
+      </div>
+      <span id="pointCount"
+        style="font-size:11px;color:var(--text3)">
+        0 point(s)
+      </span>
+    </div>
+
+    <!-- Liste des points -->
+    <div id="pointsList"></div>
+
+    <!-- Boutons d'export -->
+    <div class="actions-bar">
+      <button class="btn-bar btn-csv"
+        onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn-bar btn-gpx"
+        onclick="exportGPX()">⬇ GPX</button>
+      <button class="btn-bar btn-geo"
+        onclick="exportGeoJSON()">⬇ GeoJSON</button>
+      <button class="btn-bar btn-clear"
+        onclick="clearAllPoints()">🗑 Effacer</button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 3 : CARTE                                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-map" class="screen">
+
+    <!-- Contrôles carte -->
+    <div class="map-controls">
+      <button id="btnSurface"
+        class="btn-bar"
+        onclick="toggleSurfaceMode()">
+        📐 MESURER SURFACE
+      </button>
+    </div>
+
+    <!-- Carte Leaflet -->
+    <div id="map"></div>
+
+    <!-- Résultat surface -->
+    <div id="surfaceResult"></div>
+
+    <!-- Légende -->
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-dot"
+          style="background:var(--color-rtk)"></div>
+        RTK Fix
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot"
+          style="background:var(--color-float)"></div>
+        Float RTK
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot"
+          style="background:var(--color-dgps)"></div>
+        DGPS
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot"
+          style="background:#94a3b8"></div>
+        GPS
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot"
+          style="background:var(--color-none)"></div>
+        None
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 4 : CAMÉRA                                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-camera" class="screen">
+
+    <!-- Sélecteur de point cible -->
+    <div class="target-selector">
+      <div class="card-key">POINT CIBLE</div>
+      <select id="targetSelect"
+        onchange="selectTargetPoint(
+          parseInt(this.value)
+        )">
+        <option value="">— Sélectionnez un point —</option>
+      </select>
+    </div>
+
+    <!-- Flux caméra + overlay -->
+    <div class="camera-container">
+      <video id="cameraVideo"
+        autoplay playsinline muted></video>
+      <div id="cameraOverlay">
+        <div class="cam-message">
+          Sélectionnez un point cible<br>
+          puis activez l'onglet CAMÉRA
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 5 : STATISTIQUES                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-stats" class="screen">
+
+    <div class="section-title">SESSION EN COURS</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">POINTS</div>
+        <div class="stat-value" id="statCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">DISTANCE</div>
+        <div class="stat-value" id="statDistance">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">SURFACE</div>
+        <div class="stat-value" id="statArea">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">HDOP MOYEN</div>
+        <div class="stat-value" id="statHdop">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">SAT MOYEN</div>
+        <div class="stat-value" id="statSat">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">DURÉE</div>
+        <div class="stat-value" id="statDuration">—</div>
+      </div>
+    </div>
+
+    <div class="card-full">
+      <div class="card-row">
+        <span class="card-key">MEILLEUR FIX</span>
+        <span id="statBestFix">
+          <span class="fix-badge fix-none">—</span>
+        </span>
+      </div>
+    </div>
+
+    <button class="btn-bar"
+      style="width:100%;margin-top:8px"
+      onclick="updateStatsDisplay()">
+      ↺ ACTUALISER
+    </button>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLET 6 : HISTORIQUE                                   -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="tab-history" class="screen">
+
+    <div class="section-title">SESSIONS PRÉCÉDENTES</div>
+    <div id="historyList"></div>
+
+  </div>
+
+</div><!-- fin .app-wrapper -->
+
+<!-- ─── TOAST ─────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SCRIPTS — ordre obligatoire                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<!-- 1. Utilitaires de base (pas de dépendances) -->
+<script src="js/parser.js"></script>
+
+<!-- 2. Coordination globale -->
+<script src="js/app.js"></script>
+
+<!-- 3. Données et logique métier -->
+<script src="js/ble.js"></script>
+<script src="js/points.js"></script>
+
+<!-- 4. Carte et calculs géographiques -->
+<script src="js/map.js"></script>
+<script src="js/stats.js"></script>
+
+<!-- 5. Export -->
+<script src="js/export.js"></script>
+
+<!-- 6. Périphériques -->
+<script src="js/camera.js"></script>
+<script src="js/history.js"></script>
+
+<!-- 7. UI en dernier (dépend de tout le reste) -->
+<script src="js/ui.js"></script>
+
+</body>
+</html>
