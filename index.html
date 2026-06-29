@@ -46,6 +46,14 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BARRE NTRIP                                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="ntripBar">
+    <span class="project-label">NTRIP</span>
+    <select id="ntripSelect" onchange="selectNtripStation(this.value)"></select>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ALERTE GPS                                              -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="alertBar"></div>
@@ -355,6 +363,7 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/parser.js"></script>
+<script src="js/ntrip.js"></script>
 <script src="js/app.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/ble.js"></script>

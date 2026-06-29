@@ -18,7 +18,12 @@ const COLORS = {
 
 function initMap() {
   if (map) return;
-  map = L.map('map', { center:[BOD1_LAT,BOD1_LON], zoom:17, zoomControl:true });
+  const station = typeof getSelectedNtripStation === 'function'
+    ? getSelectedNtripStation()
+    : { id:'bod1', name:'BOD1', lat:BOD1_LAT, lon:BOD1_LON, mountpoint:'Référence NTRIP' };
+  const centerLat = station?.lat ?? BOD1_LAT;
+  const centerLon = station?.lon ?? BOD1_LON;
+  map = L.map('map', { center:[centerLat,centerLon], zoom:17, zoomControl:true });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     { attribution:'© OpenStreetMap', maxZoom:22 }).addTo(map);
 
@@ -26,10 +31,10 @@ function initMap() {
   layerInterdit = L.layerGroup().addTo(map);
   layerObstacle = L.layerGroup().addTo(map);
 
-  // Marqueur BOD1
-  L.circleMarker([BOD1_LAT,BOD1_LON],{
+  // Marqueur station NTRIP sélectionnée
+  L.circleMarker([centerLat,centerLon],{
     radius:6, fillColor:'#fff', color:'#888', weight:2, fillOpacity:1
-  }).addTo(map).bindPopup('<b>Station BOD1</b><br>Référence NTRIP');
+  }).addTo(map).bindPopup(`<b>Station ${station?.name || 'NTRIP'}</b><br>${station?.mountpoint || 'Référence NTRIP'}`);
 
   renderMap();
 }

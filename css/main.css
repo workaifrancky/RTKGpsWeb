@@ -229,7 +229,8 @@ header {
 }
 
 /* ─── BARRE PROJET ──────────────────────────────────────────── */
-#projectBar {
+#projectBar,
+#ntripBar {
   background:      var(--bg2);
   padding:         8px 16px;
   display:         flex;
@@ -246,7 +247,8 @@ header {
   white-space:    nowrap;
 }
 
-#projectSelect {
+#projectSelect,
+#ntripSelect {
   flex:          1;
   padding:       6px 10px;
   background:    var(--bg3);
@@ -259,7 +261,8 @@ header {
   cursor:        pointer;
 }
 
-#projectSelect:focus {
+#projectSelect:focus,
+#ntripSelect:focus {
   outline:      none;
   border-color: var(--green-mid);
 }
