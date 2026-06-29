@@ -7,11 +7,75 @@ const NTRIP_DEFAULT_STATION_ID = 'bod1';
 
 const NTRIP_STATIONS = [
   {
+    id: 'near',
+    name: 'NEAR',
+    lat: null,
+    lon: null,
+    operational: true,
+    specialNote: 'Sélection automatique de la base opérationnelle la plus proche',
+  },
+  {
     id: 'bod1',
     name: 'BOD1',
     lat: 44.832223988119964,
     lon: -0.7019923801219144,
-    mountpoint: 'Référence NTRIP',
+    operational: true,
+  },
+  {
+    id: 'idre',
+    name: 'IDRE',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'luch',
+    name: 'LUCH',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'uevb',
+    name: 'UEVB',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'pierro',
+    name: 'PIERRO',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'bens',
+    name: 'BENS',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'beroy',
+    name: 'BEROY',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'bay40',
+    name: 'BAY40',
+    lat: null,
+    lon: null,
+    operational: true,
+  },
+  {
+    id: 'nas40',
+    name: 'NAS40',
+    lat: null,
+    lon: null,
+    operational: true,
   },
 ];
 
@@ -50,8 +114,12 @@ function renderNtripStationSelect() {
   if (!selectedNtripStationId) selectedNtripStationId = loadSelectedNtripStationId();
 
   select.innerHTML = NTRIP_STATIONS.map(station => {
-    const subtitle = station.mountpoint ? ` — ${station.mountpoint}` : '';
-    return `<option value="${station.id}" ${station.id === selectedNtripStationId ? 'selected' : ''}>${station.name}${subtitle}</option>`;
+    const suffix = station.id === 'near'
+      ? ' — automatique'
+      : station.id === NTRIP_DEFAULT_STATION_ID
+        ? ' — défaut'
+        : '';
+    return `<option value="${station.id}" ${station.id === selectedNtripStationId ? 'selected' : ''}>${station.name}${suffix}</option>`;
   }).join('');
 
   select.value = selectedNtripStationId || '';
