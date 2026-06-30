@@ -12,6 +12,7 @@ let compassPermissionState = 'unknown';
 let compassReady = false;
 let distanceModeReference = null;
 let distanceTargetMeters = 1;
+let targetSelectSignature = '';
 
 const CAMERA_DISTANCE_KEY = 'rtkCameraDistanceTarget';
 
@@ -162,15 +163,31 @@ function populateTargetSelect() {
   const sel = document.getElementById('targetSelect');
   if (!sel) return;
 
+  // Do not rebuild the dropdown while the user is interacting with it.
+  if (document.activeElement === sel) return;
+
   const pts = getPoints();
+  const selectedId = targetPoint ? String(targetPoint.id) : '';
+  const signature = `${selectedId}|${pts.map(p => `${p.id}:${p.icon}:${p.type}:${p.index}:${p.fix}`).join('|')}`;
+
+  if (signature === targetSelectSignature) return;
+
+  targetSelectSignature = signature;
+  const previousValue = sel.value;
+
   sel.innerHTML = '<option value="">— Sélectionnez un point cible —</option>' +
-    pts.map(p => `<option value="${p.id}" ${targetPoint && targetPoint.id === p.id ? 'selected' : ''}>${p.icon} ${p.type} #${p.index} — ${p.fix}</option>`).join('');
+    pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${p.icon} ${p.type} #${p.index} — ${p.fix}</option>`).join('');
+
+  if (!selectedId && previousValue && pts.some(p => String(p.id) === previousValue)) {
+    sel.value = previousValue;
+  }
 }
 
 function selectTargetPoint(pointId) {
-  populateTargetSelect();
   const pts = getPoints();
   targetPoint = pts.find(p => p.id === pointId) || null;
+  targetSelectSignature = '';
+  populateTargetSelect();
 
   if (targetPoint) {
     cameraMode = 'target';
