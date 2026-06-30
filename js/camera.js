@@ -13,6 +13,8 @@ let compassReady = false;
 let distanceModeReference = null;
 let distanceTargetMeters = 1;
 let targetSelectSignature = '';
+let targetSelectLocked = false;
+let cameraSelectListenersBound = false;
 
 const CAMERA_DISTANCE_KEY = 'rtkCameraDistanceTarget';
 
@@ -21,10 +23,44 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!Number.isNaN(saved) && saved >= 1 && saved <= 50) {
     distanceTargetMeters = saved;
   }
+
+  bindTargetSelectStabilityHandlers();
 });
+
+function bindTargetSelectStabilityHandlers() {
+  if (cameraSelectListenersBound) return;
+  const sel = document.getElementById('targetSelect');
+  if (!sel) return;
+
+  cameraSelectListenersBound = true;
+
+  const lock = () => {
+    targetSelectLocked = true;
+  };
+
+  const unlockAndRefresh = () => {
+    targetSelectLocked = false;
+    targetSelectSignature = '';
+    if (APP.currentTab === 'tab-camera') updateCameraOverlay();
+  };
+
+  sel.addEventListener('focus', lock);
+  sel.addEventListener('pointerdown', lock);
+  sel.addEventListener('mousedown', lock);
+  sel.addEventListener('touchstart', lock, { passive: true });
+  sel.addEventListener('change', unlockAndRefresh);
+  sel.addEventListener('blur', unlockAndRefresh);
+}
+
+function isTargetSelectInteracting() {
+  const sel = document.getElementById('targetSelect');
+  if (!sel) return false;
+  return targetSelectLocked || document.activeElement === sel;
+}
 
 async function startCamera() {
   initCompass();
+  bindTargetSelectStabilityHandlers();
   populateTargetSelect();
   refreshCameraModeUI();
 
@@ -164,7 +200,7 @@ function populateTargetSelect() {
   if (!sel) return;
 
   // Do not rebuild the dropdown while the user is interacting with it.
-  if (document.activeElement === sel) return;
+  if (isTargetSelectInteracting()) return;
 
   const pts = getPoints();
   const selectedId = targetPoint ? String(targetPoint.id) : '';
@@ -207,6 +243,8 @@ function updateCameraTarget(data) {
 function updateCameraOverlay() {
   const overlay = document.getElementById('cameraOverlay');
   if (!overlay) return;
+
+  if (isTargetSelectInteracting()) return;
 
   populateTargetSelect();
   renderCameraModeSettings();
