@@ -52,6 +52,7 @@ function showTab(tabId) {
   const tab = document.querySelector(`[data-tab="${tabId}"]`);
   if (tab) tab.classList.add('active');
   APP.currentTab = tabId;
+  syncTerrainBarVisibility(tabId);
 
   if (tabId === 'tab-map') {
     setTimeout(() => { if (typeof refreshMap === 'function') refreshMap(); }, 120);
@@ -67,6 +68,14 @@ function showTab(tabId) {
   if (tabId === 'tab-stats') {
     if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
   }
+}
+
+function syncTerrainBarVisibility(tabId) {
+  const terrainBar = document.querySelector('.terrain-bar');
+  if (!terrainBar) return;
+
+  // Only show point recording actions in the Points tab.
+  terrainBar.style.display = tabId === 'tab-points' ? 'block' : 'none';
 }
 
 // ─── BLE SUPPORT ─────────────────────────────────────────────

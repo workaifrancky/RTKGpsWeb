@@ -25,24 +25,24 @@
 .leaflet-popup-content     { margin: 10px 14px !important; }
 .leaflet-popup-content b   { color: var(--green-main); }
 
-.map-area-badge {
-  background: rgba(17, 24, 39, 0.82) !important;
-  color: #f9fafb !important;
-  border: 1px solid rgba(74, 222, 128, 0.75) !important;
-  border-radius: 999px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.4px;
-  padding: 6px 10px !important;
-}
-
-.map-area-badge::before {
+.map-surface-overlay {
   display: none;
+  max-width: 260px;
+  margin: 10px 10px 0 0;
+  background: rgba(17, 24, 39, 0.82);
+  color: #f9fafb;
+  border: 1px solid rgba(74, 222, 128, 0.75);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+  padding: 8px 10px;
 }
 
-.map-area-badge-interdit {
-  border-color: rgba(248, 113, 113, 0.85) !important;
+.map-surface-overlay.show {
+  display: block;
 }
 
 /* Contrôles zoom */
@@ -89,4 +89,8 @@
 [data-theme="dark"] .leaflet-control-attribution {
   background: rgba(15,17,23,0.85) !important;
   color: var(--text3) !important;
+}
+
+[data-theme="dark"] .map-surface-overlay {
+  border-color: rgba(74, 222, 128, 0.6);
 }

@@ -10,6 +10,8 @@ let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
 let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
 let surfaceMode=false, surfacePolygon=null;
+let surfaceOverlayControl = null;
+let surfaceOverlayEl = null;
 
 const COLORS = {
   tonte:    { stroke:'#16a34a', fill:'rgba(22,163,74,0.12)'   },
@@ -41,6 +43,8 @@ function initMap() {
   layerTonte    = L.layerGroup().addTo(map);
   layerInterdit = L.layerGroup().addTo(map);
   layerObstacle = L.layerGroup().addTo(map);
+
+  initSurfaceOverlayControl();
 
   // Marqueur station NTRIP sélectionnée
   L.circleMarker([centerLat,centerLon],{
@@ -94,7 +98,7 @@ function renderMap() {
 
   const pts = getPoints();
   if (pts.length === 0) {
-    setHTML('surfaceResult', '');
+    updateSurfaceOverlay('');
     return;
   }
 
@@ -107,18 +111,9 @@ function renderMap() {
   if (tonte.length >= 3) {
     const lls = tonte.map(p=>[p.lat,p.lon]);
     const area = calculateArea(tonte);
-    const tontePoly = L.polygon(lls, { color:COLORS.tonte.stroke, weight:2.5, fillColor:COLORS.tonte.fill, fillOpacity:1 })
+    L.polygon(lls, { color:COLORS.tonte.stroke, weight:2.5, fillColor:COLORS.tonte.fill, fillOpacity:1 })
       .addTo(layerTonte)
       .bindPopup('<b>Zone de tonte</b>');
-
-    // Surface superposée au centre de la parcelle.
-    tontePoly.bindTooltip(`Surface : <b>${formatArea(area)}</b>`, {
-      permanent: true,
-      direction: 'center',
-      className: 'map-area-badge',
-      interactive: false,
-      opacity: 1,
-    });
 
     surfaceParts.push(`Surface tonte : <b>${formatArea(area)}</b>`);
   }
@@ -133,17 +128,9 @@ function renderMap() {
   if (interdit.length >= 3) {
     const lls = interdit.map(p=>[p.lat,p.lon]);
     const area = calculateArea(interdit);
-    const interditPoly = L.polygon(lls, { color:COLORS.interdit.stroke, weight:2.5, fillColor:COLORS.interdit.fill, fillOpacity:1 })
+    L.polygon(lls, { color:COLORS.interdit.stroke, weight:2.5, fillColor:COLORS.interdit.fill, fillOpacity:1 })
       .addTo(layerInterdit)
       .bindPopup('<b>Zone interdite</b>');
-
-    interditPoly.bindTooltip(`Surface : <b>${formatArea(area)}</b>`, {
-      permanent: true,
-      direction: 'center',
-      className: 'map-area-badge map-area-badge-interdit',
-      interactive: false,
-      opacity: 1,
-    });
 
     surfaceParts.push(`Surface interdite : <b>${formatArea(area)}</b>`);
   }
@@ -169,7 +156,7 @@ function renderMap() {
   if (allLls.length === 1) map.setView(allLls[0], 19);
   else if (allLls.length > 1) map.fitBounds(allLls, {padding:[30,30]});
 
-  setHTML('surfaceResult', surfaceParts.join(' &nbsp;•&nbsp; '));
+  updateSurfaceOverlay(surfaceParts.join(' &nbsp;•&nbsp; '));
 }
 
 function pointPopup(p, idx) {
@@ -245,7 +232,7 @@ function toggleSurfaceMode() {
     const tonte = getPoints().filter(p=>p.type==='tonte');
     const interdit = getPoints().filter(p=>p.type==='interdit');
     const summary = buildSurfaceSummary(tonte, interdit);
-    setHTML('surfaceResult', summary);
+    updateSurfaceOverlay(summary);
   }
 }
 
@@ -281,6 +268,36 @@ function buildSurfaceSummary(tontePts, interditPts) {
   if (tontePts.length >= 3) parts.push(`Surface tonte : <b>${formatArea(calculateArea(tontePts))}</b>`);
   if (interditPts.length >= 3) parts.push(`Surface interdite : <b>${formatArea(calculateArea(interditPts))}</b>`);
   return parts.join(' &nbsp;•&nbsp; ');
+}
+
+function initSurfaceOverlayControl() {
+  if (!map || surfaceOverlayControl) return;
+
+  surfaceOverlayControl = L.control({ position: 'topright' });
+  surfaceOverlayControl.onAdd = () => {
+    const el = L.DomUtil.create('div', 'map-surface-overlay');
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+    surfaceOverlayEl = el;
+    return el;
+  };
+
+  surfaceOverlayControl.addTo(map);
+}
+
+function updateSurfaceOverlay(html) {
+  if (!map) return;
+  if (!surfaceOverlayControl || !surfaceOverlayEl) initSurfaceOverlayControl();
+  if (!surfaceOverlayEl) return;
+
+  if (!html) {
+    surfaceOverlayEl.innerHTML = '';
+    surfaceOverlayEl.classList.remove('show');
+    return;
+  }
+
+  surfaceOverlayEl.innerHTML = html;
+  surfaceOverlayEl.classList.add('show');
 }
 
 function setHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
