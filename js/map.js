@@ -87,18 +87,40 @@ function renderMap() {
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
 
+  if (surfacePolygon) {
+    map.removeLayer(surfacePolygon);
+    surfacePolygon = null;
+  }
+
   const pts = getPoints();
-  if (pts.length === 0) return;
+  if (pts.length === 0) {
+    setHTML('surfaceResult', '');
+    return;
+  }
 
   const tonte    = pts.filter(p=>p.type==='tonte');
   const interdit = pts.filter(p=>p.type==='interdit');
   const obstacle = pts.filter(p=>p.type==='obstacle');
+  const surfaceParts = [];
 
   // Polygone zone de tonte (si ≥3 pts)
   if (tonte.length >= 3) {
     const lls = tonte.map(p=>[p.lat,p.lon]);
-    L.polygon(lls, { color:COLORS.tonte.stroke, weight:2.5, fillColor:COLORS.tonte.fill, fillOpacity:1 })
-      .addTo(layerTonte).bindPopup('<b>Zone de tonte</b>');
+    const area = calculateArea(tonte);
+    const tontePoly = L.polygon(lls, { color:COLORS.tonte.stroke, weight:2.5, fillColor:COLORS.tonte.fill, fillOpacity:1 })
+      .addTo(layerTonte)
+      .bindPopup('<b>Zone de tonte</b>');
+
+    // Surface superposée au centre de la parcelle.
+    tontePoly.bindTooltip(`Surface : <b>${formatArea(area)}</b>`, {
+      permanent: true,
+      direction: 'center',
+      className: 'map-area-badge',
+      interactive: false,
+      opacity: 1,
+    });
+
+    surfaceParts.push(`Surface tonte : <b>${formatArea(area)}</b>`);
   }
   // Marqueurs tonte
   tonte.forEach((p,i) => {
@@ -110,8 +132,20 @@ function renderMap() {
   // Polygone zone interdite (si ≥3 pts)
   if (interdit.length >= 3) {
     const lls = interdit.map(p=>[p.lat,p.lon]);
-    L.polygon(lls, { color:COLORS.interdit.stroke, weight:2.5, fillColor:COLORS.interdit.fill, fillOpacity:1 })
-      .addTo(layerInterdit).bindPopup('<b>Zone interdite</b>');
+    const area = calculateArea(interdit);
+    const interditPoly = L.polygon(lls, { color:COLORS.interdit.stroke, weight:2.5, fillColor:COLORS.interdit.fill, fillOpacity:1 })
+      .addTo(layerInterdit)
+      .bindPopup('<b>Zone interdite</b>');
+
+    interditPoly.bindTooltip(`Surface : <b>${formatArea(area)}</b>`, {
+      permanent: true,
+      direction: 'center',
+      className: 'map-area-badge map-area-badge-interdit',
+      interactive: false,
+      opacity: 1,
+    });
+
+    surfaceParts.push(`Surface interdite : <b>${formatArea(area)}</b>`);
   }
   interdit.forEach((p,i) => {
     L.circleMarker([p.lat,p.lon],{radius:8,fillColor:COLORS.interdit.stroke,color:'white',weight:2,fillOpacity:0.95})
@@ -134,6 +168,8 @@ function renderMap() {
   const allLls = pts.filter(p=>p.lat&&p.lon).map(p=>[p.lat,p.lon]);
   if (allLls.length === 1) map.setView(allLls[0], 19);
   else if (allLls.length > 1) map.fitBounds(allLls, {padding:[30,30]});
+
+  setHTML('surfaceResult', surfaceParts.join(' &nbsp;•&nbsp; '));
 }
 
 function pointPopup(p, idx) {
@@ -202,12 +238,14 @@ function toggleSurfaceMode() {
     updateSurfaceDisplay();
   } else {
     if (btn) { btn.textContent='📐 Surface'; btn.classList.remove('active'); }
-    const pts = getPoints().filter(p=>p.type==='tonte');
-    if (pts.length >= 3) {
-      const a = calculateArea(pts);
-      document.getElementById('surfaceResult')?.classList.add('show');
-      setHTML('surfaceResult', `Surface tonte : <b>${formatArea(a)}</b>`);
+    if (surfacePolygon) {
+      map.removeLayer(surfacePolygon);
+      surfacePolygon = null;
     }
+    const tonte = getPoints().filter(p=>p.type==='tonte');
+    const interdit = getPoints().filter(p=>p.type==='interdit');
+    const summary = buildSurfaceSummary(tonte, interdit);
+    setHTML('surfaceResult', summary);
   }
 }
 
@@ -236,6 +274,13 @@ function calculateArea(pts) {
 function formatArea(m2) {
   if(m2>=10000) return `${(m2/10000).toFixed(4)} ha`;
   return `${m2.toFixed(1)} m²`;
+}
+
+function buildSurfaceSummary(tontePts, interditPts) {
+  const parts = [];
+  if (tontePts.length >= 3) parts.push(`Surface tonte : <b>${formatArea(calculateArea(tontePts))}</b>`);
+  if (interditPts.length >= 3) parts.push(`Surface interdite : <b>${formatArea(calculateArea(interditPts))}</b>`);
+  return parts.join(' &nbsp;•&nbsp; ');
 }
 
 function setHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}

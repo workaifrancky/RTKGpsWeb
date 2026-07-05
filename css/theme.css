@@ -77,6 +77,16 @@
   gap: 10px;
 }
 
+.cam-threshold-row {
+  display: flex;
+  gap: 8px;
+}
+
+.cam-threshold-btn {
+  flex: 1;
+  min-width: 0;
+}
+
 .camera-container {
   position:      relative;
   width:         100%;

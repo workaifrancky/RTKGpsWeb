@@ -58,11 +58,6 @@ function isTargetSelectInteracting() {
   return targetSelectLocked || document.activeElement === sel;
 }
 
-function isCameraSettingsInteracting() {
-  const thresholdSelect = document.getElementById('targetNearThresholdSelect');
-  return !!thresholdSelect && document.activeElement === thresholdSelect;
-}
-
 async function startCamera() {
   initCompass();
   bindTargetSelectStabilityHandlers();
@@ -176,9 +171,9 @@ function renderCameraModeSettings() {
   if (!container) return;
 
   if (cameraMode === 'target') {
-    const thresholdOptions = [0.8, 1.0, 1.5].map(v => {
-      const selected = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'selected' : '';
-      return `<option value="${v}" ${selected}>${v.toFixed(1).replace('.', ',')} m</option>`;
+    const thresholdButtons = [0.8, 1.0, 1.5].map(v => {
+      const active = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'active' : '';
+      return `<button class="btn-map-tool cam-threshold-btn ${active}" onclick="setTargetNearThreshold(${v})">${v.toFixed(1).replace('.', ',')} m</button>`;
     }).join('');
 
     container.innerHTML = `
@@ -186,9 +181,7 @@ function renderCameraModeSettings() {
       <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
       <div class="camera-settings" style="margin-top:10px;gap:6px;">
         <div class="camera-target-line">Seuil cercle cible</div>
-        <select id="targetNearThresholdSelect" style="width:100%;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:700" onchange="setTargetNearThreshold(this.value)">
-          ${thresholdOptions}
-        </select>
+        <div class="cam-threshold-row">${thresholdButtons}</div>
       </div>
     `;
     return;
@@ -230,7 +223,7 @@ function restartDistanceMeasurement() {
 }
 
 function setTargetNearThreshold(value) {
-  const next = parseFloat(value);
+  const next = typeof value === 'number' ? value : parseFloat(value);
   if (![0.8, 1.0, 1.5].includes(next)) return;
 
   targetNearThresholdMeters = next;
@@ -292,7 +285,7 @@ function updateCameraOverlay() {
   if (isTargetSelectInteracting()) return;
 
   populateTargetSelect();
-  if (!isCameraSettingsInteracting()) renderCameraModeSettings();
+  renderCameraModeSettings();
 
   if (!currentPos || !currentPos.lat || !currentPos.lon) {
     overlay.innerHTML = '<div class="cam-message">En attente du signal GPS...</div>';
