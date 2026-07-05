@@ -240,6 +240,48 @@
   padding:        20px;
 }
 
+.cam-status-row {
+  width:          100%;
+  display:        flex;
+  align-items:    center;
+  justify-content: space-between;
+  gap:            8px;
+}
+
+.cam-arrow-wrap {
+  position:       relative;
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  width:          100%;
+  min-height:     110px;
+}
+
+.cam-target-circle {
+  position:       absolute;
+  top:            50%;
+  left:           50%;
+  transform:      translate(-50%, -50%);
+  width:          190px;
+  height:         190px;
+  border-radius:  50%;
+  border:         4px solid rgba(74, 222, 128, 0.9);
+  box-shadow:     0 0 20px rgba(74, 222, 128, 0.75), inset 0 0 14px rgba(74, 222, 128, 0.35);
+  animation:      pulse-target 2.1s ease-in-out infinite;
+}
+
+.cam-target-circle-dot {
+  position:       absolute;
+  top:            50%;
+  left:           50%;
+  transform:      translate(-50%, -50%);
+  width:          12px;
+  height:         12px;
+  border-radius:  50%;
+  background:     #86efac;
+  box-shadow:     0 0 16px rgba(134, 239, 172, 0.9);
+}
+
 .cam-arrow {
   font-size:  72px;
   filter:     drop-shadow(0 0 12px currentColor);
@@ -279,14 +321,34 @@
 .cam-fix-badge.badge-gps { border-color:#9ca3af; color:#f3f4f6; }
 .cam-fix-badge.badge-none { border-color:#f87171; color:#fee2e2; }
 
+.cam-success {
+  background:     rgba(22, 163, 74, 0.92);
+  color:          #ecfdf5;
+  border:         2px solid rgba(134, 239, 172, 0.95);
+  border-radius:  var(--radius-lg);
+  padding:        8px 14px;
+  font-size:      12px;
+  font-weight:    800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+@keyframes pulse-target {
+  0%   { transform: translate(-50%, -50%) scale(0.98); opacity: 0.88; }
+  50%  { transform: translate(-50%, -50%) scale(1.01); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.98); opacity: 0.88; }
+}
+
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
   .cam-arrow    { font-size: 56px; }
   .cam-distance { font-size: 32px; }
   .camera-gauge { width: 112px; height: 112px; }
   .camera-gauge-inner { width: 78px; height: 78px; }
+  .cam-target-circle { width: 148px; height: 148px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .live-marker-pulse { animation: none; }
+  .cam-target-circle { animation: none; }
 }

@@ -15,7 +15,15 @@ let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
 
+const CAMERA_TARGET_NEAR_KEY = 'rtkCameraTargetNearThreshold';
+let targetNearThresholdMeters = 1.5;
+
 document.addEventListener('DOMContentLoaded', () => {
+  const savedThreshold = parseFloat(localStorage.getItem(CAMERA_TARGET_NEAR_KEY));
+  if ([0.8, 1.0, 1.5].includes(savedThreshold)) {
+    targetNearThresholdMeters = savedThreshold;
+  }
+
   bindTargetSelectStabilityHandlers();
 });
 
@@ -48,6 +56,11 @@ function isTargetSelectInteracting() {
   const sel = document.getElementById('targetSelect');
   if (!sel) return false;
   return targetSelectLocked || document.activeElement === sel;
+}
+
+function isCameraSettingsInteracting() {
+  const thresholdSelect = document.getElementById('targetNearThresholdSelect');
+  return !!thresholdSelect && document.activeElement === thresholdSelect;
 }
 
 async function startCamera() {
@@ -163,9 +176,20 @@ function renderCameraModeSettings() {
   if (!container) return;
 
   if (cameraMode === 'target') {
+    const thresholdOptions = [0.8, 1.0, 1.5].map(v => {
+      const selected = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'selected' : '';
+      return `<option value="${v}" ${selected}>${v.toFixed(1).replace('.', ',')} m</option>`;
+    }).join('');
+
     container.innerHTML = `
       <div class="card-key" style="margin-bottom:6px">BOUSSOLE</div>
       <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
+      <div class="camera-settings" style="margin-top:10px;gap:6px;">
+        <div class="camera-target-line">Seuil cercle cible</div>
+        <select id="targetNearThresholdSelect" style="width:100%;padding:8px 10px;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-weight:700" onchange="setTargetNearThreshold(this.value)">
+          ${thresholdOptions}
+        </select>
+      </div>
     `;
     return;
   }
@@ -203,6 +227,17 @@ function restartDistanceMeasurement() {
   startDistanceMeasurement();
   updateCameraOverlay();
   showToast('📏 Mesure relancée depuis la position actuelle', 'info');
+}
+
+function setTargetNearThreshold(value) {
+  const next = parseFloat(value);
+  if (![0.8, 1.0, 1.5].includes(next)) return;
+
+  targetNearThresholdMeters = next;
+  localStorage.setItem(CAMERA_TARGET_NEAR_KEY, String(next));
+
+  updateCameraOverlay();
+  showToast(`Seuil cible: ${next.toFixed(1).replace('.', ',')} m`, 'info', 1600);
 }
 
 function populateTargetSelect() {
@@ -257,7 +292,7 @@ function updateCameraOverlay() {
   if (isTargetSelectInteracting()) return;
 
   populateTargetSelect();
-  renderCameraModeSettings();
+  if (!isCameraSettingsInteracting()) renderCameraModeSettings();
 
   if (!currentPos || !currentPos.lat || !currentPos.lon) {
     overlay.innerHTML = '<div class="cam-message">En attente du signal GPS...</div>';
@@ -283,6 +318,8 @@ function renderTargetMode(overlay) {
   const correctedBearing = getCorrectedBearing(bearing);
   const color = getCameraColor(dist);
   const distText = formatCameraDistance(dist);
+  const cap = getCurrentCap();
+  const nearTarget = dist < targetNearThresholdMeters;
 
   overlay.innerHTML = `
     <div class="cam-overlay-content cam-overlay-target" style="position:absolute;inset:0;">
@@ -290,12 +327,19 @@ function renderTargetMode(overlay) {
         ${getCompassBadgeHtml()}
         <span class="cam-fix-badge ${currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass}">${currentPos.fix || '—'}</span>
       </div>
+      ${nearTarget ? '<div class="cam-target-circle"><div class="cam-target-circle-dot"></div></div>' : ''}
       <div class="cam-arrow-wrap">
-        ${dist < 0.05 ? '<div class="cam-crosshair">✛</div>' : `<div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">▲</div>`}
+        <div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">▲</div>
       </div>
       <div class="cam-distance" style="color:${color}">${distText}</div>
+      <div class="camera-settings" style="width:100%;max-width:320px;">
+        <div class="card-row" style="background:rgba(0,0,0,0.45);border-radius:12px;border:none;">
+          <span class="card-key" style="color:rgba(255,255,255,0.7)">CAP</span>
+          <span class="card-val" style="color:#fff">${formatCap(cap)}</span>
+        </div>
+      </div>
       <div class="cam-target-info">${targetPoint.icon} ${targetPoint.type} #${targetPoint.index} — ${targetPoint.fix}</div>
-      ${dist < 0.05 ? '<div class="cam-success">✅ POSITION ATTEINTE</div>' : ''}
+      ${nearTarget ? `<div class="cam-success">CIBLE À MOINS DE ${targetNearThresholdMeters.toFixed(1).replace('.', ',')} M</div>` : ''}
     </div>
   `;
 }
