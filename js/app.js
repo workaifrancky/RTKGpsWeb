@@ -75,7 +75,9 @@ function syncTerrainBarVisibility(tabId) {
   if (!terrainBar) return;
 
   // Only show point recording actions in the Points tab.
-  terrainBar.style.display = tabId === 'tab-points' ? 'block' : 'none';
+  const show = tabId === 'tab-points';
+  terrainBar.classList.toggle('show', show);
+  terrainBar.setAttribute('aria-hidden', show ? 'false' : 'true');
 }
 
 // ─── BLE SUPPORT ─────────────────────────────────────────────

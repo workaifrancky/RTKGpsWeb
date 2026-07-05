@@ -165,6 +165,7 @@
 
 /* ─── BARRE TERRAIN FIXE EN BAS ─────────────────────────────── */
 .terrain-bar {
+  display:     none;
   position:    fixed;
   bottom:      0;
   left:        50%;
@@ -176,6 +177,10 @@
   border-top:  3px solid var(--green-dark);
   z-index:     300;
   box-shadow:  0 -4px 20px rgba(0,0,0,0.2);
+}
+
+.terrain-bar.show {
+  display: block;
 }
 
 .terrain-bar-title {
