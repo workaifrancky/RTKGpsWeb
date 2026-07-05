@@ -10,20 +10,12 @@ let cameraMode = 'target';
 let compassHeading = null;
 let compassPermissionState = 'unknown';
 let compassReady = false;
-let distanceModeReference = null;
-let distanceTargetMeters = 1;
+let distanceMeasureStart = null;
 let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
 
-const CAMERA_DISTANCE_KEY = 'rtkCameraDistanceTarget';
-
 document.addEventListener('DOMContentLoaded', () => {
-  const saved = parseFloat(localStorage.getItem(CAMERA_DISTANCE_KEY));
-  if (!Number.isNaN(saved) && saved >= 1 && saved <= 50) {
-    distanceTargetMeters = saved;
-  }
-
   bindTargetSelectStabilityHandlers();
 });
 
@@ -143,6 +135,11 @@ function handleDeviceOrientation(event) {
 
 function setMode(mode) {
   cameraMode = mode === 'distance' ? 'distance' : 'target';
+
+  if (cameraMode === 'distance') {
+    startDistanceMeasurement();
+  }
+
   refreshCameraModeUI();
   updateCameraOverlay();
 }
@@ -173,26 +170,39 @@ function renderCameraModeSettings() {
     return;
   }
 
-  const pts = getPoints();
-  if (!distanceModeReference || !pts.find(p => p.id === distanceModeReference.id)) {
-    distanceModeReference = pts.length > 0 ? pts[pts.length - 1] : null;
-  }
-
-  const refLabel = distanceModeReference
-    ? `${distanceModeReference.icon} ${distanceModeReference.type} #${distanceModeReference.index}`
-    : 'Aucun point de référence';
+  const hasStart = !!distanceMeasureStart;
+  const startText = hasStart
+    ? `${fmt(distanceMeasureStart.lat, 6)}, ${fmt(distanceMeasureStart.lon, 6)}`
+    : 'Appuyez sur "Mesurer une distance" pour démarrer';
 
   container.innerHTML = `
     <div class="card-key" style="margin-bottom:6px">MESURE DE DISTANCE</div>
     <div class="camera-settings">
       <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
-      <div class="camera-slider-row">
-        <input id="distanceSlider" class="camera-slider" type="range" min="1" max="50" step="0.5" value="${distanceTargetMeters}" oninput="setDistanceTarget(this.value)">
-        <div class="camera-slider-value">${distanceTargetMeters.toFixed(1)} m</div>
-      </div>
-      <div class="camera-target-line">Référence: ${refLabel}</div>
+      <div class="camera-target-line">Départ: ${startText}</div>
+      <button class="btn-map-tool" style="width:100%" onclick="restartDistanceMeasurement()">↻ Repartir d'ici</button>
     </div>
   `;
+}
+
+function startDistanceMeasurement() {
+  if (!currentPos || !currentPos.lat || !currentPos.lon) return;
+
+  distanceMeasureStart = {
+    lat: currentPos.lat,
+    lon: currentPos.lon,
+  };
+}
+
+function restartDistanceMeasurement() {
+  if (!currentPos || !currentPos.lat || !currentPos.lon) {
+    showToast('Signal GPS requis pour démarrer la mesure', 'warning');
+    return;
+  }
+
+  startDistanceMeasurement();
+  updateCameraOverlay();
+  showToast('📏 Mesure relancée depuis la position actuelle', 'info');
 }
 
 function populateTargetSelect() {
@@ -291,20 +301,15 @@ function renderTargetMode(overlay) {
 }
 
 function renderDistanceMode(overlay) {
-  const pts = getPoints();
-  if (!pts.length) {
-    overlay.innerHTML = '<div class="cam-message">Aucun point de référence disponible<br>enregistrez d\'abord un point</div>';
+  if (!distanceMeasureStart) {
+    overlay.innerHTML = '<div class="cam-message">Appuyez sur "Mesurer une distance"<br>pour définir le point de départ</div>';
     return;
   }
 
-  distanceModeReference = pts[pts.length - 1];
-  const dist = haversine(currentPos.lat, currentPos.lon, distanceModeReference.lat, distanceModeReference.lon);
-  const bearing = calcBearing(distanceModeReference.lat, distanceModeReference.lon, currentPos.lat, currentPos.lon);
-  const correctedBearing = getCorrectedBearing(bearing);
-  const progress = Math.min((dist / distanceTargetMeters) * 100, 100);
-  const color = dist >= distanceTargetMeters ? '#16a34a' : getCameraColor(dist);
-  const ringDegrees = Math.max(0, Math.min(progress, 100)) * 3.6;
-  const reached = dist >= distanceTargetMeters;
+  const dist = haversine(distanceMeasureStart.lat, distanceMeasureStart.lon, currentPos.lat, currentPos.lon);
+  const cap = getCurrentCap();
+  const correctedCap = typeof cap === 'number' ? getCorrectedBearing(cap) : 0;
+  const color = getCameraColor(dist);
 
   overlay.innerHTML = `
     <div class="cam-overlay-content cam-overlay-distance" style="position:absolute;inset:0;">
@@ -312,49 +317,40 @@ function renderDistanceMode(overlay) {
         ${getCompassBadgeHtml()}
         <span class="cam-fix-badge ${currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass}">${currentPos.fix || '—'}</span>
       </div>
-      <div class="cam-distance-ring" style="background:conic-gradient(${color} 0deg ${ringDegrees}deg, rgba(255,255,255,0.12) ${ringDegrees}deg 360deg); border-color:${color}">
-        <div class="cam-distance-ring-inner">
-          <div class="cam-gauge-value cam-distance" style="color:${color};font-size:24px;">${formatCameraDistance(dist)}</div>
-          <div class="cam-ref-label">Réf. ${distanceModeReference.icon} ${distanceModeReference.type} #${distanceModeReference.index}</div>
+      <div class="cam-arrow-wrap">
+        <div class="cam-arrow" style="transform:rotate(${correctedCap}deg);color:${color}">▲</div>
+      </div>
+      <div class="cam-distance" style="color:${color}">${formatCameraDistance(dist)}</div>
+      <div class="cam-target-info">Distance parcourue depuis le départ</div>
+      <div class="camera-settings" style="width:100%;max-width:320px;">
+        <div class="card-row" style="background:rgba(0,0,0,0.45);border-radius:12px;border:none;">
+          <span class="card-key" style="color:rgba(255,255,255,0.7)">CAP</span>
+          <span class="card-val" style="color:#fff">${formatCap(cap)}</span>
+        </div>
+        <div class="card-row" style="background:rgba(0,0,0,0.45);border-radius:12px;border:none;">
+          <span class="card-key" style="color:rgba(255,255,255,0.7)">DÉPART</span>
+          <span class="card-val" style="color:#fff">${fmt(distanceMeasureStart.lat, 5)}, ${fmt(distanceMeasureStart.lon, 5)}</span>
         </div>
       </div>
-      <div class="cam-arrow-wrap">
-        <div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">▲</div>
-      </div>
-      <div class="cam-distance-target">Cible : <span>${distanceTargetMeters.toFixed(1)} m</span></div>
-      <div class="camera-slider-row" style="width:100%;justify-content:center;">
-        <input id="distanceSlider" class="camera-slider" type="range" min="1" max="50" step="0.5" value="${distanceTargetMeters}" oninput="setDistanceTarget(this.value)">
-      </div>
-      <div class="camera-slider-value">${distanceTargetMeters.toFixed(1)} m</div>
-      ${reached ? '<div class="cam-success">DISTANCE ATTEINTE — enregistrez le point</div><button class="cam-save-btn" onclick="recordPointHere()">Enregistrer ici</button>' : ''}
     </div>
   `;
 }
 
-function updateDistanceBar() {
-  const slider = document.getElementById('distanceSlider');
-  if (slider) slider.value = distanceTargetMeters;
-  updateCameraOverlay();
-}
-
-function setDistanceTarget(value) {
-  const next = Math.min(50, Math.max(1, parseFloat(value) || 1));
-  distanceTargetMeters = next;
-  localStorage.setItem(CAMERA_DISTANCE_KEY, String(next));
-  updateDistanceBar();
-}
-
-function recordPointHere() {
-  if (typeof buildPoint !== 'function' || typeof savePoint !== 'function') {
-    showToast('Enregistrement indisponible', 'error');
-    return;
+function getCurrentCap() {
+  if (currentPos && typeof currentPos.course === 'number' && Number.isFinite(currentPos.course)) {
+    return ((currentPos.course % 360) + 360) % 360;
   }
 
-  const pt = buildPoint('obstacle', 'Perso', '📍');
-  savePoint(pt);
-  distanceModeReference = pt;
-  updateCameraOverlay();
-  showToast('📍 Point enregistré ici', 'tonte');
+  if (compassReady && typeof compassHeading === 'number' && Number.isFinite(compassHeading)) {
+    return ((compassHeading % 360) + 360) % 360;
+  }
+
+  return null;
+}
+
+function formatCap(cap) {
+  if (typeof cap !== 'number' || !Number.isFinite(cap)) return '—';
+  return `${cap.toFixed(0)}°`;
 }
 
 function getCorrectedBearing(bearing) {
