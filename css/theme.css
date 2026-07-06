@@ -56,7 +56,58 @@
   display:       flex;
   flex-direction: column;
   gap:           10px;
-  padding:       12px 12px 0;
+  padding:       10px 10px 0;
+}
+
+.camera-pickers-row {
+  display:        grid;
+  grid-template-columns: 1fr 1fr;
+  gap:            8px;
+}
+
+.camera-picker-card {
+  position: relative;
+  padding:  8px;
+}
+
+.camera-picker-btn {
+  width:          100%;
+  min-width:      0;
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  gap:            6px;
+  padding:        10px 8px;
+  font-size:      12px;
+}
+
+.camera-picker-menu {
+  display:        none;
+  position:       absolute;
+  left:           8px;
+  right:          8px;
+  top:            calc(100% + 6px);
+  z-index:        40;
+  background:     var(--bg2);
+  border:         1px solid var(--border);
+  border-radius:  var(--radius-sm);
+  box-shadow:     var(--shadow);
+  padding:        8px;
+}
+
+.camera-picker-menu.show {
+  display: block;
+}
+
+.camera-picker-select {
+  width:          100%;
+  border:         1.5px solid var(--border);
+  border-radius:  var(--radius-sm);
+  background:     var(--bg3);
+  color:          var(--text);
+  font-size:      12px;
+  font-weight:    700;
+  padding:        6px;
 }
 
 .camera-card {
@@ -78,22 +129,35 @@
 }
 
 .cam-threshold-row {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
 }
 
 .cam-threshold-btn {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .camera-container {
   position:      relative;
   width:         100%;
-  height:        calc(100dvh - 430px);
-  min-height:    250px;
+  height:        calc(100dvh - 240px);
+  min-height:    420px;
   background:    #000;
   overflow:      hidden;
+}
+
+#tab-camera {
+  padding-bottom: 0;
+}
+
+#tab-camera.active {
+  display:        flex;
+  flex-direction: column;
+}
+
+#tab-camera .camera-container {
+  flex: 1;
 }
 
 #cameraVideo {
@@ -373,6 +437,7 @@
 
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
+  .camera-pickers-row { grid-template-columns: 1fr; }
   .cam-arrow    { width: 28px; height: 86px; }
   .cam-arrow-head { border-left-width: 10px; border-right-width: 10px; border-bottom-width: 14px; }
   .cam-arrow-shaft { width: 5px; height: 64px; }

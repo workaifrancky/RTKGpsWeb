@@ -14,6 +14,11 @@ let distanceMeasureStart = null;
 let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
+let cameraPickerListenersBound = false;
+let gpsFrameLastTimestampMs = null;
+let gpsFrameIntervalsMs = [];
+
+const GPS_RATE_SAMPLE_SIZE = 12;
 
 const CAMERA_TARGET_NEAR_KEY = 'rtkCameraTargetNearThreshold';
 let targetNearThresholdMeters = 1.5;
@@ -25,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   bindTargetSelectStabilityHandlers();
+  bindCameraPickerOutsideClose();
 });
 
 function bindTargetSelectStabilityHandlers() {
@@ -52,6 +58,49 @@ function bindTargetSelectStabilityHandlers() {
   sel.addEventListener('blur', unlockAndRefresh);
 }
 
+function bindCameraPickerOutsideClose() {
+  if (cameraPickerListenersBound) return;
+  cameraPickerListenersBound = true;
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('.camera-picker-card')) return;
+    closeCameraMenus();
+  });
+}
+
+function closeCameraMenus() {
+  const targetMenu = document.getElementById('cameraTargetMenu');
+  const thresholdMenu = document.getElementById('cameraThresholdMenu');
+  if (targetMenu) targetMenu.classList.remove('show');
+  if (thresholdMenu) thresholdMenu.classList.remove('show');
+}
+
+function toggleCameraTargetMenu() {
+  const menu = document.getElementById('cameraTargetMenu');
+  const other = document.getElementById('cameraThresholdMenu');
+  if (!menu) return;
+
+  if (other) other.classList.remove('show');
+  const willShow = !menu.classList.contains('show');
+  menu.classList.toggle('show', willShow);
+
+  if (willShow) {
+    populateTargetSelect();
+    const sel = document.getElementById('targetSelect');
+    if (sel) sel.focus();
+  }
+}
+
+function toggleCameraThresholdMenu() {
+  const menu = document.getElementById('cameraThresholdMenu');
+  const other = document.getElementById('cameraTargetMenu');
+  if (!menu) return;
+
+  if (other) other.classList.remove('show');
+  menu.classList.toggle('show');
+}
+
 function isTargetSelectInteracting() {
   const sel = document.getElementById('targetSelect');
   if (!sel) return false;
@@ -61,7 +110,10 @@ function isTargetSelectInteracting() {
 async function startCamera() {
   initCompass();
   bindTargetSelectStabilityHandlers();
+  bindCameraPickerOutsideClose();
   populateTargetSelect();
+  renderCameraThresholdMenu();
+  updateCameraPickerLabels();
   refreshCameraModeUI();
 
   if (cameraStream) {
@@ -156,13 +208,17 @@ function refreshCameraModeUI() {
   const targetBtn = document.getElementById('btnCameraTargetMode');
   const distanceBtn = document.getElementById('btnCameraDistanceMode');
   const targetCard = document.getElementById('cameraTargetCard');
+  const thresholdCard = document.getElementById('cameraThresholdCard');
   const settingsCard = document.getElementById('cameraModeSettings');
 
   if (targetBtn) targetBtn.classList.toggle('active', cameraMode === 'target');
   if (distanceBtn) distanceBtn.classList.toggle('active', cameraMode === 'distance');
-  if (targetCard) targetCard.style.display = cameraMode === 'target' ? 'block' : 'none';
+  if (targetCard) targetCard.style.display = 'block';
+  if (thresholdCard) thresholdCard.style.display = 'block';
   if (settingsCard) settingsCard.style.display = 'block';
 
+  renderCameraThresholdMenu();
+  updateCameraPickerLabels();
   renderCameraModeSettings();
 }
 
@@ -170,19 +226,13 @@ function renderCameraModeSettings() {
   const container = document.getElementById('cameraModeSettings');
   if (!container) return;
 
-  if (cameraMode === 'target') {
-    const thresholdButtons = [0.8, 1.0, 1.5].map(v => {
-      const active = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'active' : '';
-      return `<button class="btn-map-tool cam-threshold-btn ${active}" onclick="setTargetNearThreshold(${v})">${v.toFixed(1).replace('.', ',')} m</button>`;
-    }).join('');
+  const gpsRefreshHtml = getGpsRefreshDebugHtml();
 
+  if (cameraMode === 'target') {
     container.innerHTML = `
       <div class="card-key" style="margin-bottom:6px">BOUSSOLE</div>
       <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
-      <div class="camera-settings" style="margin-top:10px;gap:6px;">
-        <div class="camera-target-line">Seuil cercle cible</div>
-        <div class="cam-threshold-row">${thresholdButtons}</div>
-      </div>
+      ${gpsRefreshHtml}
     `;
     return;
   }
@@ -196,6 +246,7 @@ function renderCameraModeSettings() {
     <div class="card-key" style="margin-bottom:6px">MESURE DE DISTANCE</div>
     <div class="camera-settings">
       <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
+      ${gpsRefreshHtml}
       <div class="camera-target-line">Départ: ${startText}</div>
       <button class="btn-map-tool" style="width:100%" onclick="restartDistanceMeasurement()">↻ Repartir d'ici</button>
     </div>
@@ -229,8 +280,37 @@ function setTargetNearThreshold(value) {
   targetNearThresholdMeters = next;
   localStorage.setItem(CAMERA_TARGET_NEAR_KEY, String(next));
 
+  updateCameraPickerLabels();
+  renderCameraThresholdMenu();
   updateCameraOverlay();
   showToast(`Seuil cible: ${next.toFixed(1).replace('.', ',')} m`, 'info', 1600);
+}
+
+function renderCameraThresholdMenu() {
+  const menu = document.getElementById('cameraThresholdMenu');
+  if (!menu) return;
+
+  const buttons = [0.8, 1.0, 1.5].map(v => {
+    const active = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'active' : '';
+    return `<button class="btn-map-tool cam-threshold-btn ${active}" onclick="setTargetNearThreshold(${v});closeCameraMenus();">${v.toFixed(1).replace('.', ',')} m</button>`;
+  }).join('');
+
+  menu.innerHTML = `<div class="cam-threshold-row">${buttons}</div>`;
+}
+
+function updateCameraPickerLabels() {
+  const targetLabel = document.getElementById('cameraTargetLabel');
+  const thresholdLabel = document.getElementById('cameraThresholdLabel');
+
+  if (targetLabel) {
+    targetLabel.textContent = targetPoint
+      ? `${targetPoint.icon} ${targetPoint.type} #${targetPoint.index}`
+      : 'Aucun';
+  }
+
+  if (thresholdLabel) {
+    thresholdLabel.textContent = `${targetNearThresholdMeters.toFixed(1).replace('.', ',')} m`;
+  }
 }
 
 function populateTargetSelect() {
@@ -255,6 +335,8 @@ function populateTargetSelect() {
   if (!selectedId && previousValue && pts.some(p => String(p.id) === previousValue)) {
     sel.value = previousValue;
   }
+
+  updateCameraPickerLabels();
 }
 
 function selectTargetPoint(pointId) {
@@ -267,15 +349,67 @@ function selectTargetPoint(pointId) {
     cameraMode = 'target';
     refreshCameraModeUI();
     showToast(`🎯 Cible : ${targetPoint.type} #${targetPoint.index}`, 'info');
-    updateCameraOverlay();
   }
+
+  closeCameraMenus();
+  updateCameraPickerLabels();
+  updateCameraOverlay();
 }
 
 function updateCameraTarget(data) {
+  registerGpsFrameTimestamp(data);
   currentPos = data;
   if (APP.currentTab === 'tab-camera') {
     updateCameraOverlay();
   }
+}
+
+function registerGpsFrameTimestamp(data) {
+  const receivedTs = data && data.receivedAt ? Date.parse(data.receivedAt) : NaN;
+  const now = Number.isFinite(receivedTs) ? receivedTs : Date.now();
+
+  if (Number.isFinite(gpsFrameLastTimestampMs)) {
+    const delta = now - gpsFrameLastTimestampMs;
+    // Filter out obviously invalid gaps to keep the indicator stable.
+    if (delta > 10 && delta < 10000) {
+      gpsFrameIntervalsMs.push(delta);
+      if (gpsFrameIntervalsMs.length > GPS_RATE_SAMPLE_SIZE) {
+        gpsFrameIntervalsMs.shift();
+      }
+    }
+  }
+
+  gpsFrameLastTimestampMs = now;
+}
+
+function getGpsRefreshStats() {
+  if (!Number.isFinite(gpsFrameLastTimestampMs) || gpsFrameIntervalsMs.length === 0) {
+    return { hzText: '—', intervalText: '—', ageMs: null };
+  }
+
+  const avgMs = gpsFrameIntervalsMs.reduce((sum, v) => sum + v, 0) / gpsFrameIntervalsMs.length;
+  const hz = 1000 / avgMs;
+  const hzDecimals = hz >= 10 ? 1 : 2;
+
+  return {
+    hzText: `${hz.toFixed(hzDecimals).replace('.', ',')} Hz`,
+    intervalText: `${Math.round(avgMs)} ms`,
+    ageMs: Date.now() - gpsFrameLastTimestampMs,
+  };
+}
+
+function getGpsRefreshDebugHtml() {
+  const stats = getGpsRefreshStats();
+  const freshness = stats.ageMs !== null && stats.ageMs > 3000
+    ? `<span style="color:#fca5a5">(dernier point il y a ${Math.round(stats.ageMs / 1000)} s)</span>`
+    : '';
+
+  return `
+    <div class="card-row" style="margin-top:8px;background:rgba(0,0,0,0.35);border-radius:10px;border:none;padding:8px 10px;">
+      <span class="card-key" style="color:rgba(255,255,255,0.7)">GPS</span>
+      <span class="card-val" style="color:#fff;font-size:12px">${stats.hzText} • ${stats.intervalText} ${freshness}</span>
+    </div>
+  `;
 }
 
 function updateCameraOverlay() {
