@@ -250,13 +250,11 @@ function renderCameraModeSettings() {
   const container = document.getElementById('cameraModeSettings');
   if (!container) return;
 
-  const gpsRefreshHtml = getGpsRefreshDebugHtml();
+  const compactCompassRow = getCompassAndCoordsRowHtml();
 
   if (cameraMode === 'target') {
     container.innerHTML = `
-      <div class="card-key" style="margin-bottom:6px">BOUSSOLE</div>
-      <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
-      ${gpsRefreshHtml}
+      ${compactCompassRow}
     `;
     return;
   }
@@ -269,8 +267,7 @@ function renderCameraModeSettings() {
   container.innerHTML = `
     <div class="card-key" style="margin-bottom:6px">MESURE DE DISTANCE</div>
     <div class="camera-settings">
-      <div class="cam-status ${getCompassStateClass()}">${getCompassStatusText()}</div>
-      ${gpsRefreshHtml}
+      ${compactCompassRow}
       <div class="camera-target-line">Départ: ${startText}</div>
       <button class="btn-map-tool" style="width:100%" onclick="restartDistanceMeasurement()">↻ Repartir d'ici</button>
     </div>
@@ -422,20 +419,6 @@ function getGpsRefreshStats() {
   };
 }
 
-function getGpsRefreshDebugHtml() {
-  const stats = getGpsRefreshStats();
-  const freshness = stats.ageMs !== null && stats.ageMs > 3000
-    ? `<span style="color:#fca5a5">(dernier point il y a ${Math.round(stats.ageMs / 1000)} s)</span>`
-    : '';
-
-  return `
-    <div class="card-row" style="margin-top:8px;background:rgba(0,0,0,0.35);border-radius:10px;border:none;padding:8px 10px;">
-      <span class="card-key" style="color:rgba(255,255,255,0.7)">GPS</span>
-      <span class="card-val" style="color:#fff;font-size:12px">${stats.hzText} • ${stats.intervalText} ${freshness}</span>
-    </div>
-  `;
-}
-
 function updateCameraOverlay() {
   const overlay = document.getElementById('cameraOverlay');
   if (!overlay) return;
@@ -575,6 +558,28 @@ function getCompassBadgeHtml() {
 
 function getCompassStateClass() {
   return compassPermissionState === 'granted' && compassReady ? 'ok' : 'warn';
+}
+
+function getCompassAndCoordsRowHtml() {
+  const stateClass = getCompassStateClass();
+  const statusText = getCompassStatusText();
+  const coords = formatCurrentCameraCoords();
+
+  const compassControl = compassPermissionState === 'needs-permission'
+    ? `<button class="cam-compass-inline ${stateClass}" title="${statusText}" onclick="requestCompassPermission()">🧭</button>`
+    : `<span class="cam-compass-inline ${stateClass}" title="${statusText}">🧭</span>`;
+
+  return `
+    <div class="cam-compact-row">
+      ${compassControl}
+      <span class="cam-coords-inline">${coords}</span>
+    </div>
+  `;
+}
+
+function formatCurrentCameraCoords() {
+  if (!currentPos || currentPos.lat === null || currentPos.lon === null) return 'GPS: —';
+  return `${fmt(currentPos.lat, 6)}, ${fmt(currentPos.lon, 6)}`;
 }
 
 function getCompassStatusText() {
