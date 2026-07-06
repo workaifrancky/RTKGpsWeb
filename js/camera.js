@@ -15,6 +15,7 @@ let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
 let cameraPickerListenersBound = false;
+let cameraFullscreenListenersBound = false;
 let cameraUiFullscreen = false;
 let gpsFrameLastTimestampMs = null;
 let gpsFrameIntervalsMs = [];
@@ -104,7 +105,10 @@ function toggleCameraThresholdMenu() {
 
 function setCameraFullscreen(enabled) {
   cameraUiFullscreen = !!enabled;
-  document.body.classList.toggle('camera-ui-fullscreen', cameraUiFullscreen && APP.currentTab === 'tab-camera');
+  const shouldApply = cameraUiFullscreen && APP.currentTab === 'tab-camera';
+  document.body.classList.toggle('camera-ui-fullscreen', shouldApply);
+  if (shouldApply) updateCameraFullscreenOffset();
+  else document.documentElement.style.setProperty('--camera-fs-top-offset', '0px');
 
   const btn = document.getElementById('btnCameraFullscreen');
   if (btn) {
@@ -121,6 +125,26 @@ function toggleCameraFullscreen() {
 function syncCameraFullscreenForTab() {
   const shouldApply = cameraUiFullscreen && APP.currentTab === 'tab-camera';
   document.body.classList.toggle('camera-ui-fullscreen', shouldApply);
+  if (shouldApply) updateCameraFullscreenOffset();
+  else document.documentElement.style.setProperty('--camera-fs-top-offset', '0px');
+}
+
+function updateCameraFullscreenOffset() {
+  const header = document.querySelector('header');
+  const fixBar = document.getElementById('fixBar');
+  const headerHeight = header ? header.offsetHeight : 0;
+  const fixHeight = fixBar ? fixBar.offsetHeight : 0;
+  const offset = headerHeight + fixHeight;
+  document.documentElement.style.setProperty('--camera-fs-top-offset', `${offset}px`);
+}
+
+function bindCameraFullscreenResizeHandler() {
+  if (cameraFullscreenListenersBound) return;
+  cameraFullscreenListenersBound = true;
+
+  window.addEventListener('resize', () => {
+    if (cameraUiFullscreen && APP.currentTab === 'tab-camera') updateCameraFullscreenOffset();
+  });
 }
 
 function isTargetSelectInteracting() {
@@ -133,6 +157,7 @@ async function startCamera() {
   initCompass();
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
+  bindCameraFullscreenResizeHandler();
   populateTargetSelect();
   renderCameraThresholdMenu();
   updateCameraPickerLabels();

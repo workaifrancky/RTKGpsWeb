@@ -181,8 +181,6 @@
   background: rgba(0,0,0,0.65);
 }
 
-body.camera-ui-fullscreen header,
-body.camera-ui-fullscreen #fixBar,
 body.camera-ui-fullscreen #projectBar,
 body.camera-ui-fullscreen #ntripBar,
 body.camera-ui-fullscreen #alertBar,
@@ -197,7 +195,10 @@ body.camera-ui-fullscreen .app-wrapper {
 
 body.camera-ui-fullscreen #tab-camera {
   position:   fixed;
-  inset:      0;
+  top:        var(--camera-fs-top-offset, 0px);
+  left:       0;
+  right:      0;
+  bottom:     0;
   z-index:    450;
   background: #000;
 }
@@ -207,7 +208,7 @@ body.camera-ui-fullscreen #tab-camera .camera-top {
 }
 
 body.camera-ui-fullscreen #tab-camera .camera-mode-bar {
-  position:       fixed;
+  position:       absolute;
   top:            10px;
   left:           10px;
   right:          62px;
@@ -232,8 +233,8 @@ body.camera-ui-fullscreen #tab-camera .camera-mode-bar .btn-map-tool.active {
 }
 
 body.camera-ui-fullscreen #tab-camera .camera-container {
-  height:     100dvh;
-  min-height: 100dvh;
+  height:     100%;
+  min-height: 100%;
 }
 
 #cameraVideo {
