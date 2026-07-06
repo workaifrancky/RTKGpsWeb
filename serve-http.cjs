@@ -20,7 +20,14 @@ const mimeTypes = {
 
 function sendFile(res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+  res.writeHead(200, {
+    'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+    // Force fresh fetch in browsers (useful during field tests and rapid UI iterations).
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+    Pragma: 'no-cache',
+    Expires: '0',
+    'Surrogate-Control': 'no-store',
+  });
   fs.createReadStream(filePath).pipe(res);
 }
 
