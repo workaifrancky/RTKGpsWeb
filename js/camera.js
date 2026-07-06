@@ -322,7 +322,10 @@ function renderTargetMode(overlay) {
       </div>
       ${nearTarget ? '<div class="cam-target-circle"><div class="cam-target-circle-dot"></div></div>' : ''}
       <div class="cam-arrow-wrap">
-        <div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">▲</div>
+        <div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">
+          <span class="cam-arrow-head"></span>
+          <span class="cam-arrow-shaft"></span>
+        </div>
       </div>
       <div class="cam-distance" style="color:${color}">${distText}</div>
       <div class="camera-settings" style="width:100%;max-width:320px;">
@@ -355,7 +358,10 @@ function renderDistanceMode(overlay) {
         <span class="cam-fix-badge ${currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass}">${currentPos.fix || '—'}</span>
       </div>
       <div class="cam-arrow-wrap">
-        <div class="cam-arrow" style="transform:rotate(${correctedCap}deg);color:${color}">▲</div>
+        <div class="cam-arrow" style="transform:rotate(${correctedCap}deg);color:${color}">
+          <span class="cam-arrow-head"></span>
+          <span class="cam-arrow-shaft"></span>
+        </div>
       </div>
       <div class="cam-distance" style="color:${color}">${formatCameraDistance(dist)}</div>
       <div class="cam-target-info">Distance parcourue depuis le départ</div>

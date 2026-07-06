@@ -4,6 +4,7 @@
 
 let lastGpsData      = null;
 let dataTimeoutTimer = null;
+let dataDetailsVisible = false;
 
 const ALERT_CONFIG = { minSat:6, maxHdop:2.0, timeout:10000 };
 
@@ -63,6 +64,18 @@ function updateDetailCard(data) {
   setHTML('dDate',  data.date   || '—');
 }
 
+function applyDataDetailsVisibility() {
+  const card = document.getElementById('dataDetailCard');
+  const btn = document.getElementById('btnToggleDataDetails');
+  if (card) card.classList.toggle('is-collapsed', !dataDetailsVisible);
+  if (btn) btn.textContent = dataDetailsVisible ? 'Masquer REL/CAP/DATE' : 'Afficher REL/CAP/DATE';
+}
+
+function toggleDataDetails() {
+  dataDetailsVisible = !dataDetailsVisible;
+  applyDataDetailsVisibility();
+}
+
 function updateRawData(raw) {
   const el = document.getElementById('rawData');
   if (el) el.textContent = raw || '—';
@@ -114,6 +127,7 @@ function showEmptyState() {
   if (raw) raw.textContent = 'En attente de connexion BLE...';
   const card = document.getElementById('precCard');
   if (card) card.className = 'prec-card prec-none';
+  applyDataDetailsVisibility();
 }
 
 document.addEventListener('DOMContentLoaded', showEmptyState);

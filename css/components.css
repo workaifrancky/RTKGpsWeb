@@ -148,6 +148,15 @@
   color:       var(--text);
 }
 
+.data-detail-toggle {
+  width:         100%;
+  margin-bottom: 10px;
+}
+
+.data-detail-card.is-collapsed {
+  display: none;
+}
+
 /* ─── TRAME BRUTE ─────────────────────────────────────────────── */
 #rawData {
   background:    var(--bg3);

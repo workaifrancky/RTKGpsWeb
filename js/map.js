@@ -9,7 +9,6 @@ const MAP_BASE_LAYER_KEY = 'rtkMapBaseLayer';
 let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
 let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
-let surfaceMode=false, surfacePolygon=null;
 let surfaceOverlayControl = null;
 let surfaceOverlayEl = null;
 
@@ -90,11 +89,6 @@ function renderMap() {
   layerTonte.clearLayers();
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
-
-  if (surfacePolygon) {
-    map.removeLayer(surfacePolygon);
-    surfacePolygon = null;
-  }
 
   const pts = getPoints();
   if (pts.length === 0) {
@@ -216,35 +210,6 @@ function refreshMap() {
   else { map.invalidateSize(); renderMap(); }
 }
 
-// Surface
-function toggleSurfaceMode() {
-  surfaceMode = !surfaceMode;
-  const btn = document.getElementById('btnSurface');
-  if (surfaceMode) {
-    if (btn) { btn.textContent='⏹ Arrêter mesure'; btn.classList.add('active'); }
-    updateSurfaceDisplay();
-  } else {
-    if (btn) { btn.textContent='📐 Surface'; btn.classList.remove('active'); }
-    if (surfacePolygon) {
-      map.removeLayer(surfacePolygon);
-      surfacePolygon = null;
-    }
-    const tonte = getPoints().filter(p=>p.type==='tonte');
-    const interdit = getPoints().filter(p=>p.type==='interdit');
-    const summary = buildSurfaceSummary(tonte, interdit);
-    updateSurfaceOverlay(summary);
-  }
-}
-
-function updateSurfaceDisplay() {
-  const pts = getPoints().filter(p=>p.type==='tonte');
-  if (pts.length < 3) return;
-  if (surfacePolygon) map.removeLayer(surfacePolygon);
-  surfacePolygon = L.polygon(pts.map(p=>[p.lat,p.lon]),{
-    color:'#16a34a',weight:2,fillColor:'#16a34a',fillOpacity:0.15,dashArray:'5,5'
-  }).addTo(map);
-}
-
 function calculateArea(pts) {
   if (pts.length<3) return 0;
   const ref=pts[0].lat;
@@ -261,13 +226,6 @@ function calculateArea(pts) {
 function formatArea(m2) {
   if(m2>=10000) return `${(m2/10000).toFixed(4)} ha`;
   return `${m2.toFixed(1)} m²`;
-}
-
-function buildSurfaceSummary(tontePts, interditPts) {
-  const parts = [];
-  if (tontePts.length >= 3) parts.push(`Surface tonte : <b>${formatArea(calculateArea(tontePts))}</b>`);
-  if (interditPts.length >= 3) parts.push(`Surface interdite : <b>${formatArea(calculateArea(interditPts))}</b>`);
-  return parts.join(' &nbsp;•&nbsp; ');
 }
 
 function initSurfaceOverlayControl() {

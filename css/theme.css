@@ -293,9 +293,31 @@
 }
 
 .cam-arrow {
-  font-size:  72px;
-  filter:     drop-shadow(0 0 12px currentColor);
-  transition: transform 0.4s ease;
+  width:          34px;
+  height:         108px;
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  justify-content: center;
+  gap:            0;
+  filter:         drop-shadow(0 0 12px currentColor);
+  transition:     transform 0.4s ease;
+  transform-origin: center center;
+}
+
+.cam-arrow-head {
+  width:         0;
+  height:        0;
+  border-left:   12px solid transparent;
+  border-right:  12px solid transparent;
+  border-bottom: 18px solid currentColor;
+}
+
+.cam-arrow-shaft {
+  width:         6px;
+  height:        78px;
+  border-radius: 99px;
+  background:    currentColor;
 }
 
 .cam-distance {
@@ -351,7 +373,9 @@
 
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
-  .cam-arrow    { font-size: 56px; }
+  .cam-arrow    { width: 28px; height: 86px; }
+  .cam-arrow-head { border-left-width: 10px; border-right-width: 10px; border-bottom-width: 14px; }
+  .cam-arrow-shaft { width: 5px; height: 64px; }
   .cam-distance { font-size: 32px; }
   .camera-gauge { width: 112px; height: 112px; }
   .camera-gauge-inner { width: 78px; height: 78px; }
