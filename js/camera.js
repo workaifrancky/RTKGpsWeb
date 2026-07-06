@@ -15,6 +15,7 @@ let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
 let cameraPickerListenersBound = false;
+let cameraUiFullscreen = false;
 let gpsFrameLastTimestampMs = null;
 let gpsFrameIntervalsMs = [];
 
@@ -101,6 +102,27 @@ function toggleCameraThresholdMenu() {
   menu.classList.toggle('show');
 }
 
+function setCameraFullscreen(enabled) {
+  cameraUiFullscreen = !!enabled;
+  document.body.classList.toggle('camera-ui-fullscreen', cameraUiFullscreen && APP.currentTab === 'tab-camera');
+
+  const btn = document.getElementById('btnCameraFullscreen');
+  if (btn) {
+    btn.textContent = cameraUiFullscreen ? '🗗' : '⛶';
+    btn.title = cameraUiFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran';
+    btn.setAttribute('aria-pressed', cameraUiFullscreen ? 'true' : 'false');
+  }
+}
+
+function toggleCameraFullscreen() {
+  setCameraFullscreen(!cameraUiFullscreen);
+}
+
+function syncCameraFullscreenForTab() {
+  const shouldApply = cameraUiFullscreen && APP.currentTab === 'tab-camera';
+  document.body.classList.toggle('camera-ui-fullscreen', shouldApply);
+}
+
 function isTargetSelectInteracting() {
   const sel = document.getElementById('targetSelect');
   if (!sel) return false;
@@ -115,6 +137,7 @@ async function startCamera() {
   renderCameraThresholdMenu();
   updateCameraPickerLabels();
   refreshCameraModeUI();
+  syncCameraFullscreenForTab();
 
   if (cameraStream) {
     updateCameraOverlay();
@@ -135,6 +158,7 @@ async function startCamera() {
 }
 
 function stopCamera() {
+  closeCameraMenus();
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;

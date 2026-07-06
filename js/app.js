@@ -59,8 +59,10 @@ function showTab(tabId) {
   }
   if (tabId === 'tab-camera') {
     if (typeof startCamera === 'function') startCamera();
+    if (typeof syncCameraFullscreenForTab === 'function') syncCameraFullscreenForTab();
   } else {
     if (typeof stopCamera === 'function') stopCamera();
+    if (typeof setCameraFullscreen === 'function') setCameraFullscreen(false);
   }
   if (tabId === 'tab-history') {
     if (typeof loadHistory === 'function') loadHistory();
