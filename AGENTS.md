@@ -195,6 +195,11 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.cam-target-circle.halo-alert` : animation `pulse-target-alert` (0,66 s) et halo renforcé
   teinté par `getCameraColor(dist)` via `--halo-color` ; en `prefers-reduced-motion: reduce`,
   clignotement désactivé et bordure portée à 7 px.
+- **3.4 — Seuil de proximité fixe** : les trois valeurs réglables (0,8 / 1,0 / 1,5 m), le menu
+  « Seuil cible », `setTargetNearThreshold()` et la clé `rtkCameraTargetNearThreshold` sont
+  supprimés. Seuil unique en dur `CAMERA_TARGET_NEAR_M = 1.0` (cercle + distance en cm sous
+  1 m, `cam-arrow-target` masquée). Le halo `CAMERA_HALO_ALERT_M` (0,5 m) est inchangé. La clé
+  localStorage obsolète est purgée au `DOMContentLoaded`.
 
 ## 9. Langue et communication
 

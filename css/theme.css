@@ -61,7 +61,7 @@
 
 .camera-pickers-row {
   display:        grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap:            8px;
 }
 
@@ -126,16 +126,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.cam-threshold-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-.cam-threshold-btn {
-  width: 100%;
 }
 
 .camera-container {

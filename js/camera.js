@@ -22,9 +22,8 @@ let gpsFrameIntervalsMs = [];
 
 const GPS_RATE_SAMPLE_SIZE = 12;
 
-const CAMERA_TARGET_NEAR_KEY = 'rtkCameraTargetNearThreshold';
+const CAMERA_TARGET_NEAR_M = 1.0;
 const CAMERA_HALO_ALERT_M = 0.5;
-let targetNearThresholdMeters = 1.5;
 
 // Retour d'approche : seuils métriques, hystérésis de réarmement et persistance.
 const CAMERA_APPROACH_FEEDBACK_KEY = 'rtkCameraApproachFeedback';
@@ -39,10 +38,8 @@ let approachAudioContext = null;
 let approachFeedbackTargetId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const savedThreshold = parseFloat(localStorage.getItem(CAMERA_TARGET_NEAR_KEY));
-  if ([0.8, 1.0, 1.5].includes(savedThreshold)) {
-    targetNearThresholdMeters = savedThreshold;
-  }
+  // Migration : ancienne clé de seuil réglable (0,8 / 1,0 / 1,5 m), supprimée en 3.4.
+  localStorage.removeItem('rtkCameraTargetNearThreshold');
 
   approachFeedbackEnabled = localStorage.getItem(CAMERA_APPROACH_FEEDBACK_KEY) !== '0';
   resetApproachFeedbackState();
@@ -89,17 +86,13 @@ function bindCameraPickerOutsideClose() {
 
 function closeCameraMenus() {
   const targetMenu = document.getElementById('cameraTargetMenu');
-  const thresholdMenu = document.getElementById('cameraThresholdMenu');
   if (targetMenu) targetMenu.classList.remove('show');
-  if (thresholdMenu) thresholdMenu.classList.remove('show');
 }
 
 function toggleCameraTargetMenu() {
   const menu = document.getElementById('cameraTargetMenu');
-  const other = document.getElementById('cameraThresholdMenu');
   if (!menu) return;
 
-  if (other) other.classList.remove('show');
   const willShow = !menu.classList.contains('show');
   menu.classList.toggle('show', willShow);
 
@@ -108,15 +101,6 @@ function toggleCameraTargetMenu() {
     const sel = document.getElementById('targetSelect');
     if (sel) sel.focus();
   }
-}
-
-function toggleCameraThresholdMenu() {
-  const menu = document.getElementById('cameraThresholdMenu');
-  const other = document.getElementById('cameraTargetMenu');
-  if (!menu) return;
-
-  if (other) other.classList.remove('show');
-  menu.classList.toggle('show');
 }
 
 function setCameraFullscreen(enabled) {
@@ -176,7 +160,6 @@ async function startCamera() {
   bindCameraPickerOutsideClose();
   bindCameraFullscreenResizeHandler();
   populateTargetSelect();
-  renderCameraThresholdMenu();
   updateCameraPickerLabels();
   refreshCameraModeUI();
   syncCameraFullscreenForTab();
@@ -275,16 +258,13 @@ function refreshCameraModeUI() {
   const targetBtn = document.getElementById('btnCameraTargetMode');
   const distanceBtn = document.getElementById('btnCameraDistanceMode');
   const targetCard = document.getElementById('cameraTargetCard');
-  const thresholdCard = document.getElementById('cameraThresholdCard');
   const settingsCard = document.getElementById('cameraModeSettings');
 
   if (targetBtn) targetBtn.classList.toggle('active', cameraMode === 'target');
   if (distanceBtn) distanceBtn.classList.toggle('active', cameraMode === 'distance');
   if (targetCard) targetCard.style.display = 'block';
-  if (thresholdCard) thresholdCard.style.display = 'block';
   if (settingsCard) settingsCard.style.display = 'block';
 
-  renderCameraThresholdMenu();
   updateCameraPickerLabels();
   renderCameraModeSettings();
 }
@@ -335,19 +315,6 @@ function restartDistanceMeasurement() {
   startDistanceMeasurement();
   updateCameraOverlay();
   showToast('📏 Mesure relancée depuis la position actuelle', 'info');
-}
-
-function setTargetNearThreshold(value) {
-  const next = typeof value === 'number' ? value : parseFloat(value);
-  if (![0.8, 1.0, 1.5].includes(next)) return;
-
-  targetNearThresholdMeters = next;
-  localStorage.setItem(CAMERA_TARGET_NEAR_KEY, String(next));
-
-  updateCameraPickerLabels();
-  renderCameraThresholdMenu();
-  updateCameraOverlay();
-  showToast(`Seuil cible: ${next.toFixed(1).replace('.', ',')} m`, 'info', 1600);
 }
 
 // ─── RETOUR D'APPROCHE (VIBRATION + BIP) ────────────────────
@@ -462,30 +429,13 @@ function processApproachFeedback(dist) {
   });
 }
 
-function renderCameraThresholdMenu() {
-  const menu = document.getElementById('cameraThresholdMenu');
-  if (!menu) return;
-
-  const buttons = [0.8, 1.0, 1.5].map(v => {
-    const active = Math.abs(v - targetNearThresholdMeters) < 0.001 ? 'active' : '';
-    return `<button class="btn-map-tool cam-threshold-btn ${active}" onclick="setTargetNearThreshold(${v});closeCameraMenus();">${v.toFixed(1).replace('.', ',')} m</button>`;
-  }).join('');
-
-  menu.innerHTML = `<div class="cam-threshold-row">${buttons}</div>`;
-}
-
 function updateCameraPickerLabels() {
   const targetLabel = document.getElementById('cameraTargetLabel');
-  const thresholdLabel = document.getElementById('cameraThresholdLabel');
 
   if (targetLabel) {
     targetLabel.textContent = targetPoint
       ? `${targetPoint.icon} ${targetPoint.type} #${targetPoint.index}`
       : 'Aucun';
-  }
-
-  if (thresholdLabel) {
-    thresholdLabel.textContent = `${targetNearThresholdMeters.toFixed(1).replace('.', ',')} m`;
   }
 }
 
@@ -613,7 +563,7 @@ function renderTargetMode(overlay) {
   const guidanceBearing = getGuidanceBearing(bearing);
   const color = getCameraColor(dist);
   const cap = getCurrentCap();
-  const nearTarget = dist < targetNearThresholdMeters;
+  const nearTarget = dist < CAMERA_TARGET_NEAR_M;
   const haloAlert = dist < CAMERA_HALO_ALERT_M;
   const distText = nearTarget ? formatCameraDistanceCm(dist) : formatCameraDistance(dist);
   const fixClass = currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass;
@@ -642,7 +592,7 @@ function renderTargetMode(overlay) {
         </div>
       </div>
       <div class="cam-target-info">${targetPoint.icon} ${targetPoint.type} #${targetPoint.index} — ${targetPoint.fix}</div>
-      ${nearTarget ? `<div class="cam-success">CIBLE À MOINS DE ${targetNearThresholdMeters.toFixed(1).replace('.', ',')} M</div>` : ''}
+      ${nearTarget ? `<div class="cam-success">CIBLE À MOINS DE ${CAMERA_TARGET_NEAR_M.toFixed(1).replace('.', ',')} M</div>` : ''}
     </div>
   `;
 }
