@@ -104,3 +104,31 @@ function generateSimulationData() {
   showToast('🎮 Mode simulation activé — 2 zones, 3 obstacles, 1 base', 'info');
   return points;
 }
+
+// ─── SIMULATION D'UNE TRAME GPS ──────────────────────────────
+// Injecte une fausse trame dans le même pipeline que le BLE
+// (parseGpsFrame → updateUI) pour tester l'onglet DONNÉES.
+function simulateGpsFrame() {
+  const raw = [
+    'Fix: RTK Fix',
+    'Lat: 44.832223',
+    'Lon: -0.701992',
+    'Alt: 120.5',
+    'Rel_X: 0',
+    'Rel_Y: 0',
+    'Sat: 23',
+    'HDOP: 0.6',
+    'Speed: 1.2',
+    'Cap: 45',
+    'Date: 2026-10-23T14:00:00Z',
+  ].join('\n');
+
+  const data = parseGpsFrame(raw);
+
+  APP.hasGpsData = true;
+  APP.lastUpdate = new Date();
+  updateUI(data);
+
+  showToast('Trame GPS simulée', 'info');
+  return data;
+}

@@ -7,7 +7,7 @@
 .prec-card {
   background:    var(--color-white);
   border-radius: var(--radius-xl);
-  padding:       14px 16px;
+  padding:       12px 14px;
   margin-bottom: 12px;
   display:       flex;
   align-items:   center;
@@ -40,7 +40,7 @@
 .prec-info { flex: 1; }
 
 .prec-title {
-  font-size:      12px;
+  font-size:      13px;
   font-weight:    800;
   color:          var(--text);
   letter-spacing: 0.5px;
@@ -79,9 +79,9 @@
 
 .data-card {
   background:    var(--color-white);
-  border-radius: var(--radius-xl);
-  padding:       14px 12px;
-  border-left:   4px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  padding:       12px;
+  border-left:   none; /* fond uniforme, l'état est porté par .prec-card */
   box-shadow:    var(--shadow-sm);
   transition:    var(--transition);
 }
@@ -89,19 +89,67 @@
 .data-card:hover  { box-shadow: var(--shadow-md); }
 .data-card.wide   { grid-column: 1 / -1; }
 
-.data-label {
+/* Carte Position : Latitude + Longitude côte à côte, pleine largeur */
+.data-card-primary {
+  grid-column: 1 / -1;
+}
+
+.data-primary-row {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   12px;
+}
+
+.data-primary-col + .data-primary-col {
+  border-left:  1px solid var(--border);
+  padding-left: 12px;
+}
+
+.data-primary-value {
+  display:     flex;
+  align-items: baseline;
+  gap:         2px;
+  min-width:   0;
+}
+
+/* Libellés / valeurs secondaires */
+.data-card .data-label {
   font-size:      9px;
   font-weight:    700;
-  color:          var(--text3);
+  color:          var(--color-text-secondary);
   letter-spacing: 1.5px;
   margin-bottom:  5px;
 }
 
-.data-value {
-  font-size:   22px;
+.data-card .data-value {
+  font-size:   24px;
   font-weight: 800;
-  color:       var(--text);
-  line-height: 1;
+  color:       var(--color-primary-deep);
+  line-height: 1.05;
+}
+
+/* Lat/Lon : lisibilité maximale (24 px, vert foncé) */
+.data-card-primary .data-label {
+  font-size:      10px;
+  letter-spacing: 1.5px;
+  color:          var(--color-text-secondary);
+}
+
+.data-card-primary .data-value {
+  font-size:              24px;
+  font-weight:            800;
+  color:                  var(--color-primary-deep);
+  font-variant-numeric:   tabular-nums;
+  letter-spacing:         0.2px;
+  line-height:            1.05;
+}
+
+/* Satellites / HDOP : ui.js injecte un <span class="data-value"> coloré.
+   On neutralise sa taille inline et ses couleurs pour une lecture homogène. */
+.data-card .data-value .data-value {
+  font-size:   inherit !important; /* neutralise le style inline 22px */
+  font-weight: inherit;
+  color:       inherit;            /* même couleur que les autres valeurs */
 }
 
 .data-value.sm  { font-size: 15px; }
@@ -114,6 +162,11 @@
   color:       var(--text4);
   font-weight: 500;
   margin-left: 2px;
+}
+
+/* Thème nuit : le vert foncé devient illisible sur fond sombre */
+[data-theme="dark"] .data-card .data-value {
+  color: var(--color-primary-light);
 }
 
 /* ─── CARTE DÉTAIL ──────────────────────────────────────────── */
@@ -416,6 +469,26 @@
 
 .action-button-simulation:hover  { background: #6d28d9; }
 .action-button-simulation:active { transform: scale(0.99); }
+
+/* Variante « trame GPS » (teal, visible sans BLE) */
+.action-button-simulation-gps {
+  width:          100%;
+  margin-bottom:  12px;
+  border:         none;
+  border-radius:  var(--radius-md);
+  background:     var(--color-teal);
+  color:          white;
+  padding:        12px;
+  font-family:    var(--font);
+  font-size:      14px;
+  font-weight:    700;
+  letter-spacing: 0.3px;
+  cursor:         pointer;
+  transition:     filter 0.15s ease, background-color 0.15s ease;
+}
+
+.action-button-simulation-gps:hover  { filter: brightness(0.92); }
+.action-button-simulation-gps:active { transform: scale(0.99); }
 
 /* ─── BADGE ZONE COURANTE ──────────────────────────────────── */
 .zone-badge {

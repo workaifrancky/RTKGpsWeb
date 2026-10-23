@@ -105,6 +105,10 @@ La base suit le même flux mais `recordBase()` supprime d'abord l'ancienne base 
 `generateSimulationData()` crée ou réutilise le projet `Simulation`, le vide, puis injecte
 15 points (1 base, 2 zones de 4 points de tonte, 3 points interdits, 3 obstacles) via
 `addPointToCurrentProject()`. `currentZoneId` passe à 2 avant l'injection de la seconde zone.
+
+Le bouton **« Simuler une trame GPS »** (`simulateGpsFrame()`) injecte une trame texte fixe
+dans le pipeline `parseGpsFrame()` → `updateUI()` pour remplir l'onglet DONNÉES sans BLE
+(fix RTK, Lat/Lon, altitude, satellites, HDOP, vitesse).
 Aucun matériel GPS n'est requis ; le bouton est disponible dans l'onglet DONNÉES.
 
 ## Tester sans matériel

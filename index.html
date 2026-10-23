@@ -87,16 +87,28 @@
         <div class="prec-badge badge-none" id="precBadge">NONE</div>
       </div>
 
-      <!-- Grille données -->
+      <!-- Position (pleine largeur, lisible en plein soleil) -->
       <div class="data-grid">
-        <div class="data-card">
-          <div class="data-label">LATITUDE</div>
-          <div class="data-value sm" id="dLat">—</div>
+        <div class="data-card data-card-primary">
+          <div class="data-primary-row">
+            <div class="data-primary-col">
+              <div class="data-label">LATITUDE</div>
+              <div class="data-primary-value">
+                <div class="data-value" id="dLat">—</div>
+                <span class="data-unit">°</span>
+              </div>
+            </div>
+            <div class="data-primary-col">
+              <div class="data-label">LONGITUDE</div>
+              <div class="data-primary-value">
+                <div class="data-value" id="dLon">—</div>
+                <span class="data-unit">°</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="data-card">
-          <div class="data-label">LONGITUDE</div>
-          <div class="data-value sm" id="dLon">—</div>
-        </div>
+
+        <!-- Données secondaires (grille 2x2) -->
         <div class="data-card">
           <div class="data-label">ALTITUDE</div>
           <div class="data-value" id="dAlt">—</div>
@@ -120,6 +132,9 @@
       <!-- Mode simulation (visible sans BLE) -->
       <button class="action-button-simulation" onclick="generateSimulationData()"
         title="Générer un jeu de données fictif pour tester sans GPS">🎮 Mode Simulation</button>
+
+      <button class="action-button-simulation-gps" onclick="simulateGpsFrame()"
+        title="Injecter une trame GPS fictive dans l'onglet DONNÉES">📡 Simuler une trame GPS</button>
 
       <!-- Détail -->
       <div class="card-full data-detail-card is-collapsed" id="dataDetailCard">

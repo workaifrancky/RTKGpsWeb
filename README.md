@@ -19,8 +19,8 @@ Fonctionnalités principales :
 - carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
 - caméra de visée (boussole + distance) pour rejoindre un point ou mesurer une distance ;
 - export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
-- mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) pour tester
-  l'application sans matériel GPS.
+- mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) et bouton
+  **Simuler une trame GPS** pour tester l'application et l'onglet DONNÉES sans matériel GPS.
 
 ## Stack technique
 

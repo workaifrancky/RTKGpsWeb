@@ -164,6 +164,9 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
 - **2.3 — Simulation multi-zones et garde-fou** : la simulation génère 15 points (2 zones de
   4, 3 interdits, 3 obstacles, 1 base) ; `startNewZone()` refuse de créer une zone tant que
   la zone courante contient moins de 3 points.
+- **2.4 — Simulation de trame GPS** : bouton « Simuler une trame GPS » (`simulateGpsFrame()`)
+  qui injecte une trame texte via `parseGpsFrame()` + `updateUI()` pour tester l'onglet
+  DONNÉES sans BLE.
 
 ## 9. Langue et communication
 

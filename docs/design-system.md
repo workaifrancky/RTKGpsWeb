@@ -83,6 +83,8 @@ Overrides de lisibilité :
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
+- `.action-button-simulation-gps` : variante teal (`--color-teal`), injecte une trame GPS
+  fictive dans l'onglet DONNÉES.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
 ### Modales (`main.css`)
@@ -104,6 +106,11 @@ Overrides de lisibilité :
 
 - `.prec-card`, `.data-card`, `.card-full`, `.point-item`, `.stat-card`, `.session-item` :
   fond `--color-white`, rayon `--radius-xl`, ombre `--shadow-sm`.
+- `.data-card` (données GPS) : rayon `--radius-lg`, padding 12 px, sans bordure gauche ;
+  toutes les valeurs (Lat/Lon, altitude, satellites, HDOP, vitesse) sont **uniformes :
+  24 px / 800 en `--color-primary-deep`** (override `--color-primary-light` en nuit).
+- `.data-card-primary` : bloc Position pleine largeur (Latitude + Longitude côte à côte),
+  mêmes valeurs 24 px / 800, labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`, `base`).
 - `.zone-badge` : badge « Zone #N » de l'onglet POINTS (fond pâle, bordure verte, override nuit).
