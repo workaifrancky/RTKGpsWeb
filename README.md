@@ -17,6 +17,7 @@ Fonctionnalités principales :
 - enregistrement de points `tonte`, `interdit`, `obstacle` et d'une **base du rover** unique ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
+- **relevé de parcelle** (onglet STATS) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
 - caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
 - export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
 - mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) et bouton
@@ -103,7 +104,7 @@ RTKGpsWeb/
 │   ├── ntrip.js            # Stations NTRIP de référence et sélection persistée
 │   ├── map.js              # Carte Leaflet, couches Relief/Satellite, polygones, base, live
 │   ├── camera.js           # Caméra, boussole, visée cible et mesure de distance
-│   ├── stats.js            # Statistiques de session (base exclue)
+│   ├── stats.js            # Relevé de parcelle (surface, temps, linéaire, contraintes)
 │   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull)
 │   ├── simulation.js       # Mode simulation (projet fictif sans GPS)
 │   ├── history.js          # Historique des parcelles/sessions

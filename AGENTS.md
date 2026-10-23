@@ -200,6 +200,17 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   supprimés. Seuil unique en dur `CAMERA_TARGET_NEAR_M = 1.0` (cercle + distance en cm sous
   1 m, `cam-arrow-target` masquée). Le halo `CAMERA_HALO_ALERT_M` (0,5 m) est inchangé. La clé
   localStorage obsolète est purgée au `DOMContentLoaded`.
+- **3.5 — Relevé de parcelle (STATS)** : l'onglet STATS passe du tableau technique (points,
+  HDOP, satellites, distance cumulée) à un résumé métier en trois blocs : surface à tondre
+  (`statArea`, pleine largeur), estimations (`statTime`, `statLinear`, `statPerimeter`,
+  `statZonesCount`), contraintes relevées (obstacles détaillés par catégorie, zones interdites
+  avec surface), puis diagnostic discret (meilleur fix, durée du relevé). `computeStats()`
+  cumule les surfaces et périmètres par `zoneId` (sans fusion) ; le linéaire vaut
+  `surface / (largeur × (1 − recouvrement))` et le temps `linéaire / vitesse`, avec les
+  constantes génériques `MOWING_WIDTH_M = 1.0`, `MOWING_OVERLAP_RATIO = 0.0`,
+  `MOWING_SPEED_KMH = 4.0` (ordre de grandeur pour préparer le travail).
+  L'interface réutilise les classes de l'onglet DONNÉES (`.data-grid`, `.data-card`,
+  `.data-card-primary`, `.data-value`).
 
 ## 9. Langue et communication
 
