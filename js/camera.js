@@ -577,7 +577,7 @@ function renderTargetMode(overlay) {
           ${getApproachFeedbackButtonHtml()}
         </div>
       </div>
-      ${nearTarget ? `<div class="cam-target-circle ${haloAlert ? 'halo-alert' : ''}"${haloAlert ? ` style="--halo-color:${color}"` : ''}><div class="cam-target-circle-dot"></div></div>` : ''}
+      ${nearTarget ? `<div class="cam-target-circle ${haloAlert ? 'halo-alert' : ''}" style="--halo-color:${color}"><div class="cam-target-circle-dot"></div></div>` : ''}
       <div class="cam-arrow-wrap">
         ${nearTarget ? '' : `<div class="cam-arrow cam-arrow-target" style="transform:rotate(${guidanceBearing}deg);color:${color}">
           <span class="cam-arrow-head"></span>
