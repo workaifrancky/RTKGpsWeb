@@ -23,6 +23,7 @@ let gpsFrameIntervalsMs = [];
 const GPS_RATE_SAMPLE_SIZE = 12;
 
 const CAMERA_TARGET_NEAR_KEY = 'rtkCameraTargetNearThreshold';
+const CAMERA_HALO_ALERT_M = 0.5;
 let targetNearThresholdMeters = 1.5;
 
 // Retour d'approche : seuils métriques, hystérésis de réarmement et persistance.
@@ -613,6 +614,7 @@ function renderTargetMode(overlay) {
   const color = getCameraColor(dist);
   const cap = getCurrentCap();
   const nearTarget = dist < targetNearThresholdMeters;
+  const haloAlert = dist < CAMERA_HALO_ALERT_M;
   const distText = nearTarget ? formatCameraDistanceCm(dist) : formatCameraDistance(dist);
   const fixClass = currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass;
 
@@ -625,7 +627,7 @@ function renderTargetMode(overlay) {
           ${getApproachFeedbackButtonHtml()}
         </div>
       </div>
-      ${nearTarget ? '<div class="cam-target-circle"><div class="cam-target-circle-dot"></div></div>' : ''}
+      ${nearTarget ? `<div class="cam-target-circle ${haloAlert ? 'halo-alert' : ''}"${haloAlert ? ` style="--halo-color:${color}"` : ''}><div class="cam-target-circle-dot"></div></div>` : ''}
       <div class="cam-arrow-wrap">
         ${nearTarget ? '' : `<div class="cam-arrow cam-arrow-target" style="transform:rotate(${guidanceBearing}deg);color:${color}">
           <span class="cam-arrow-head"></span>

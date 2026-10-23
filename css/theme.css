@@ -464,6 +464,15 @@ button.cam-compass-inline {
   animation:      pulse-target 2.1s ease-in-out infinite;
 }
 
+/* Alerte de proximité (< 50 cm) : clignotement rapide + halo renforcé.
+   --halo-color est injectée par camera.js depuis getCameraColor(dist). */
+.cam-target-circle.halo-alert {
+  border-color:   var(--halo-color, rgba(74, 222, 128, 0.9));
+  box-shadow:     0 0 34px var(--halo-color, rgba(74, 222, 128, 0.9)),
+                  inset 0 0 24px var(--halo-color, rgba(74, 222, 128, 0.9));
+  animation:      pulse-target-alert 0.66s ease-in-out infinite;
+}
+
 .cam-target-circle-dot {
   position:       absolute;
   top:            50%;
@@ -472,8 +481,8 @@ button.cam-compass-inline {
   width:          12px;
   height:         12px;
   border-radius:  50%;
-  background:     #86efac;
-  box-shadow:     0 0 16px rgba(134, 239, 172, 0.9);
+  background:     var(--halo-color, #86efac);
+  box-shadow:     0 0 16px var(--halo-color, rgba(134, 239, 172, 0.9));
 }
 
 .cam-arrow {
@@ -603,6 +612,12 @@ button.cam-compass-inline {
   100% { transform: translate(-50%, -50%) scale(0.98); opacity: 0.88; }
 }
 
+@keyframes pulse-target-alert {
+  0%   { transform: translate(-50%, -50%) scale(0.94); opacity: 0.72; }
+  50%  { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.72; }
+}
+
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
   .camera-pickers-row { grid-template-columns: 1fr; }
@@ -620,4 +635,11 @@ button.cam-compass-inline {
 @media (prefers-reduced-motion: reduce) {
   .live-marker-pulse { animation: none; }
   .cam-target-circle { animation: none; }
+  /* Alerte : pas de clignotement, halo fixe plus épais. */
+  .cam-target-circle.halo-alert {
+    animation:    none;
+    border-width: 7px;
+    box-shadow:   0 0 34px var(--halo-color, rgba(74, 222, 128, 0.9)),
+                  inset 0 0 24px var(--halo-color, rgba(74, 222, 128, 0.9));
+  }
 }

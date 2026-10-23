@@ -191,6 +191,10 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   brut. Retour haptique/sonore aux seuils **10 / 5 / 2 / 1 m** avec hystérésis de **0,5 m**
   (`processApproachFeedback()`, `navigator.vibrate` + bip Web Audio), bouton on/off
   `.cam-feedback-btn` dans l'overlay cible et persistance `rtkCameraApproachFeedback`.
+  Sous **50 cm** (`CAMERA_HALO_ALERT_M`), le cercle de proximité passe en
+  `.cam-target-circle.halo-alert` : animation `pulse-target-alert` (0,66 s) et halo renforcé
+  teinté par `getCameraColor(dist)` via `--halo-color` ; en `prefers-reduced-motion: reduce`,
+  clignotement désactivé et bordure portée à 7 px.
 
 ## 9. Langue et communication
 
