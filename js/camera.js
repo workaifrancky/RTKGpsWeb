@@ -564,7 +564,7 @@ function renderTargetMode(overlay) {
   const color = getCameraColor(dist);
   const cap = getCurrentCap();
   const nearTarget = dist < CAMERA_TARGET_NEAR_M;
-  const haloAlert = dist < CAMERA_HALO_ALERT_M;
+  const haloAlert = nearTarget && dist < CAMERA_HALO_ALERT_M;
   const distText = nearTarget ? formatCameraDistanceCm(dist) : formatCameraDistance(dist);
   const fixClass = currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass;
 
