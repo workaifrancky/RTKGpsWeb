@@ -26,7 +26,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles, persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, `recordBase()`, `getBase()`, liste des points |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), `recordBase()`, `getBase()`, liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
@@ -77,12 +77,15 @@ brique doit être insérée **après ses dépendances**.
 - `maxZoom: 22`, `maxNativeZoom` explicite (19 satellite/CARTO, 17 Esri Topo) pour éviter
   les tuiles manquantes.
 - Couches dédiées : `layerTonte`, `layerInterdit`, `layerObstacle`, `layerBase`.
+- Les points `tonte` sont groupés par `zoneId` : un polygone coloré (palette `ZONE_PALETTE`)
+  et un médaillon `ZN` par zone de ≥ 3 points.
 - La base est toujours affichée au-dessus des autres couches (`zIndexOffset: 1000`).
 - `L.circleMarker` pour tonte/interdit, `L.divIcon` pour obstacles et base.
 
 ## Cycle de vie d'un point
 
 1. `recordXxx()` vérifie le GPS (`checkGps()`), puis `buildPoint(type, subtype, icon)`.
+   Pour la tonte, `zoneId` est renseigné avec `currentZoneId` (projet courant).
 2. `savePoint()` → `addPointToCurrentProject()` (persistance), `renderPointsList()`,
    `addPointToMap()`, `updateStatsDisplay()`.
 3. La suppression passe par `deletePoint(id)` qui renumérote les points par type.
@@ -93,14 +96,15 @@ La base suit le même flux mais `recordBase()` supprime d'abord l'ancienne base 
 
 - `computeStats()` filtre `type !== 'base'` : la base n'est ni comptée ni incluse dans la
   distance.
-- `exportGeoJSON()` construit les features dans l'ordre domaine → zone → zone interdite →
-  obstacles → base ; le domaine est calculé sur les points hors base.
+- `exportGeoJSON()` construit les features dans l'ordre domaine → zone 1..N (une par `zoneId`)
+  → zone interdite → obstacles → base ; le domaine est calculé sur les points hors base.
 - Voir [format-geojson.md](format-geojson.md).
 
 ## Mode simulation
 
 `generateSimulationData()` crée ou réutilise le projet `Simulation`, le vide, puis injecte
-11 points (1 base, 4 tonte, 3 interdits, 3 obstacles) via `addPointToCurrentProject()`.
+15 points (1 base, 2 zones de 4 points de tonte, 3 points interdits, 3 obstacles) via
+`addPointToCurrentProject()`. `currentZoneId` passe à 2 avant l'injection de la seconde zone.
 Aucun matériel GPS n'est requis ; le bouton est disponible dans l'onglet DONNÉES.
 
 ## Tester sans matériel

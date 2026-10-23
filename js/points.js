@@ -6,6 +6,21 @@
 // Compteurs par type pour numérotation
 let counters = { tonte: 0, interdit: 0, obstacle: 0, base: 0 };
 
+// Palette des zones de tonte (teintes de vert)
+const ZONE_PALETTE = [
+  { stroke:'#16a34a', fill:'rgba(22,163,74,0.14)'  },
+  { stroke:'#0d9488', fill:'rgba(13,148,136,0.14)' },
+  { stroke:'#65a30d', fill:'rgba(101,163,13,0.14)' },
+  { stroke:'#15803d', fill:'rgba(21,128,61,0.14)'  },
+  { stroke:'#22c55e', fill:'rgba(34,197,94,0.14)'  },
+  { stroke:'#047857', fill:'rgba(4,120,87,0.14)'   },
+];
+
+function getZonePalette(zoneId) {
+  const id = Math.max(1, Number(zoneId) || 1);
+  return ZONE_PALETTE[(id - 1) % ZONE_PALETTE.length];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Recharge les compteurs depuis le projet courant
   setTimeout(syncCounters, 300);
@@ -23,7 +38,51 @@ function recordTonte() {
   if (!checkGps()) return;
   const pt = buildPoint('tonte', null, '🟢');
   savePoint(pt);
-  showToast(`🟢 Tonte #${pt.index} enregistré`, 'tonte');
+  showToast(`🟢 Tonte #${pt.index} enregistré — zone #${pt.zoneId}`, 'tonte');
+}
+
+// ─── ZONES DE TONTE ──────────────────────────────────────────
+function getCurrentZoneId() {
+  const id = Number(currentProject?.currentZoneId);
+  return Number.isInteger(id) && id > 0 ? id : 1;
+}
+
+function getZones() {
+  const zones = {};
+  getPoints().forEach(p => {
+    if (p.type !== 'tonte') return;
+    const zid = Number(p.zoneId);
+    const zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
+    if (!zones[zoneId]) zones[zoneId] = [];
+    zones[zoneId].push(p);
+  });
+  return zones;
+}
+
+function startNewZone() {
+  if (!currentProject) return;
+  const currentZone = getCurrentZoneId();
+  const currentPoints = getZones()[currentZone] || [];
+
+  // Pas de nouvelle zone tant que la zone courante n'est pas exploitable
+  if (currentPoints.length < 3) {
+    showToast("Ajoutez au moins 3 points à la zone courante avant d'en créer une nouvelle", 'error');
+    return;
+  }
+
+  const nextZone = currentZone + 1;
+  currentProject.currentZoneId = nextZone;
+  saveProjects();
+  updateZoneBadge();
+  showToast(`Nouvelle zone #${nextZone}`, 'info');
+}
+
+function updateZoneBadge() {
+  const el = document.getElementById('zoneBadge');
+  if (!el) return;
+  const zoneId = getCurrentZoneId();
+  el.textContent = `Zone #${zoneId}`;
+  el.dataset.zone = zoneId;
 }
 
 // ─── ENREGISTRER — ZONE INTERDITE ────────────────────────────
@@ -70,6 +129,7 @@ function buildPoint(type, subtype, icon) {
     subtype:    subtype || null,
     icon:       icon || '📍',
     index:      counters[type],
+    ...(type === 'tonte' ? { zoneId: getCurrentZoneId() } : {}),
     lat:        lastGpsData.lat,
     lon:        lastGpsData.lon,
     alt:        lastGpsData.alt,
@@ -131,6 +191,7 @@ function renderPointsList() {
   if (!container) return;
   const pts = getPoints();
   updatePointCount(pts);
+  updateZoneBadge();
 
   if (pts.length === 0) {
     container.innerHTML = `
@@ -142,15 +203,17 @@ function renderPointsList() {
     return;
   }
 
-  // Groupes par type
+  // Groupes par type (les zones de tonte sont groupées par zoneId)
   const base     = getBase();
-  const tonte    = pts.filter(p => p.type === 'tonte');
+  const zones    = getZones();
   const interdit = pts.filter(p => p.type === 'interdit');
   const obstacle = pts.filter(p => p.type === 'obstacle');
 
   container.innerHTML =
     (base ? renderGroup('Base du Rover', [base], '#2e7d32', 'base') : '') +
-    renderGroup('Zone de tonte', tonte,    '#16a34a', 'tonte') +
+    Object.keys(zones).map(Number).sort((a, b) => a - b)
+      .map(zoneId => renderGroup(`Zone de tonte #${zoneId}`, zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
+      .join('') +
     renderGroup('Zone interdite', interdit, '#dc2626', 'interdit') +
     renderGroup('Obstacles isolés', obstacle,'#d97706', 'obstacle');
 }
@@ -183,7 +246,7 @@ function renderPointItem(p) {
         <div class="point-name">${name}</div>
         <div class="point-coords">${fmt(p.lat,6)}, ${fmt(p.lon,6)}</div>
         <div class="point-meta">
-          Alt: ${fmt(p.alt,1)}m &nbsp;·&nbsp;
+          ${p.type === 'tonte' ? `Zone ${p.zoneId || 1} &nbsp;·&nbsp; ` : ''}Alt: ${fmt(p.alt,1)}m &nbsp;·&nbsp;
           <span class="${fix.cssClass}" style="font-size:10px;font-weight:700">${p.fix}</span>
           &nbsp;·&nbsp; Sat: ${p.satellites || '—'}
         </div>

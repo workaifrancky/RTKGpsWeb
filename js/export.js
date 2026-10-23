@@ -108,20 +108,31 @@ function exportGeoJSON() {
     });
   }
 
-  // 2 ── Zone de tonte
-  if (tonte.length >= 3) {
-    const coords = [...tonte.map(p=>[p.lon,p.lat]), [tonte[0].lon, tonte[0].lat]];
+  // 2 ── Zones de tonte (une Feature par zoneId)
+  const tonteZones = {};
+  tonte.forEach(p => {
+    const zid = Number(p.zoneId);
+    const zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
+    if (!tonteZones[zoneId]) tonteZones[zoneId] = [];
+    tonteZones[zoneId].push(p);
+  });
+
+  Object.keys(tonteZones).map(Number).sort((a, b) => a - b).forEach(zoneId => {
+    const zonePts = tonteZones[zoneId];
+    if (zonePts.length < 3) return;
+    const coords = [...zonePts.map(p=>[p.lon,p.lat]), [zonePts[0].lon, zonePts[0].lat]];
     features.push({
       type:'Feature',
       geometry:{ type:'Polygon', coordinates:[coords] },
       properties:{
         type:'zone',
-        name:`${projectName} - Zone de tonte`,
-        surface_m2:calculateArea(tonte),
+        name:`${projectName} - Zone ${zoneId}`,
+        surface_m2:calculateArea(zonePts),
+        zone_id:zoneId,
         source:'rtk-mower',
       },
     });
-  }
+  });
 
   // 3 ── Zones interdites
   if (interdit.length >= 3) {

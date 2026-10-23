@@ -87,6 +87,7 @@ Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet cour
   subtype: 'Arbre' | null,       // catégorie d'obstacle
   icon: '🟢',
   index: 1,                      // numérotation par type
+  zoneId: 1,                     // zones de tonte uniquement (défaut 1)
   lat: 44.832223,
   lon: -0.701992,
   alt: 120,
@@ -110,7 +111,7 @@ Contrat complet : **[docs/format-geojson.md](docs/format-geojson.md)**.
 Résumé : `FeatureCollection` dans cet ordre strict :
 
 1. `domaine` — `Polygon` (convex hull des points hors base)
-2. `zone` — `Polygon` (points `tonte`, si ≥ 3)
+2. `zone` (× N) — `Polygon` (une Feature par `zoneId`, si ≥ 3 points `tonte`)
 3. `zone_interdite` — `Polygon` (points `interdit`, si ≥ 3)
 4. `obstacle` — un `Point` par obstacle (`categorie`, `rayon`, `index`, fix…)
 5. `base` — `Point` unique (`name: 'Base du rover'`)
@@ -126,6 +127,9 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   par défaut (`CARTO_API_KEY` vide dans `js/map.js`). `maxNativeZoom` = 19 avec clé CARTO,
   17 avec Esri, 19 pour le satellite Esri. Toujours conserver `maxZoom: 22`.
 - **Base unique** : toute nouvelle implémentation doit passer par `recordBase()` / `getBase()`.
+- **Multi-zones de tonte** : chaque point `tonte` porte un `zoneId` (défaut 1) et le projet
+  stocke `currentZoneId`. Utiliser `getZones()` pour grouper et ne jamais fusionner les zones
+  à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante.
 - **Convex hull** : exclure la base (`pts.filter(p => p.type !== 'base')`) avant
   `calculateConvexHull()`.
 - **Bouton BASE** : `btnBase` doit rester dans la liste de `updateTerrainButtons()`
@@ -152,7 +156,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
 - **2.1 — Base du rover et simulation** : type de point `base` (unique, remplacé par
   `recordBase()`), bouton BASE dans la barre terrain, icône maison sur la carte, Feature
   GeoJSON `base`, exclusion de la base du domaine et des statistiques, fond Relief sans
-  blocage OSM, et mode Simulation (`js/simulation.js`, 11 points fictifs).
+  blocage OSM, et mode Simulation (`js/simulation.js`, 15 points fictifs : 2 zones de
+  4 points de tonte, 3 points interdits, 3 obstacles, 1 base).
+- **2.2 — Multi-zones de tonte** : `zoneId` sur chaque point `tonte`, `currentZoneId` stocké
+  par parcelle, bouton « NOUVELLE ZONE », badge « Zone #N », un polygone coloré et numéroté
+  par zone sur la carte, et une Feature `zone` par `zoneId` (`zone_id`) à l'export.
+- **2.3 — Simulation multi-zones et garde-fou** : la simulation génère 15 points (2 zones de
+  4, 3 interdits, 3 obstacles, 1 base) ; `startNewZone()` refuse de créer une zone tant que
+  la zone courante contient moins de 3 points.
 
 ## 9. Langue et communication
 

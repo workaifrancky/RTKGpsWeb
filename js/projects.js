@@ -28,10 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─── AJOUT D'UN PROJET ───────────────────────────────────────
 function addProject(name, renderAfter = true) {
   const project = {
-    id:        'proj_' + Date.now(),
-    name:      name.trim(),
-    createdAt: new Date().toISOString(),
-    points:    [],
+    id:            'proj_' + Date.now(),
+    name:          name.trim(),
+    createdAt:     new Date().toISOString(),
+    currentZoneId: 1,       // zone de tonte en cours d'enregistrement
+    points:        [],
   };
   projects.push(project);
   saveProjects();
@@ -68,6 +69,7 @@ function switchProject(projectId) {
   if (!proj) return;
   currentProject = proj;
   saveCurrentProject();
+  if (typeof updateZoneBadge === 'function') updateZoneBadge();
   if (typeof renderMap       === 'function') renderMap();
   if (typeof renderPointsList=== 'function') renderPointsList();
   if (typeof updateStatsDisplay==='function') updateStatsDisplay();
@@ -92,12 +94,21 @@ function removePointFromCurrentProject(pointId) {
     let idx = 1;
     currentProject.points.filter(p => p.type === type).forEach(p => p.index = idx++);
   });
+  // Si la zone courante n'a plus de point, revenir à la dernière zone existante
+  const tonteZones = currentProject.points
+    .filter(p => p.type === 'tonte')
+    .map(p => Number(p.zoneId) || 1);
+  const maxZone = tonteZones.length ? Math.max(...tonteZones) : 1;
+  if (!tonteZones.includes(Number(currentProject.currentZoneId))) {
+    currentProject.currentZoneId = maxZone;
+  }
   saveProjects();
 }
 
 function clearCurrentProjectPoints() {
   if (!currentProject) return;
   currentProject.points = [];
+  currentProject.currentZoneId = 1;
   saveProjects();
 }
 
@@ -119,8 +130,31 @@ function saveProjects() {
 }
 
 function loadProjects() {
-  try { return JSON.parse(localStorage.getItem(PROJECT_KEY) || '[]'); }
-  catch { return []; }
+  try {
+    const list = JSON.parse(localStorage.getItem(PROJECT_KEY) || '[]');
+    return Array.isArray(list) ? list.map(normalizeProject) : [];
+  } catch { return []; }
+}
+
+// Migration douce : zoneId (tonte) et currentZoneId obligatoires
+function normalizeProject(project) {
+  if (!project || typeof project !== 'object') return project;
+  if (!Array.isArray(project.points)) project.points = [];
+
+  project.points.forEach(p => {
+    if (p && p.type === 'tonte') {
+      const zid = Number(p.zoneId);
+      p.zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
+    }
+  });
+
+  const maxZone = project.points.reduce(
+    (max, p) => (p.type === 'tonte' ? Math.max(max, Number(p.zoneId) || 1) : max), 1);
+  const current = Number(project.currentZoneId);
+  if (!Number.isInteger(current) || current < 1 || current > maxZone) {
+    project.currentZoneId = maxZone;
+  }
+  return project;
 }
 
 function saveCurrentProject() {

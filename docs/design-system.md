@@ -96,7 +96,7 @@ Overrides de lisibilité :
 
 - `.terrain-btn-circle` : 64 px, `border-radius: 50%`, bordure blanche translucide.
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
-  base `--color-primary`.
+  base `--color-primary`, nouvelle zone `--color-teal`.
 - Classe `.disabled` : opacité 0.35 (gérée par `updateTerrainButtons()`).
 - Responsive : 56 px sous 360 px de large.
 
@@ -106,6 +106,8 @@ Overrides de lisibilité :
   fond `--color-white`, rayon `--radius-xl`, ombre `--shadow-sm`.
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`, `base`).
+- `.zone-badge` : badge « Zone #N » de l'onglet POINTS (fond pâle, bordure verte, override nuit).
+- `.zone-label` : médaillon circulaire `ZN` centré sur chaque polygone de tonte.
 
 ## Règles
 

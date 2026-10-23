@@ -15,10 +15,12 @@ Fonctionnalités principales :
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit`, `obstacle` et d'une **base du rover** unique ;
+- **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
 - caméra de visée (boussole + distance) pour rejoindre un point ou mesurer une distance ;
 - export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
-- mode **Simulation** pour tester l'application sans matériel GPS.
+- mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) pour tester
+  l'application sans matériel GPS.
 
 ## Stack technique
 
@@ -75,6 +77,7 @@ peut être isolé.
 3. **Enregistrer des points** :
    - onglet **POINTS** ou barre terrain en bas : `ZONE TONTE`, `ZONE INTERDITE`, `OBSTACLE ISOLÉ` ;
    - `BASE` (🏠) : définit la base du rover (une seule par parcelle, remplace l'ancienne) ;
+   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS) ;
    - le bouton `🎮 Mode Simulation` (onglet DONNÉES) génère un projet fictif complet.
 4. **Consulter** la carte (onglet CARTE), les statistiques (STATS) et l'historique.
 5. **Exporter** depuis l'onglet POINTS : CSV, GPX ou GeoJSON. Le GeoJSON suit le contrat

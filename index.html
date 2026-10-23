@@ -154,7 +154,10 @@
     <div style="padding:12px 12px 0">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
-        <span id="pointCount" style="font-size:11px;color:var(--text3);font-weight:700">0 point(s)</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="zoneBadge" class="zone-badge" title="Zone de tonte en cours">Zone #1</span>
+          <span id="pointCount" style="font-size:11px;color:var(--text3);font-weight:700">0 point(s)</span>
+        </div>
       </div>
       <div id="pointsList"></div>
       <div class="actions-bar">
@@ -316,6 +319,10 @@
     <div class="terrain-btn" onclick="recordBase()">
       <div class="terrain-btn-circle base disabled" id="btnBase">🏠</div>
       <div class="terrain-btn-label">BASE</div>
+    </div>
+    <div class="terrain-btn" onclick="startNewZone()">
+      <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">➕</div>
+      <div class="terrain-btn-label">NOUVELLE<br>ZONE</div>
     </div>
   </div>
 </div>

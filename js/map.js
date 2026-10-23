@@ -119,21 +119,50 @@ function renderMap() {
   const base     = pts.find(p=>p.type==='base') || null;
   const surfaceParts = [];
 
-  // Polygone zone de tonte (si ≥3 pts)
-  if (tonte.length >= 3) {
-    const lls = tonte.map(p=>[p.lat,p.lon]);
-    const area = calculateArea(tonte);
-    L.polygon(lls, { color:COLORS.tonte.stroke, weight:2.5, fillColor:COLORS.tonte.fill, fillOpacity:1 })
-      .addTo(layerTonte)
-      .bindPopup('<b>Zone de tonte</b>');
+  // Zones de tonte : un polygone par zoneId, teinte de vert différente
+  const zones = typeof getZones === 'function' ? getZones() : { 1: tonte };
+  Object.keys(zones).map(Number).sort((a, b) => a - b).forEach(zoneId => {
+    const zonePts = zones[zoneId];
+    if (!zonePts || zonePts.length === 0) return;
 
-    surfaceParts.push(`Surface tonte : <b>${formatArea(area)}</b>`);
-  }
-  // Marqueurs tonte
-  tonte.forEach((p,i) => {
-    L.circleMarker([p.lat,p.lon],{radius:8,fillColor:COLORS.tonte.stroke,color:'white',weight:2,fillOpacity:0.95})
-      .addTo(layerTonte)
-      .bindPopup(pointPopup(p,i+1));
+    const palette = typeof getZonePalette === 'function'
+      ? getZonePalette(zoneId)
+      : COLORS.tonte;
+
+    if (zonePts.length >= 3) {
+      const area = calculateArea(zonePts);
+      L.polygon(zonePts.map(p => [p.lat, p.lon]), {
+        color: palette.stroke, weight: 2.5, fillColor: palette.fill, fillOpacity: 1,
+      })
+        .addTo(layerTonte)
+        .bindPopup(`<b>Zone de tonte #${zoneId}</b><br>Surface : ${formatArea(area)}`);
+
+      // Numéro de zone au centre du polygone
+      const center = zonePts.reduce(
+        (acc, p) => ({ lat: acc.lat + p.lat, lon: acc.lon + p.lon }), { lat: 0, lon: 0 });
+      center.lat /= zonePts.length;
+      center.lon /= zonePts.length;
+      L.marker([center.lat, center.lon], {
+        icon: L.divIcon({
+          className: 'zone-label',
+          html: `<div>Z${zoneId}</div>`,
+          iconSize: [28, 28], iconAnchor: [14, 14],
+        }),
+        interactive: false,
+        keyboard: false,
+      }).addTo(layerTonte);
+
+      surfaceParts.push(`Zone ${zoneId} : <b>${formatArea(area)}</b>`);
+    }
+
+    // Marqueurs des points de la zone
+    zonePts.forEach(p => {
+      L.circleMarker([p.lat, p.lon], {
+        radius: 8, fillColor: palette.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
+      })
+        .addTo(layerTonte)
+        .bindPopup(pointPopup(p, p.index));
+    });
   });
 
   // Polygone zone interdite (si ≥3 pts)
@@ -183,7 +212,8 @@ function pointPopup(p, idx) {
     ? '🏠 Base du Rover'
     : p.subtype ? `${p.icon} ${p.subtype}` : (p.type==='tonte'?'Tonte':'Interdit');
   const suffix = p.type === 'base' ? '' : ` #${idx}`;
-  return `<b>${label}${suffix}</b><br>Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
+  const zone = p.type === 'tonte' ? `Zone ${p.zoneId || 1} · ` : '';
+  return `<b>${label}${suffix}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
 }
 
 // Icône « maison » de la base du rover (distincte des obstacles)
@@ -212,7 +242,14 @@ function addPointToMap(pt) {
     return;
   }
 
-  const layer  = pt.type==='tonte'?layerTonte:pt.type==='interdit'?layerInterdit:layerObstacle;
+  // Les zones de tonte sont redessinées en entier (polygone + numéro + couleurs)
+  if (pt.type === 'tonte') {
+    renderMap();
+    map.panTo([pt.lat, pt.lon]);
+    return;
+  }
+
+  const layer  = pt.type==='interdit'?layerInterdit:layerObstacle;
   const color  = COLORS[pt.type]?.stroke || '#888';
   const pts    = getPoints().filter(p=>p.type===pt.type);
   const idx    = pts.length;
