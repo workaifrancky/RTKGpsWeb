@@ -440,6 +440,32 @@ button.cam-compass-inline {
   min-height:     110px;
 }
 
+/* Scène 3D : le guidage est posé sur un plan incliné (effet sol).
+   L'angle de base diffère : cercle 55° (vue au sol), flèche 30° (lisible).
+   camera.js remplace ces transform par une version pilotée par beta/gamma. */
+.cam-3d-scene {
+  display:          flex;
+  align-items:      center;
+  justify-content:  center;
+  transform-style:  preserve-3d;
+  transform-origin: center center;
+  pointer-events:   none;
+  transition:       transform 0.15s linear;
+}
+
+.cam-3d-scene-arrow {
+  width:      100%;
+  min-height: 110px;
+  transform:  perspective(700px) rotateX(30deg);
+}
+
+/* Le cercle reste centré sur tout l'overlay, comme avant. */
+.cam-3d-scene-circle {
+  position: absolute;
+  inset:    0;
+  transform: perspective(700px) rotateX(55deg);
+}
+
 .cam-target-circle {
   position:       absolute;
   top:            50%;

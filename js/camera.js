@@ -20,6 +20,15 @@ let cameraUiFullscreen = false;
 let gpsFrameLastTimestampMs = null;
 let gpsFrameIntervalsMs = [];
 
+let deviceBeta = 45;  // inclinaison avant/arrière (0 = à plat, 90 = vertical)
+let deviceGamma = 0;  // inclinaison gauche/droite
+
+const CAMERA_3D_BASE_TILT = { arrow: 30, circle: 55 };
+const CAMERA_3D_BETA_NEUTRAL = 45;
+const CAMERA_3D_BETA_RATIO = 0.4;
+const CAMERA_3D_ROLL_RATIO = 0.4;
+const CAMERA_3D_ROLL_MAX = 25;
+
 const GPS_RATE_SAMPLE_SIZE = 12;
 
 const CAMERA_TARGET_NEAR_M = 1.0;
@@ -236,10 +245,32 @@ async function requestCompassPermission() {
 }
 
 function handleDeviceOrientation(event) {
-  if (typeof event.alpha !== 'number') return;
-  compassHeading = event.alpha;
+  if (typeof event.alpha === 'number') compassHeading = event.alpha;
+  if (typeof event.beta === 'number') deviceBeta = event.beta;
+  if (typeof event.gamma === 'number') deviceGamma = event.gamma;
   compassReady = true;
   if (APP.currentTab === 'tab-camera') updateCameraOverlay();
+}
+
+function clampCamera3D(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+// Transformation du plan de guidage : l'inclinaison suit beta (avant/arrière)
+// et gamma (roulis gauche/droite), autour d'un angle de base propre à l'élément.
+function getCameraSceneTransform(baseTilt) {
+  const tiltX = clampCamera3D(
+    baseTilt + (deviceBeta - CAMERA_3D_BETA_NEUTRAL) * CAMERA_3D_BETA_RATIO,
+    10,
+    85
+  );
+  const rollZ = clampCamera3D(
+    deviceGamma * CAMERA_3D_ROLL_RATIO,
+    -CAMERA_3D_ROLL_MAX,
+    CAMERA_3D_ROLL_MAX
+  );
+
+  return `perspective(700px) rotateX(${tiltX.toFixed(1)}deg) rotateZ(${rollZ.toFixed(1)}deg)`;
 }
 
 function setMode(mode) {
@@ -577,11 +608,13 @@ function renderTargetMode(overlay) {
           ${getApproachFeedbackButtonHtml()}
         </div>
       </div>
-      ${nearTarget ? `<div class="cam-target-circle ${haloAlert ? 'halo-alert' : ''}" style="--halo-color:${color}"><div class="cam-target-circle-dot"></div></div>` : ''}
+      ${nearTarget ? `<div class="cam-3d-scene cam-3d-scene-circle" style="transform:${getCameraSceneTransform(CAMERA_3D_BASE_TILT.circle)}"><div class="cam-target-circle ${haloAlert ? 'halo-alert' : ''}" style="--halo-color:${color}"><div class="cam-target-circle-dot"></div></div></div>` : ''}
       <div class="cam-arrow-wrap">
-        ${nearTarget ? '' : `<div class="cam-arrow cam-arrow-target" style="transform:rotate(${guidanceBearing}deg);color:${color}">
-          <span class="cam-arrow-head"></span>
-          <span class="cam-arrow-shaft"></span>
+        ${nearTarget ? '' : `<div class="cam-3d-scene cam-3d-scene-arrow" style="transform:${getCameraSceneTransform(CAMERA_3D_BASE_TILT.arrow)}">
+          <div class="cam-arrow cam-arrow-target" style="transform:rotate(${guidanceBearing}deg);color:${color}">
+            <span class="cam-arrow-head"></span>
+            <span class="cam-arrow-shaft"></span>
+          </div>
         </div>`}
       </div>
       <div class="cam-distance" style="color:${color}">${distText}</div>
@@ -617,9 +650,11 @@ function renderDistanceMode(overlay) {
         <span class="cam-fix-badge ${fixClass}">${currentPos.fix || '—'}</span>
       </div>
       <div class="cam-arrow-wrap">
-        <div class="cam-arrow cam-arrow-distance" style="transform:rotate(${guidanceCap}deg);color:${color}">
-          <span class="cam-arrow-head"></span>
-          <span class="cam-arrow-shaft"></span>
+        <div class="cam-3d-scene cam-3d-scene-arrow" style="transform:${getCameraSceneTransform(CAMERA_3D_BASE_TILT.arrow)}">
+          <div class="cam-arrow cam-arrow-distance" style="transform:rotate(${guidanceCap}deg);color:${color}">
+            <span class="cam-arrow-head"></span>
+            <span class="cam-arrow-shaft"></span>
+          </div>
         </div>
       </div>
       <div class="cam-distance" style="color:${color}">${formatCameraDistance(dist)}</div>
