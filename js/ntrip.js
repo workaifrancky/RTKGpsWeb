@@ -83,6 +83,9 @@ let selectedNtripStationId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   selectedNtripStationId = loadSelectedNtripStationId();
+  // Initialisation autonome : ne dépend plus de l'ordre d'init de app.js,
+  // le <select> ayant été déplacé dans le bandeau Fix (session 3.6).
+  initNtripBar();
 });
 
 function loadSelectedNtripStationId() {
@@ -113,13 +116,16 @@ function renderNtripStationSelect() {
 
   if (!selectedNtripStationId) selectedNtripStationId = loadSelectedNtripStationId();
 
+  // Le select est sur fond vert (bandeau Fix) : texte blanc. Les options du
+  // popup natif restent sur fond clair, il faut donc forcer un texte foncé,
+  // sinon la liste apparaît vide (blanc sur blanc).
   select.innerHTML = NTRIP_STATIONS.map(station => {
     const suffix = station.id === 'near'
       ? ' — automatique'
       : station.id === NTRIP_DEFAULT_STATION_ID
         ? ' — défaut'
         : '';
-    return `<option value="${station.id}" ${station.id === selectedNtripStationId ? 'selected' : ''}>${station.name}${suffix}</option>`;
+    return `<option value="${station.id}" style="color:#111827;background-color:#ffffff;" ${station.id === selectedNtripStationId ? 'selected' : ''}>${station.name}${suffix}</option>`;
   }).join('');
 
   select.value = selectedNtripStationId || '';

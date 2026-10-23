@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   checkBleSupport();
   initProjectBar();
-  initNtripBar();
   console.log('App prête ✅');
 });
 
