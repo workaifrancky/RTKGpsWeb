@@ -13,7 +13,6 @@ function updateUI(data) {
   resetDataTimeout();
   if (!data.isValid) { showRejectedFrame(data); return; }
   updateFixBar(data);
-  updatePrecCard(data);
   updateDataCards(data);
   updateDetailCard(data);
   updateRawData(data.raw);
@@ -29,22 +28,6 @@ function updateFixBar(data) {
   if (dot)  dot.className  = `fix-dot ${data.dotClass}`;
   if (name) name.textContent = data.fix.toUpperCase();
   if (prec) prec.textContent = `${data.label} ${data.precision}`;
-}
-
-// ─── CARTE PRÉCISION ─────────────────────────────────────────
-function updatePrecCard(data) {
-  const card  = document.getElementById('precCard');
-  const icon  = document.getElementById('precIcon');
-  const title = document.getElementById('precTitle');
-  const sub   = document.getElementById('precSub');
-  const badge = document.getElementById('precBadge');
-
-  const precClass = { 4:'rtk', 3:'float', 2:'dgps', 1:'gps', 0:'none' }[data.score] || 'none';
-  if (card)  card.className  = `prec-card prec-${precClass}`;
-  if (icon)  { icon.className=`prec-icon icon-${precClass}`; icon.textContent=data.icon; }
-  if (title) title.textContent = data.score >= 3 ? 'PRÉCISION ' + data.label.toUpperCase() : 'MESURE BLOQUÉE';
-  if (sub)   sub.textContent  = data.score >= 3 ? 'Mesure autorisée — Float RTK minimum' : (data.rejectReason || `Fix insuffisant : ${data.fix}`);
-  if (badge) { badge.className=`prec-badge ${data.badgeClass}`; badge.textContent=data.fix.toUpperCase(); }
 }
 
 // ─── CARTES DONNÉES ──────────────────────────────────────────
@@ -125,8 +108,6 @@ function showEmptyState() {
   ['dLat','dLon','dAlt','dSat','dHdop','dSpeed','dRelX','dRelY','dCap','dDate'].forEach(id => setHTML(id,'—'));
   const raw = document.getElementById('rawData');
   if (raw) raw.textContent = 'En attente de connexion BLE...';
-  const card = document.getElementById('precCard');
-  if (card) card.className = 'prec-card prec-none';
   applyDataDetailsVisibility();
 }
 

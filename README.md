@@ -74,7 +74,7 @@ peut être isolé.
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
 2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une).
-   Sélectionner éventuellement une station NTRIP de référence.
+   Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
    - onglet **POINTS** ou barre terrain en bas : `ZONE TONTE`, `ZONE INTERDITE`, `OBSTACLE ISOLÉ` ;
    - `BASE` (🏠) : définit la base du rover (une seule par parcelle, remplace l'ancienne) ;

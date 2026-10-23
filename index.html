@@ -35,6 +35,11 @@
     <div class="fix-dot none" id="fixDot"></div>
     <span class="fix-name" id="fixName">AUCUN FIX</span>
     <span class="fix-prec" id="fixPrec">Non connecté</span>
+    <div class="fix-ntrip" style="margin-left:auto; display:flex; align-items:center; gap:4px;">
+      <span style="font-size:10px; font-weight:800; color:rgba(255,255,255,0.7); letter-spacing:0.5px;">NTRIP</span>
+      <select id="ntripSelect" onchange="selectNtripStation(this.value)" style="font-size:11px; padding:2px 4px; background:transparent; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:4px; max-width:120px;">
+      </select>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -44,14 +49,6 @@
     <span class="project-label">PARCELLE</span>
     <select id="projectSelect" onchange="switchProject(this.value)"></select>
     <button id="btnNewProject" onclick="openNewProjectModal()" title="Nouvelle parcelle">＋</button>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- BARRE NTRIP                                             -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="ntripBar">
-    <span class="project-label">NTRIP</span>
-    <select id="ntripSelect" onchange="selectNtripStation(this.value)"></select>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -76,16 +73,6 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-data" class="screen active">
     <div style="padding:12px 12px 0">
-
-      <!-- Carte précision -->
-      <div class="prec-card prec-none" id="precCard">
-        <div class="prec-icon icon-none" id="precIcon">🚫</div>
-        <div class="prec-info">
-          <div class="prec-title" id="precTitle">MESURE BLOQUÉE</div>
-          <div class="prec-sub"   id="precSub">Float RTK minimum requis pour enregistrer</div>
-        </div>
-        <div class="prec-badge badge-none" id="precBadge">NONE</div>
-      </div>
 
       <!-- Position (pleine largeur, lisible en plein soleil) -->
       <div class="data-grid">

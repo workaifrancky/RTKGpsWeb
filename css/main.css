@@ -254,15 +254,20 @@ header {
 }
 
 .fix-prec {
-  color:     var(--color-primary-accent-text);
-  font-size: 11px;
-  margin-left: auto;
+  color:      var(--color-primary-accent-text);
+  font-size:  11px;
+  margin-left: 0;
   font-weight: 600;
 }
 
+/* NTRIP intégré au bandeau Fix (à droite) */
+.fix-ntrip {
+  display:     flex;
+  align-items: center;
+}
+
 /* ─── BARRE PROJET ──────────────────────────────────────────── */
-#projectBar,
-#ntripBar {
+#projectBar {
   background:      var(--color-white);
   padding:         8px 16px;
   display:         flex;
@@ -279,8 +284,7 @@ header {
   white-space:    nowrap;
 }
 
-#projectSelect,
-#ntripSelect {
+#projectSelect {
   flex:          1;
   padding:       6px 10px;
   background:    var(--color-bg-muted);
@@ -293,8 +297,7 @@ header {
   cursor:        pointer;
 }
 
-#projectSelect:focus,
-#ntripSelect:focus {
+#projectSelect:focus {
   outline:      none;
   border-color: var(--color-primary-light);
 }
@@ -509,6 +512,10 @@ header {
   .tab    { padding: 10px 10px; font-size: 10px; }
   .logo   { font-size: 17px; }
   #btnBle { font-size: 11px; padding: 7px 12px; }
+  #fixBar { gap: 6px; padding: 8px 10px; }
+  .fix-name { font-size: 12px; }
+  .fix-prec { font-size: 10px; }
+  #fixBar #ntripSelect { max-width: 96px !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -12,7 +12,6 @@
 
 [data-theme="dark"] .data-card,
 [data-theme="dark"] .card-full,
-[data-theme="dark"] .prec-card,
 [data-theme="dark"] .point-item,
 [data-theme="dark"] .stat-card,
 [data-theme="dark"] .session-item  { box-shadow: none; }
@@ -172,8 +171,8 @@
 }
 
 body.camera-ui-fullscreen #projectBar,
-body.camera-ui-fullscreen #ntripBar,
 body.camera-ui-fullscreen #alertBar,
+body.camera-ui-fullscreen .fix-ntrip,
 body.camera-ui-fullscreen .tabs,
 body.camera-ui-fullscreen .terrain-bar {
   display: none !important;
