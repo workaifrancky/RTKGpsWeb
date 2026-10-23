@@ -4,47 +4,61 @@
    ============================================================ */
 
 /* ─── VARIABLES THÈME JOUR (défaut) ─────────────────────────── */
+/* Les tokens de base sont définis dans css/design-tokens.css.
+   Les alias ci-dessous gardent la compatibilité avec les anciens
+   noms (theme.css, map.css) tout en pointant vers le design system. */
 :root {
-  /* Couleurs principales */
-  --green-dark:   #0f4d0f;
-  --green-main:   #1a6b1a;
-  --green-mid:    #16a34a;
-  --green-light:  #dcfce7;
-  --green-pale:   #f0f4f0;
+  /* Alias couleurs principales → tokens */
+  --green-dark:   var(--color-primary-deep);
+  --green-main:   var(--color-primary);
+  --green-mid:    var(--color-primary-light);
+  --green-light:  var(--color-primary-pale);
+  --green-pale:   var(--color-bg-subtle);
 
-  /* Surfaces */
-  --bg:           #f0f4f0;
-  --bg2:          #ffffff;
-  --bg3:          #f3f4f6;
+  /* Alias surfaces → tokens */
+  --bg:           var(--color-bg-subtle);
+  --bg2:          var(--color-white);
+  --bg3:          var(--color-bg-muted);
   --border:       #d1d5db;
   --border2:      #9ca3af;
 
-  /* Texte */
-  --text:         #111827;
+  /* Alias texte → tokens */
+  --text:         var(--color-text-primary);
   --text2:        #374151;
   --text3:        #6b7280;
-  --text4:        #9ca3af;
+  --text4:        var(--color-text-secondary);
 
-  /* Couleurs types de points */
-  --color-tonte:    #16a34a;
-  --color-interdit: #dc2626;
-  --color-obstacle: #d97706;
+  /* Couleurs types de points (spécifiques RTK Mower) → tokens */
+  --color-tonte:    var(--color-primary-light);
+  --color-interdit: var(--color-danger);
+  --color-obstacle: var(--color-warning);
 
-  /* Couleurs fix GPS */
-  --color-rtk:    #16a34a;
-  --color-float:  #d97706;
-  --color-dgps:   #2563eb;
+  /* Couleurs fix GPS (spécifiques RTK Mower) → tokens */
+  --color-rtk:    var(--color-primary-light);
+  --color-float:  var(--color-warning);
+  --color-dgps:   var(--color-info);
   --color-gps:    #6b7280;
-  --color-none:   #dc2626;
+  --color-none:   var(--color-danger);
 
-  /* UI */
-  --radius-sm:  6px;
-  --radius:     12px;
-  --radius-lg:  20px;
-  --radius-xl:  28px;
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
-  --shadow:     0 2px 10px rgba(0,0,0,0.12);
-  --shadow-lg:  0 4px 20px rgba(0,0,0,0.16);
+  /* Variantes de teinte (spécifiques RTK Mower, absentes des tokens) */
+  --color-primary-pale-bg:     #dcfce7;
+  --color-primary-accent:      #4ade80;
+  --color-primary-accent-text: #86efac;
+  --color-warning-pale:        #fef3c7;
+  --color-warning-strong:      #fbbf24;
+  --color-warning-text:        #92400e;
+  --color-danger-pale:         #fee2e2;
+  --color-danger-strong:       #f87171;
+  --color-danger-text:         #7f1d1d;
+  --color-info-pale:           #dbeafe;
+  --color-info-strong:         #60a5fa;
+  --color-info-text:           #1e3a8a;
+  --color-neutral-pale:        #f3f4f6;
+  --color-neutral-text:        #374151;
+
+  /* Alias UI → tokens (utilisés par theme.css / map.css) */
+  --radius:     var(--radius-xl);
+  --shadow:     var(--shadow-md);
   --transition: all 0.2s ease;
 
   --font:       -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -52,23 +66,24 @@
 }
 
 /* ─── THÈME NUIT ────────────────────────────────────────────── */
+/* On surcharge les tokens : tous les alias et composants suivent. */
 [data-theme="dark"] {
-  --green-dark:   #052e16;
-  --green-main:   #14532d;
-  --green-mid:    #16a34a;
-  --green-light:  #052e16;
-  --green-pale:   #0f1117;
+  /* Couleurs du design system */
+  --color-primary-deep:   #052e16;
+  --color-primary:        #14532d;
+  --color-primary-light:  #16a34a;
+  --color-primary-pale:   #052e16;
+  --color-bg-subtle:      #0f1117;
+  --color-white:          #1a1d27;
+  --color-bg-muted:       #22253a;
+  --color-text-primary:   #f9fafb;
+  --color-text-secondary: #6b7280;
 
-  --bg:           #0f1117;
-  --bg2:          #1a1d27;
-  --bg3:          #22253a;
-  --border:       #2a2d3a;
-  --border2:      #3a3d50;
-
-  --text:         #f9fafb;
-  --text2:        #e5e7eb;
-  --text3:        #9ca3af;
-  --text4:        #6b7280;
+  /* Surfaces / texte spécifiques RTK Mower */
+  --border:   #2a2d3a;
+  --border2:  #3a3d50;
+  --text2:    #e5e7eb;
+  --text3:    #9ca3af;
 }
 
 /* ─── RESET ─────────────────────────────────────────────────── */
@@ -86,7 +101,7 @@ html {
 }
 
 body {
-  background:   var(--bg);
+  background:   var(--color-bg-subtle);
   color:        var(--text);
   font-family:  var(--font);
   min-height:   100vh;
@@ -109,7 +124,7 @@ body {
 
 /* ─── HEADER ────────────────────────────────────────────────── */
 header {
-  background:      var(--green-main);
+  background:      var(--color-primary);
   padding:         14px 16px 12px;
   display:         flex;
   justify-content: space-between;
@@ -146,7 +161,7 @@ header {
 /* ─── BOUTON BLE HEADER ─────────────────────────────────────── */
 #btnBle {
   background:     white;
-  color:          var(--green-main);
+  color:          var(--color-primary);
   border:         none;
   border-radius:  var(--radius-lg);
   font-size:      12px;
@@ -158,7 +173,7 @@ header {
   white-space:    nowrap;
 }
 
-#btnBle:hover    { background: var(--green-light); }
+#btnBle:hover    { background: var(--color-primary-pale); }
 #btnBle.off      {
   background:   transparent;
   color:        rgba(255,255,255,0.7);
@@ -186,12 +201,12 @@ header {
 
 /* ─── BARRE FIX GPS ─────────────────────────────────────────── */
 #fixBar {
-  background:      var(--green-dark);
+  background:      var(--color-primary-deep);
   padding:         10px 16px;
   display:         flex;
   align-items:     center;
   gap:             10px;
-  border-bottom:   2px solid var(--green-main);
+  border-bottom:   2px solid var(--color-primary);
 }
 
 .fix-dot {
@@ -203,16 +218,16 @@ header {
 }
 
 .fix-dot.rtk    {
-  background:  #4ade80;
-  box-shadow:  0 0 8px #4ade80;
+  background:  var(--color-primary-accent);
+  box-shadow:  0 0 8px var(--color-primary-accent);
 }
 .fix-dot.float  {
-  background:  #fbbf24;
-  box-shadow:  0 0 6px #fbbf24;
+  background:  var(--color-warning-strong);
+  box-shadow:  0 0 6px var(--color-warning-strong);
 }
-.fix-dot.dgps   { background: #60a5fa; }
-.fix-dot.gps    { background: #9ca3af; }
-.fix-dot.none   { background: #f87171; }
+.fix-dot.dgps   { background: var(--color-info-strong); }
+.fix-dot.gps    { background: var(--color-text-secondary); }
+.fix-dot.none   { background: var(--color-danger-strong); }
 
 .fix-name {
   color:          white;
@@ -222,7 +237,7 @@ header {
 }
 
 .fix-prec {
-  color:     #86efac;
+  color:     var(--color-primary-accent-text);
   font-size: 11px;
   margin-left: auto;
   font-weight: 600;
@@ -231,7 +246,7 @@ header {
 /* ─── BARRE PROJET ──────────────────────────────────────────── */
 #projectBar,
 #ntripBar {
-  background:      var(--bg2);
+  background:      var(--color-white);
   padding:         8px 16px;
   display:         flex;
   align-items:     center;
@@ -251,7 +266,7 @@ header {
 #ntripSelect {
   flex:          1;
   padding:       6px 10px;
-  background:    var(--bg3);
+  background:    var(--color-bg-muted);
   border:        1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color:         var(--text);
@@ -264,11 +279,11 @@ header {
 #projectSelect:focus,
 #ntripSelect:focus {
   outline:      none;
-  border-color: var(--green-mid);
+  border-color: var(--color-primary-light);
 }
 
 #btnNewProject {
-  background:    var(--green-mid);
+  background:    var(--color-primary-light);
   color:         white;
   border:        none;
   border-radius: var(--radius-sm);
@@ -279,7 +294,7 @@ header {
   flex-shrink:   0;
 }
 
-#btnNewProject:hover { background: var(--green-main); }
+#btnNewProject:hover { background: var(--color-primary); }
 
 /* ─── BARRE D'ALERTE ────────────────────────────────────────── */
 #alertBar {
@@ -294,26 +309,26 @@ header {
 
 #alertBar.show          { display: block; }
 #alertBar.alert-warning {
-  background:   #fef3c7;
-  color:        #92400e;
-  border-color: #fbbf24;
+  background:   var(--color-warning-pale);
+  color:        var(--color-warning-text);
+  border-color: var(--color-warning-strong);
 }
 #alertBar.alert-danger {
-  background:   #fee2e2;
-  color:        #7f1d1d;
-  border-color: #f87171;
+  background:   var(--color-danger-pale);
+  color:        var(--color-danger-text);
+  border-color: var(--color-danger-strong);
 }
 #alertBar.alert-ok {
-  background:   #dcfce7;
-  color:        #14532d;
-  border-color: #4ade80;
+  background:   var(--color-primary-pale-bg);
+  color:        var(--color-primary-deep);
+  border-color: var(--color-primary-accent);
 }
 
 /* ─── ONGLETS ───────────────────────────────────────────────── */
 .tabs {
-  background:    var(--green-dark);
+  background:    var(--color-primary-deep);
   display:       flex;
-  border-bottom: 3px solid var(--green-main);
+  border-bottom: 3px solid var(--color-primary);
   overflow-x:    auto;
   scrollbar-width: none;
 }
@@ -338,7 +353,7 @@ header {
 .tab:hover  { color: rgba(255,255,255,0.75); }
 .tab.active {
   color:        white;
-  border-color: #4ade80;
+  border-color: var(--color-primary-accent);
 }
 
 /* ─── ÉCRANS ─────────────────────────────────────────────────── */
@@ -400,7 +415,7 @@ header {
 #toast.toast-tonte    { background: var(--color-tonte); }
 #toast.toast-interdit { background: var(--color-interdit); }
 #toast.toast-obstacle { background: var(--color-obstacle); }
-#toast.toast-info     { background: var(--green-main); }
+#toast.toast-info     { background: var(--color-primary); }
 #toast.toast-error    { background: var(--color-none); }
 
 /* ─── MODAL / OVERLAY ───────────────────────────────────────── */
@@ -423,7 +438,7 @@ header {
 }
 
 .modal-sheet {
-  background:    var(--bg2);
+  background:    var(--color-white);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width:         100%;
   max-width:     480px;
