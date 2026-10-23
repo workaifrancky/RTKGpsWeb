@@ -132,3 +132,39 @@ function simulateGpsFrame() {
   showToast('Trame GPS simulée', 'info');
   return data;
 }
+
+// ─── SIMULATION D'UNE TRAME GPS POSITIONNÉE ──────────────────
+// Même pipeline que simulateGpsFrame(), avec latitude, longitude,
+// cap et fix paramétrables (test du guidage caméra sans matériel).
+function simulateGpsAt(lat, lon, course = 0, fix = 'RTK Fix') {
+  const safeLat    = Number.isFinite(Number(lat))  ? Number(lat)  : SIM_BASE_LAT;
+  const safeLon    = Number.isFinite(Number(lon))  ? Number(lon)  : SIM_BASE_LON;
+  const safeCourse = Number.isFinite(Number(course)) ? Number(course) : 0;
+
+  const raw = [
+    `Fix: ${fix}`,
+    `Lat: ${safeLat.toFixed(6)}`,
+    `Lon: ${safeLon.toFixed(6)}`,
+    'Alt: 120.5',
+    'Rel_X: 0',
+    'Rel_Y: 0',
+    'Sat: 23',
+    'HDOP: 0.6',
+    'Speed: 1.2',
+    `Cap: ${safeCourse}`,
+    `Date: ${new Date().toISOString()}`,
+  ].join('\n');
+
+  const data = parseGpsFrame(raw);
+
+  APP.hasGpsData = true;
+  APP.lastUpdate = new Date();
+  updateUI(data);
+
+  // updateUI() ne propage pas la position vers la caméra : appel explicite
+  // (même ordre que le pipeline BLE de ble.js).
+  if (typeof updateCameraTarget === 'function') updateCameraTarget(data);
+
+  showToast(`Trame GPS simulée — ${safeLat.toFixed(6)}, ${safeLon.toFixed(6)} — cap ${safeCourse}°`, 'info');
+  return data;
+}
