@@ -25,11 +25,26 @@ const GPS_RATE_SAMPLE_SIZE = 12;
 const CAMERA_TARGET_NEAR_KEY = 'rtkCameraTargetNearThreshold';
 let targetNearThresholdMeters = 1.5;
 
+// Retour d'approche : seuils métriques, hystérésis de réarmement et persistance.
+const CAMERA_APPROACH_FEEDBACK_KEY = 'rtkCameraApproachFeedback';
+const APPROACH_THRESHOLDS_M = [10, 5, 2, 1];
+const APPROACH_HYSTERESIS_M = 0.5;
+const APPROACH_BEEP_HZ = { 10: 660, 5: 880, 2: 1040, 1: 1320 };
+const APPROACH_VIBRATION_MS = { 10: [40], 5: [70], 2: [90, 60, 90], 1: [140, 80, 140] };
+
+let approachFeedbackEnabled = true;
+let approachThresholdsArmed = {};
+let approachAudioContext = null;
+let approachFeedbackTargetId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   const savedThreshold = parseFloat(localStorage.getItem(CAMERA_TARGET_NEAR_KEY));
   if ([0.8, 1.0, 1.5].includes(savedThreshold)) {
     targetNearThresholdMeters = savedThreshold;
   }
+
+  approachFeedbackEnabled = localStorage.getItem(CAMERA_APPROACH_FEEDBACK_KEY) !== '0';
+  resetApproachFeedbackState();
 
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
@@ -155,6 +170,7 @@ function isTargetSelectInteracting() {
 
 async function startCamera() {
   initCompass();
+  unlockApproachAudio();
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
   bindCameraFullscreenResizeHandler();
@@ -244,6 +260,7 @@ function handleDeviceOrientation(event) {
 
 function setMode(mode) {
   cameraMode = mode === 'distance' ? 'distance' : 'target';
+  resetApproachFeedbackState();
 
   if (cameraMode === 'distance') {
     startDistanceMeasurement();
@@ -332,6 +349,118 @@ function setTargetNearThreshold(value) {
   showToast(`Seuil cible: ${next.toFixed(1).replace('.', ',')} m`, 'info', 1600);
 }
 
+// ─── RETOUR D'APPROCHE (VIBRATION + BIP) ────────────────────
+
+function resetApproachFeedbackState() {
+  approachThresholdsArmed = {};
+  APPROACH_THRESHOLDS_M.forEach(threshold => {
+    approachThresholdsArmed[threshold] = true;
+  });
+  approachFeedbackTargetId = targetPoint ? String(targetPoint.id) : null;
+}
+
+function toggleApproachFeedback() {
+  approachFeedbackEnabled = !approachFeedbackEnabled;
+  localStorage.setItem(CAMERA_APPROACH_FEEDBACK_KEY, approachFeedbackEnabled ? '1' : '0');
+
+  if (approachFeedbackEnabled) {
+    unlockApproachAudio();
+    resetApproachFeedbackState();
+  }
+
+  updateCameraOverlay();
+  showToast(
+    approachFeedbackEnabled ? '🔔 Retour d\'approche activé' : '🔕 Retour d\'approche coupé',
+    'info',
+    1600
+  );
+}
+
+function getApproachFeedbackButtonHtml() {
+  const label = approachFeedbackEnabled ? 'Couper le retour d\'approche' : 'Activer le retour d\'approche';
+  const icon = approachFeedbackEnabled ? '🔔' : '🔕';
+  return `<button class="cam-feedback-btn ${approachFeedbackEnabled ? 'on' : 'off'}"
+    onclick="toggleApproachFeedback()" title="${label}" aria-pressed="${approachFeedbackEnabled ? 'true' : 'false'}">${icon}</button>`;
+}
+
+function ensureApproachAudioContext() {
+  if (approachAudioContext) return approachAudioContext;
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (typeof AudioCtx !== 'function') return null;
+
+  try {
+    approachAudioContext = new AudioCtx();
+  } catch (error) {
+    approachAudioContext = null;
+  }
+
+  return approachAudioContext;
+}
+
+function unlockApproachAudio() {
+  const ctx = ensureApproachAudioContext();
+  if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+    ctx.resume().catch(() => {});
+  }
+}
+
+function playApproachBeep(threshold) {
+  const ctx = ensureApproachAudioContext();
+  if (!ctx) return;
+
+  if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+    ctx.resume().catch(() => {});
+  }
+
+  const frequency = APPROACH_BEEP_HZ[threshold] || 880;
+  const now = ctx.currentTime;
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(frequency, now);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.22, now + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.18);
+}
+
+function vibrateApproach(threshold) {
+  if (!navigator.vibrate) return;
+  navigator.vibrate(APPROACH_VIBRATION_MS[threshold] || 60);
+}
+
+function triggerApproachFeedback(threshold) {
+  playApproachBeep(threshold);
+  vibrateApproach(threshold);
+}
+
+// Appelé à chaque trame GPS en mode cible : franchise descendante d'un seuil
+// -> bip + vibration, réarmement seulement au-delà du seuil + hystérésis.
+function processApproachFeedback(dist) {
+  if (!approachFeedbackEnabled || cameraMode !== 'target' || !targetPoint) return;
+  if (typeof dist !== 'number' || !Number.isFinite(dist)) return;
+
+  if (approachFeedbackTargetId !== String(targetPoint.id)) {
+    resetApproachFeedbackState();
+  }
+
+  APPROACH_THRESHOLDS_M.forEach(threshold => {
+    if (dist <= threshold) {
+      if (approachThresholdsArmed[threshold] !== false) {
+        approachThresholdsArmed[threshold] = false;
+        triggerApproachFeedback(threshold);
+      }
+    } else if (dist > threshold + APPROACH_HYSTERESIS_M) {
+      approachThresholdsArmed[threshold] = true;
+    }
+  });
+}
+
 function renderCameraThresholdMenu() {
   const menu = document.getElementById('cameraThresholdMenu');
   if (!menu) return;
@@ -389,6 +518,7 @@ function selectTargetPoint(pointId) {
   const pts = getPoints();
   targetPoint = pts.find(p => p.id === pointId) || null;
   targetSelectSignature = '';
+  resetApproachFeedbackState();
   populateTargetSelect();
 
   if (targetPoint) {
@@ -406,6 +536,10 @@ function updateCameraTarget(data) {
   registerGpsFrameTimestamp(data);
   currentPos = data;
   if (APP.currentTab === 'tab-camera') {
+    if (cameraMode === 'target' && targetPoint && data && data.lat && data.lon) {
+      const dist = haversine(data.lat, data.lon, targetPoint.lat, targetPoint.lon);
+      processApproachFeedback(dist);
+    }
     updateCameraOverlay();
   }
 }
@@ -474,24 +608,29 @@ function renderTargetMode(overlay) {
 
   const dist = haversine(currentPos.lat, currentPos.lon, targetPoint.lat, targetPoint.lon);
   const bearing = calcBearing(currentPos.lat, currentPos.lon, targetPoint.lat, targetPoint.lon);
-  const correctedBearing = getCorrectedBearing(bearing);
+  // Option A : cap géographique fixe à l'écran (0° = nord en haut).
+  const guidanceBearing = getGuidanceBearing(bearing);
   const color = getCameraColor(dist);
-  const distText = formatCameraDistance(dist);
   const cap = getCurrentCap();
   const nearTarget = dist < targetNearThresholdMeters;
+  const distText = nearTarget ? formatCameraDistanceCm(dist) : formatCameraDistance(dist);
+  const fixClass = currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass;
 
   overlay.innerHTML = `
     <div class="cam-overlay-content cam-overlay-target" style="position:absolute;inset:0;">
       <div class="cam-status-row">
         ${getCompassBadgeHtml()}
-        <span class="cam-fix-badge ${currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass}">${currentPos.fix || '—'}</span>
+        <div class="cam-status-actions">
+          <span class="cam-fix-badge ${fixClass}">${currentPos.fix || '—'}</span>
+          ${getApproachFeedbackButtonHtml()}
+        </div>
       </div>
       ${nearTarget ? '<div class="cam-target-circle"><div class="cam-target-circle-dot"></div></div>' : ''}
       <div class="cam-arrow-wrap">
-        <div class="cam-arrow" style="transform:rotate(${correctedBearing}deg);color:${color}">
+        ${nearTarget ? '' : `<div class="cam-arrow cam-arrow-target" style="transform:rotate(${guidanceBearing}deg);color:${color}">
           <span class="cam-arrow-head"></span>
           <span class="cam-arrow-shaft"></span>
-        </div>
+        </div>`}
       </div>
       <div class="cam-distance" style="color:${color}">${distText}</div>
       <div class="camera-settings" style="width:100%;max-width:320px;">
@@ -514,17 +653,19 @@ function renderDistanceMode(overlay) {
 
   const dist = haversine(distanceMeasureStart.lat, distanceMeasureStart.lon, currentPos.lat, currentPos.lon);
   const cap = getCurrentCap();
-  const correctedCap = typeof cap === 'number' ? getCorrectedBearing(cap) : 0;
+  // Option A : la flèche de mode distance suit le cap brut, sans correction boussole.
+  const guidanceCap = getGuidanceBearing(cap);
   const color = getCameraColor(dist);
+  const fixClass = currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass;
 
   overlay.innerHTML = `
     <div class="cam-overlay-content cam-overlay-distance" style="position:absolute;inset:0;">
       <div class="cam-status-row">
         ${getCompassBadgeHtml()}
-        <span class="cam-fix-badge ${currentPos.badgeClass || getFixMeta(currentPos.fix).badgeClass}">${currentPos.fix || '—'}</span>
+        <span class="cam-fix-badge ${fixClass}">${currentPos.fix || '—'}</span>
       </div>
       <div class="cam-arrow-wrap">
-        <div class="cam-arrow" style="transform:rotate(${correctedCap}deg);color:${color}">
+        <div class="cam-arrow cam-arrow-distance" style="transform:rotate(${guidanceCap}deg);color:${color}">
           <span class="cam-arrow-head"></span>
           <span class="cam-arrow-shaft"></span>
         </div>
@@ -562,11 +703,9 @@ function formatCap(cap) {
   return `${cap.toFixed(0)}°`;
 }
 
-function getCorrectedBearing(bearing) {
-  if (compassReady && typeof compassHeading === 'number') {
-    return (bearing - compassHeading + 360) % 360;
-  }
-  return bearing;
+function getGuidanceBearing(bearing) {
+  if (typeof bearing !== 'number' || !Number.isFinite(bearing)) return 0;
+  return ((bearing % 360) + 360) % 360;
 }
 
 function getCompassBadgeHtml() {
@@ -625,6 +764,11 @@ function getCameraColor(dist) {
 function formatCameraDistance(dist) {
   if (dist < 1) return `${(dist * 100).toFixed(0)} cm`;
   return `${dist.toFixed(2)} m`;
+}
+
+// Affichage en centimètres dès l'entrée dans le seuil de proximité.
+function formatCameraDistanceCm(dist) {
+  return `${Math.round(dist * 100)} cm`;
 }
 
 function calcBearing(lat1, lon1, lat2, lon2) {

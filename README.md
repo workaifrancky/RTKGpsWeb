@@ -17,7 +17,7 @@ Fonctionnalités principales :
 - enregistrement de points `tonte`, `interdit`, `obstacle` et d'une **base du rover** unique ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
-- caméra de visée (boussole + distance) pour rejoindre un point ou mesurer une distance ;
+- caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
 - export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
 - mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) et bouton
   **Simuler une trame GPS** pour tester l'application et l'onglet DONNÉES sans matériel GPS.

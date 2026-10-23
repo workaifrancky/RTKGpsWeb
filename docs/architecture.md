@@ -31,7 +31,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
 | `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones, marqueurs, base, position live, overlay de surfaces |
-| `js/camera.js` | Flux caméra, boussole, cible à rejoindre, mesure de distance, plein écran |
+| `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
 | `js/stats.js` | Statistiques de session (base exclue) |
 | `js/export.js` | Exports CSV, GPX, GeoJSON + calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |

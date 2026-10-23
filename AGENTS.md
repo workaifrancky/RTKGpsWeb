@@ -167,6 +167,30 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
 - **2.4 — Simulation de trame GPS** : bouton « Simuler une trame GPS » (`simulateGpsFrame()`)
   qui injecte une trame texte via `parseGpsFrame()` + `updateUI()` pour tester l'onglet
   DONNÉES sans BLE.
+- **3.1 — Refonte de l'onglet DONNÉES** : grille `.data-grid` sur 2 colonnes, cartes
+  `.data-card` / `.data-card-primary` (fond uniforme, ombre `--shadow-sm`), Latitude et
+  Longitude côte à côte sur toute la largeur (`.data-primary-row` / `.data-primary-col`,
+  séparateur vertical), valeurs secondaires en 2×2 (Altitude, Satellites, HDOP, Vitesse) ;
+  section DONNÉES GPS et carte précision conservées en tête d'onglet.
+- **3.1-bis — Bouton « Simuler une trame GPS »** : variante de bouton dédiée
+  `.action-button-simulation-gps` (pleine largeur, fond `--color-teal`, texte blanc),
+  placée sous « Mode Simulation » dans l'onglet DONNÉES ; elle appelle toujours
+  `simulateGpsFrame()`.
+- **3.1-ter — Uniformisation des valeurs DONNÉES** : `.data-card .data-value` en
+  **24 px / 800 / `--color-primary-deep`**, `font-variant-numeric: tabular-nums` sur Lat/Lon ;
+  neutralisation des `<span class="data-value">` injectés par `js/ui.js` (sélecteur
+  `.data-card .data-value .data-value`, `font-size: inherit !important`, `color: inherit`)
+  pour effacer le style inline 22 px et les couleurs Satellites/HDOP ; override de
+  lisibilité en thème nuit (`--color-primary-light`).
+- **3.2 — Guidage caméra « option A » et retour d'approche** : `getCorrectedBearing()` est
+  remplacée par `getGuidanceBearing()` ; la flèche de cible indique le **cap géographique**
+  (0° = nord en haut) et ne tourne plus avec le téléphone, la boussole restant informative
+  (badge CAP). Deux styles distincts : `.cam-arrow-target` (pleine, large, vive) masquée sous
+  le seuil de proximité au profit du cercle + distance en centimètres, et
+  `.cam-arrow-distance` (fine, longue, semi-transparente, opacité 0.55) pilotée par le cap
+  brut. Retour haptique/sonore aux seuils **10 / 5 / 2 / 1 m** avec hystérésis de **0,5 m**
+  (`processApproachFeedback()`, `navigator.vibrate` + bip Web Audio), bouton on/off
+  `.cam-feedback-btn` dans l'overlay cible et persistance `rtkCameraApproachFeedback`.
 
 ## 9. Langue et communication
 
