@@ -117,6 +117,10 @@
 
       <button id="btnToggleDataDetails" class="btn-map-tool data-detail-toggle" onclick="toggleDataDetails()">Afficher REL/CAP/DATE</button>
 
+      <!-- Mode simulation (visible sans BLE) -->
+      <button class="action-button-simulation" onclick="generateSimulationData()"
+        title="Générer un jeu de données fictif pour tester sans GPS">🎮 Mode Simulation</button>
+
       <!-- Détail -->
       <div class="card-full data-detail-card is-collapsed" id="dataDetailCard">
         <div class="card-row">
@@ -154,10 +158,11 @@
       </div>
       <div id="pointsList"></div>
       <div class="actions-bar">
-        <button class="btn-action-bar" onclick="exportCSV()">⬇ CSV</button>
-        <button class="btn-action-bar" onclick="exportGPX()">⬇ GPX</button>
-        <button class="btn-action-bar" onclick="exportGeoJSON()">⬇ GeoJSON</button>
-        <button class="btn-action-bar danger" onclick="clearAllPoints()">🗑 Effacer</button>
+        <button class="action-button action-button-compact" onclick="exportCSV()">⬇ CSV</button>
+        <button class="action-button action-button-compact" onclick="exportGPX()">⬇ GPX</button>
+        <button class="action-button action-button-compact" onclick="exportGeoJSON()">⬇ GeoJSON</button>
+        <button class="action-button-danger action-button-compact" onclick="clearAllPoints()">🗑 Effacer</button>
+        <button class="action-button action-button-compact" onclick="recordBase()" title="Enregistrer la position actuelle comme base du rover">🏠 Définir la base</button>
       </div>
     </div>
   </div>
@@ -274,7 +279,7 @@
           <span id="statDuration" class="card-val">—</span>
         </div>
       </div>
-      <button class="btn-action-bar" style="width:100%;margin-top:4px" onclick="updateStatsDisplay()">↺ Actualiser</button>
+      <button class="action-button action-button-compact" style="width:100%;margin-top:4px" onclick="updateStatsDisplay()">↺ Actualiser</button>
     </div>
   </div>
 
@@ -308,6 +313,10 @@
       <div class="terrain-btn-circle obstacle disabled" id="btnObstacle">🟡</div>
       <div class="terrain-btn-label">OBSTACLE<br>ISOLÉ</div>
     </div>
+    <div class="terrain-btn" onclick="recordBase()">
+      <div class="terrain-btn-circle base disabled" id="btnBase">🏠</div>
+      <div class="terrain-btn-label">BASE</div>
+    </div>
   </div>
 </div>
 
@@ -315,7 +324,7 @@
 <!-- MODAL OBSTACLE                                              -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="obstacleModal" onclick="if(event.target===this)closeObstacleMenu()">
-  <div class="modal-sheet">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">🟡 Type d'obstacle</div>
     <div class="obstacle-grid">
@@ -363,14 +372,14 @@
 <!-- MODAL NOUVEAU PROJET                                         -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="projectModal" onclick="if(event.target===this)closeProjectModal()">
-  <div class="modal-sheet">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">🌾 Nouvelle parcelle</div>
     <div class="project-form">
       <input type="text" id="projectNameInput" class="form-input"
         placeholder="Ex: Jardin Nord, Prairie Sud..."
         onkeydown="if(event.key==='Enter')createProject()">
-      <button class="btn-primary" onclick="createProject()">✓ Créer la parcelle</button>
+      <button class="action-button" onclick="createProject()">✓ Créer la parcelle</button>
       <button class="btn-secondary" onclick="closeProjectModal()">Annuler</button>
     </div>
   </div>
@@ -391,6 +400,7 @@
 <script src="js/points.js"></script>
 <script src="js/map.js"></script>
 <script src="js/stats.js"></script>
+<script src="js/simulation.js"></script>
 <script src="js/export.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/history.js"></script>

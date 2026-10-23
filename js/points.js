@@ -1,10 +1,10 @@
 // ============================================================
-// points.js — Enregistrement des 3 types de points
-// RTKGpsWeb v2 — tonte / interdit / obstacle
+// points.js — Enregistrement des 4 types de points
+// RTKGpsWeb v2 — tonte / interdit / obstacle / base
 // ============================================================
 
 // Compteurs par type pour numérotation
-let counters = { tonte: 0, interdit: 0, obstacle: 0 };
+let counters = { tonte: 0, interdit: 0, obstacle: 0, base: 0 };
 
 document.addEventListener('DOMContentLoaded', () => {
   // Recharge les compteurs depuis le projet courant
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function syncCounters() {
   const pts = getPoints();
-  counters = { tonte: 0, interdit: 0, obstacle: 0 };
+  counters = { tonte: 0, interdit: 0, obstacle: 0, base: 0 };
   pts.forEach(p => { if (counters[p.type] !== undefined) counters[p.type]++; });
 }
 
@@ -40,6 +40,25 @@ function recordObstacle(subtype, icon) {
   const pt = buildPoint('obstacle', subtype, icon || '🟡');
   savePoint(pt);
   showToast(`${icon} ${subtype} #${pt.index} enregistré`, 'obstacle');
+}
+
+// ─── ENREGISTRER — BASE DU ROVER ─────────────────────────────
+// Une seule base par parcelle : l'ancienne est remplacée.
+function recordBase() {
+  if (!checkGps()) return;
+  const existing = getBase();
+  if (existing) removePointFromCurrentProject(existing.id);
+  counters.base = 0;
+  const pt = buildPoint('base', null, '🏠');
+  savePoint(pt);
+  // Redessine la carte pour retirer l'ancien marqueur de base
+  if (existing && typeof renderMap === 'function') renderMap();
+  showToast('🏠 Base du rover définie', 'info');
+}
+
+// ─── LECTURE DE LA BASE ──────────────────────────────────────
+function getBase() {
+  return getPoints().find(p => p.type === 'base') || null;
 }
 
 // ─── CONSTRUCTION D'UN POINT ─────────────────────────────────
@@ -99,7 +118,7 @@ function clearAllPoints() {
   if (pts.length === 0) { showToast('Aucun point à effacer', 'info'); return; }
   if (!confirm(`Effacer les ${pts.length} points de cette parcelle ?`)) return;
   clearCurrentProjectPoints();
-  counters = { tonte:0, interdit:0, obstacle:0 };
+  counters = { tonte:0, interdit:0, obstacle:0, base:0 };
   renderPointsList();
   if (typeof renderMap === 'function') renderMap();
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
@@ -124,11 +143,13 @@ function renderPointsList() {
   }
 
   // Groupes par type
+  const base     = getBase();
   const tonte    = pts.filter(p => p.type === 'tonte');
   const interdit = pts.filter(p => p.type === 'interdit');
   const obstacle = pts.filter(p => p.type === 'obstacle');
 
   container.innerHTML =
+    (base ? renderGroup('Base du Rover', [base], '#2e7d32', 'base') : '') +
     renderGroup('Zone de tonte', tonte,    '#16a34a', 'tonte') +
     renderGroup('Zone interdite', interdit, '#dc2626', 'interdit') +
     renderGroup('Obstacles isolés', obstacle,'#d97706', 'obstacle');
@@ -149,9 +170,11 @@ function renderGroup(title, pts, color, type) {
 function renderPointItem(p) {
   const date = new Date(p.timestamp).toLocaleDateString('fr-FR');
   const time  = fmtTime(p.timestamp);
-  const name  = p.subtype
-    ? `${p.icon} ${p.subtype} #${p.index}`
-    : `${p.icon} ${p.type === 'tonte' ? 'Tonte' : 'Interdit'} #${p.index}`;
+  const name  = p.type === 'base'
+    ? `${p.icon} Base du Rover`
+    : p.subtype
+      ? `${p.icon} ${p.subtype} #${p.index}`
+      : `${p.icon} ${p.type === 'tonte' ? 'Tonte' : 'Interdit'} #${p.index}`;
   const fix   = getFixMeta(p.fix);
   return `
     <div class="point-item">

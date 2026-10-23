@@ -92,8 +92,9 @@ function exportGeoJSON() {
 
   const features = [];
 
-  // 1 ── Domaine : enveloppe convexe de TOUS les points du projet
-  const hull = calculateConvexHull(pts);
+  // 1 ── Domaine : enveloppe convexe des points du projet (base exclue)
+  const allPoints = pts.filter(p => p.type !== 'base');
+  const hull = calculateConvexHull(allPoints);
   if (hull) {
     features.push({
       type:'Feature',
@@ -155,6 +156,23 @@ function exportGeoJSON() {
       },
     });
   });
+
+  // 5 ── Base du rover (position unique par parcelle)
+  const base = typeof getBase === 'function'
+    ? getBase()
+    : pts.find(p => p.type === 'base') || null;
+  if (base) {
+    features.push({
+      type:'Feature',
+      geometry:{ type:'Point', coordinates:[base.lon, base.lat, base.alt || 0] },
+      properties:{
+        type:'base',
+        name:'Base du rover',
+        timestamp:base.timestamp,
+        source:'rtk-mower',
+      },
+    });
+  }
 
   const geojson = { type:'FeatureCollection', features };
   downloadFile(JSON.stringify(geojson,null,2), `RTK_${projectName}_${dateTag()}.geojson`, 'application/json');

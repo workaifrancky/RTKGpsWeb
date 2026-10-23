@@ -4,7 +4,8 @@
 // ============================================================
 
 function computeStats() {
-  const pts = getPoints();
+  // La base du rover est une référence, pas un point de travail
+  const pts = getPoints().filter(p => p.type !== 'base');
   if (pts.length === 0) return { count:0, distance:0, area:0, avgHdop:null, avgSat:null, bestFix:'None', duration:0, tonte:0, interdit:0, obstacle:0 };
 
   const tonte    = pts.filter(p=>p.type==='tonte');

@@ -56,6 +56,10 @@
   --color-neutral-pale:        #f3f4f6;
   --color-neutral-text:        #374151;
 
+  /* Tokens complémentaires (boutons / modales — Mower Planner) */
+  --shadow-xl:           0 8px 24px rgba(0,0,0,0.22);
+  --button-bg-disabled:  #bdbdbd;
+
   /* Alias UI → tokens (utilisés par theme.css / map.css) */
   --radius:     var(--radius-xl);
   --shadow:     var(--shadow-md);
@@ -84,6 +88,19 @@
   --border2:  #3a3d50;
   --text2:    #e5e7eb;
   --text3:    #9ca3af;
+
+  /* Tokens complémentaires */
+  --button-bg-disabled: #3a3d50;
+}
+
+/* Composants Mower Planner — lisibilité en thème nuit */
+[data-theme="dark"] .btn-secondary {
+  color:        var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .modal-title {
+  color: var(--color-primary-light);
 }
 
 /* ─── RESET ─────────────────────────────────────────────────── */
@@ -437,18 +454,18 @@ header {
   pointer-events: all;
 }
 
-.modal-sheet {
+.modal-box {
   background:    var(--color-white);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-radius: var(--radius-lg); /* 10px */
   width:         100%;
   max-width:     480px;
-  padding:       20px 16px 32px;
-  box-shadow:    var(--shadow-lg);
+  padding:       16px;
+  box-shadow:    var(--shadow-xl);
   transform:     translateY(20px);
   transition:    transform 0.25s;
 }
 
-.modal-overlay.show .modal-sheet {
+.modal-overlay.show .modal-box {
   transform: translateY(0);
 }
 
@@ -461,11 +478,10 @@ header {
 }
 
 .modal-title {
-  font-size:      14px;
-  font-weight:    800;
-  color:          var(--text);
-  margin-bottom:  16px;
-  letter-spacing: 0.5px;
+  font-size:     18px;
+  font-weight:   700;
+  color:         var(--color-primary-deep);
+  margin-bottom: 16px;
 }
 
 /* ─── SCROLLBAR ─────────────────────────────────────────────── */
