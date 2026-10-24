@@ -155,6 +155,7 @@ function exportGeoJSON() {
       geometry:{ type:'Point', coordinates:[p.lon, p.lat, p.alt || 0] },
       properties:{
         type:'obstacle',
+        name:p.name || p.subtype || 'Autre',
         categorie:p.subtype || 'Autre',
         rayon:1.0,
         index:p.index,

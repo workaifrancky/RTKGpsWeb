@@ -662,6 +662,42 @@
   background:   var(--color-danger-pale);
 }
 
+/* Colonne date/heure + actions de chaque point */
+.point-item-side {
+  display:        flex;
+  flex-direction: column;
+  align-items:    flex-end;
+  gap:            6px;
+  flex-shrink:    0;
+}
+
+.point-item-actions {
+  display: flex;
+  gap:     6px;
+}
+
+.btn-edit {
+  background:    none;
+  border:        1px solid var(--border);
+  color:         var(--text4);
+  width:         30px;
+  height:        30px;
+  border-radius: 50%;
+  cursor:        pointer;
+  font-size:     13px;
+  display:       flex;
+  align-items:   center;
+  justify-content:center;
+  flex-shrink:   0;
+  transition:    var(--transition);
+}
+
+.btn-edit:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale);
+}
+
 /* ─── BARRE D'ACTIONS ───────────────────────────────────────── */
 .actions-bar {
   display:    flex;

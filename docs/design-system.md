@@ -162,7 +162,10 @@ navigation reste assurée par `showTab()` (`js/app.js`), qui coche aussi le radi
 - `.data-card-primary` : bloc Position pleine largeur (Latitude + Longitude côte à côte),
   mêmes valeurs 24 px / 800, labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
-- `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`, `base`).
+- `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
+- `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
+- `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
+  supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.
 - `.zone-badge` : badge « Zone #N » de l'onglet POINTS (fond pâle, bordure verte, override nuit).
 - `.zone-label` : médaillon circulaire `ZN` centré sur chaque polygone de tonte.
 

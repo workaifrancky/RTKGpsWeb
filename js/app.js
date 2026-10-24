@@ -54,6 +54,7 @@ function showTab(tabId) {
   if (tabRadio) tabRadio.checked = true;
   APP.currentTab = tabId;
   syncTerrainBarVisibility(tabId);
+  syncProjectBarVisibility(tabId);
 
   if (tabId === 'tab-map') {
     setTimeout(() => { if (typeof refreshMap === 'function') refreshMap(); }, 120);
@@ -81,6 +82,14 @@ function syncTerrainBarVisibility(tabId) {
   const show = tabId === 'tab-points';
   terrainBar.classList.toggle('show', show);
   terrainBar.setAttribute('aria-hidden', show ? 'false' : 'true');
+}
+
+// La parcelle n'est pas utile sur l'onglet GPS : le bandeau est masqué.
+function syncProjectBarVisibility(tabId) {
+  const projectBar = document.getElementById('projectBar');
+  if (!projectBar) return;
+
+  projectBar.style.display = tabId === 'tab-data' ? 'none' : 'flex';
 }
 
 // ─── BLE SUPPORT ─────────────────────────────────────────────

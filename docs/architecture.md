@@ -24,15 +24,15 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 
 | Fichier | Responsabilité |
 |---|---|
-| `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
-| `js/projects.js` | CRUD des parcelles, persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), liste des points |
+| `js/app.js` | État global `APP`, navigation par onglets, visibilité du bandeau Parcelle, thème, toasts, alertes, ouverture/fermeture des modales |
+| `js/projects.js` | CRUD des parcelles (dont `renameCurrentProject()`), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), renommage (`renamePoint()`), liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
-| `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones, marqueurs, base, position live, overlay de surfaces |
+| `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones, marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
 | `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
-| `js/stats.js` | Statistiques de session (base exclue) |
+| `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
 | `js/export.js` | Exports CSV, GPX, GeoJSON + calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
@@ -89,6 +89,8 @@ brique doit être insérée **après ses dépendances**.
 2. `savePoint()` → `addPointToCurrentProject()` (persistance), `renderPointsList()`,
    `addPointToMap()`, `updateStatsDisplay()`.
 3. La suppression passe par `deletePoint(id)` qui renumérote les points par type.
+4. Le renommage passe par `renamePoint(id)` : le nom personnalisé est stocké dans `point.name`,
+   persisté, puis la liste et la carte sont rafraîchies.
 
 Il n'existe plus de point de référence « base du rover » : les trois types enregistrables sont
 `tonte`, `interdit` et `obstacle`.

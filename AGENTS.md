@@ -83,6 +83,7 @@ Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet cour
   id: 1698055200000,
   type: 'tonte' | 'interdit' | 'obstacle',
   subtype: 'Arbre' | null,       // catégorie d'obstacle
+  name: 'Arbre du fond' | null,  // nom personnalisé (facultatif)
   icon: '🟢',
   index: 1,                      // numérotation par type
   zoneId: 1,                     // zones de tonte uniquement (défaut 1)
@@ -114,7 +115,7 @@ Résumé : `FeatureCollection` dans cet ordre strict :
 1. `domaine` — `Polygon` (convex hull de tous les points du projet)
 2. `zone` (× N) — `Polygon` (une Feature par `zoneId`, si ≥ 3 points `tonte`)
 3. `zone_interdite` — `Polygon` (points `interdit`, si ≥ 3)
-4. `obstacle` — un `Point` par obstacle (`categorie`, `rayon`, `index`, fix…)
+4. `obstacle` — un `Point` par obstacle (`name`, `categorie`, `rayon`, `index`, fix…)
 
 Aucune Feature `base` n'est produite.
 
@@ -135,6 +136,12 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   de point de référence à exclure).
 - **Suppression de parcelle** : bouton `#btnDeleteProject` de la barre PARCELLE →
   `deleteCurrentProject()` (`js/projects.js`), qui refuse de supprimer la dernière parcelle.
+- **Bandeau Parcelle** : masqué (`display: none`) sur l'onglet GPS par
+  `syncProjectBarVisibility()` (`js/app.js`), affiché (`display: flex`) sur les autres onglets.
+- **Renommage** : `renameCurrentProject()` (parcelle) et `renamePoint(id)` (points) utilisent
+  `prompt()`, refusent un nom vide et persistent via `saveProjects()`. Le nom d'un point est
+  stocké dans `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour
+  les obstacles.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : un seul Feature regroupant les points `interdit` (pas de notion de
   zones multiples dans le modèle actuel).
@@ -270,6 +277,13 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `normalizeProject()`. La simulation génère désormais 14 points (sans base). Ajout du bouton
   `#btnDeleteProject` (`🗑`) dans la barre PARCELLE → `deleteCurrentProject()`, avec rafraîchissement
   de la zone courante, de la carte, de la liste, des statistiques et de l'historique.
+- **3.12-bis — Bandeau Parcelle sur GPS et édition des noms** : `syncProjectBarVisibility()`
+  masque `#projectBar` sur l'onglet GPS (`tab-data`) et l'affiche ailleurs. Bouton
+  `#btnRenameProject` (`✏️`) dans la barre PARCELLE → `renameCurrentProject()` ; bouton `✏️`
+  sur chaque ligne POINTS et dans la popup carte → `renamePoint(id)`. Le nom personnalisé est
+  stocké dans `point.name`, affiché à la place du sous-type (`getPointDisplayName()`), exporté
+  en `properties.name` pour les obstacles. La popup carte reçoit aussi un bouton `🗑` de
+  suppression (`deletePoint()`). Noms vides refusés.
 
 ## 9. Langue et communication
 

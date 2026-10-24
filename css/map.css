@@ -25,6 +25,43 @@
 .leaflet-popup-content     { margin: 10px 14px !important; }
 .leaflet-popup-content b   { color: var(--green-main); }
 
+/* Actions dans la popup d'un point (renommer / supprimer) */
+.leaflet-popup-content .popup-actions {
+  display:         flex;
+  justify-content: flex-end;
+  gap:             6px;
+  margin-top:      8px;
+}
+
+.leaflet-popup-content .popup-btn {
+  background:    transparent;
+  color:         var(--text);
+  border:        1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding:       3px 8px;
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   700;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.leaflet-popup-content .popup-btn:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale);
+}
+
+.leaflet-popup-content .popup-btn-danger {
+  color:        var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.leaflet-popup-content .popup-btn-danger:hover {
+  background: var(--color-danger-pale);
+  color:      var(--color-danger-text);
+}
+
 .map-surface-overlay {
   display: none;
   max-width: 260px;

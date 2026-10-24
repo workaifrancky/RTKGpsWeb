@@ -126,6 +126,7 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
   },
   "properties": {
     "type": "obstacle",
+    "name": "Arbre du fond",
     "categorie": "Arbre",
     "rayon": 1.0,
     "index": 1,
@@ -138,6 +139,7 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 }
 ```
 
+- `name` : nom personnalisé du point (`point.name`, saisi avec `✏️`), sinon `categorie`.
 - `categorie` : `subtype` du point, sinon `"Autre"`.
 - `rayon` : rayon de sécurité en mètres (constante `1.0`).
 - `index` : numérotation de l'obstacle dans la parcelle.
@@ -160,4 +162,5 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 - [ ] `zone_id` et le nom `« <projet> - Zone N »` sont corrects.
 - [ ] Les polygones sont fermés et en `[lon, lat]`.
 - [ ] Les `surface_m2` sont numériques et > 0.
+- [ ] Chaque obstacle possède un `properties.name` (nom personnalisé ou catégorie).
 - [ ] Aucune Feature `base` n'est présente.

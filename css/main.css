@@ -286,6 +286,7 @@ header {
 
 #projectSelect {
   flex:          1;
+  min-width:     0;   /* autorise la liste à rétrécir (3 boutons à droite) */
   padding:       6px 10px;
   background:    var(--color-bg-muted);
   border:        1.5px solid var(--border);
@@ -315,6 +316,21 @@ header {
 }
 
 #btnNewProject:hover { background: var(--color-primary); }
+
+#btnRenameProject {
+  background:    transparent;
+  color:         var(--color-primary);
+  border:        1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding:       5px 10px;
+  font-size:     15px;
+  line-height:   1;
+  cursor:        pointer;
+  transition:    var(--transition);
+  flex-shrink:   0;
+}
+
+#btnRenameProject:hover { background: var(--color-primary-pale); }
 
 #btnDeleteProject {
   background:    transparent;
@@ -573,6 +589,11 @@ header {
   .tab-label    { padding: 9px 12px; font-size: 11px; letter-spacing: 0.1px; }
   .logo   { font-size: 17px; }
   #btnBle { font-size: 11px; padding: 7px 12px; }
+  #projectBar { gap: 6px; padding: 8px 10px; }
+  .project-label { letter-spacing: 1px; }
+  #btnNewProject { padding: 6px 9px; font-size: 16px; }
+  #btnRenameProject,
+  #btnDeleteProject { padding: 4px 8px; font-size: 14px; }
   #fixBar { gap: 6px; padding: 8px 10px; }
   .fix-name { font-size: 12px; }
   .fix-prec { font-size: 10px; }

@@ -67,6 +67,26 @@ function deleteCurrentProject() {
   showToast('Parcelle supprimée', 'info');
 }
 
+// ─── RENOMMER LE PROJET COURANT ──────────────────────────────
+function renameCurrentProject() {
+  if (!currentProject) return;
+
+  const input = prompt('Nouveau nom de la parcelle :', currentProject.name);
+  if (input === null) return;                       // annulation
+  const name = input.trim();
+  if (!name) {
+    showToast('Le nom de la parcelle ne peut pas être vide', 'error');
+    return;
+  }
+  if (name === currentProject.name) return;
+
+  currentProject.name = name;
+  saveProjects();                                   // persiste + rafraîchit #projectSelect
+  if (typeof initProjectBar === 'function') initProjectBar();
+  if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') loadHistory();
+  showToast(`Parcelle renommée : ${name}`, 'info');
+}
+
 // ─── CHANGER DE PROJET ───────────────────────────────────────
 function switchProject(projectId) {
   const proj = projects.find(p => p.id === projectId);

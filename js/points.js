@@ -108,6 +108,7 @@ function buildPoint(type, subtype, icon) {
     id:         Date.now(),
     type,
     subtype:    subtype || null,
+    name:       null,           // nom personnalisé (facultatif)
     icon:       icon || '📍',
     index:      counters[type],
     ...(type === 'tonte' ? { zoneId: getCurrentZoneId() } : {}),
@@ -151,6 +152,34 @@ function deletePoint(id) {
   if (typeof renderMap === 'function') renderMap();
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
   showToast('Point supprimé', 'info');
+}
+
+// ─── RENOMMER UN POINT ───────────────────────────────────────
+// Nom affiché : nom personnalisé, sinon sous-type, sinon type.
+function getPointDisplayName(p) {
+  if (!p) return '—';
+  if (p.name) return p.name;
+  if (p.subtype) return p.subtype;
+  return p.type === 'tonte' ? 'Tonte' : 'Interdit';
+}
+
+function renamePoint(pointId) {
+  const pt = getPoints().find(p => p.id === pointId);
+  if (!pt) return;
+
+  const input = prompt('Nouveau nom pour ce point :', pt.name || '');
+  if (input === null) return;                       // annulation
+  const name = input.trim();
+  if (!name) {
+    showToast('Le nom du point ne peut pas être vide', 'error');
+    return;
+  }
+
+  pt.name = name;
+  saveProjects();
+  renderPointsList();
+  if (typeof renderMap === 'function') renderMap();
+  showToast(`Point renommé : ${name}`, 'info');
 }
 
 // ─── TOUT EFFACER ────────────────────────────────────────────
@@ -212,9 +241,7 @@ function renderGroup(title, pts, color, type) {
 function renderPointItem(p) {
   const date = new Date(p.timestamp).toLocaleDateString('fr-FR');
   const time  = fmtTime(p.timestamp);
-  const name  = p.subtype
-    ? `${p.icon} ${p.subtype} #${p.index}`
-    : `${p.icon} ${p.type === 'tonte' ? 'Tonte' : 'Interdit'} #${p.index}`;
+  const name  = `${p.icon} ${getPointDisplayName(p)} #${p.index}`;
   const fix   = getFixMeta(p.fix);
   return `
     <div class="point-item">
@@ -228,10 +255,13 @@ function renderPointItem(p) {
           &nbsp;·&nbsp; Sat: ${p.satellites || '—'}
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+      <div class="point-item-side">
         <span class="point-date">${date}</span>
         <span class="point-time">${time}</span>
-        <button class="btn-del" onclick="deletePoint(${p.id})" title="Supprimer">✕</button>
+        <div class="point-item-actions">
+          <button class="btn-edit" onclick="renamePoint(${p.id})" title="Renommer">✏️</button>
+          <button class="btn-del" onclick="deletePoint(${p.id})" title="Supprimer">✕</button>
+        </div>
       </div>
     </div>`;
 }

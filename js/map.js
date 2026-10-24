@@ -197,9 +197,17 @@ function renderMap() {
 }
 
 function pointPopup(p, idx) {
-  const label = p.subtype ? `${p.icon} ${p.subtype}` : (p.type==='tonte'?'Tonte':'Interdit');
+  const label = typeof getPointDisplayName === 'function'
+    ? getPointDisplayName(p)
+    : (p.subtype ? p.subtype : (p.type==='tonte'?'Tonte':'Interdit'));
+  const icon = p.icon || '📍';
   const zone = p.type === 'tonte' ? `Zone ${p.zoneId || 1} · ` : '';
-  return `<b>${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
+  const actions = `
+    <div class="popup-actions">
+      <button class="popup-btn" onclick="renamePoint(${p.id})" title="Renommer ce point">✏️ Renommer</button>
+      <button class="popup-btn popup-btn-danger" onclick="deletePoint(${p.id})" title="Supprimer ce point">🗑</button>
+    </div>`;
+  return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}${actions}`;
 }
 
 // Ajoute un seul point sans tout redessiner

@@ -73,12 +73,14 @@ peut être isolé.
 
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
-2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une, bouton
-   `🗑` pour supprimer la parcelle courante).
+2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une, `✏️` pour
+   la renommer, `🗑` pour supprimer la parcelle courante). Le bandeau est masqué sur l'onglet GPS.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
    - onglet **POINTS** ou barre terrain en bas : `TONTE`, `INTERDIT`, `OBSTACLE` ;
-   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS).
+   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS) ;
+   - `✏️` sur une ligne POINTS ou dans la popup carte : renommer un point (nom exporté dans
+     `properties.name` pour les obstacles).
 4. **Consulter** la carte (onglet CARTE), les statistiques (STATS) et l'historique.
 5. **Exporter** depuis l'onglet POINTS : CSV, GPX ou GeoJSON. Le GeoJSON suit le contrat
    décrit dans [docs/format-geojson.md](docs/format-geojson.md).
