@@ -35,17 +35,6 @@
   grid-column: 1 / -1;
 }
 
-.data-primary-row {
-  display:               grid;
-  grid-template-columns: 1fr 1fr;
-  gap:                   12px;
-}
-
-.data-primary-col + .data-primary-col {
-  border-left:  1px solid var(--border);
-  padding-left: 12px;
-}
-
 .data-primary-value {
   display:     flex;
   align-items: baseline;
@@ -84,19 +73,6 @@
   letter-spacing:         0.2px;
   line-height:            1.05;
 }
-
-/* Satellites / HDOP : ui.js injecte un <span class="data-value"> coloré.
-   On neutralise sa taille inline et ses couleurs pour une lecture homogène. */
-.data-card .data-value .data-value {
-  font-size:   inherit !important; /* neutralise le style inline 22px */
-  font-weight: inherit;
-  color:       inherit;            /* même couleur que les autres valeurs */
-}
-
-.data-value.sm  { font-size: 15px; }
-.data-value.green { color: var(--color-rtk); }
-.data-value.orange{ color: var(--color-float); }
-.data-value.red   { color: var(--color-none); }
 
 .data-unit {
   font-size:   11px;
@@ -140,30 +116,6 @@
   font-size:   14px;
   font-weight: 700;
   color:       var(--text);
-}
-
-.data-detail-toggle {
-  width:         100%;
-  margin-bottom: 10px;
-}
-
-.data-detail-card.is-collapsed {
-  display: none;
-}
-
-/* ─── TRAME BRUTE ─────────────────────────────────────────────── */
-#rawData {
-  background:    var(--color-bg-muted);
-  border:        1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding:       12px;
-  font-size:     11px;
-  font-family:   var(--font-mono);
-  color:         var(--text3);
-  white-space:   pre-wrap;
-  line-height:   1.8;
-  max-height:    160px;
-  overflow-y:    auto;
 }
 
 /* ─── BARRE TERRAIN FIXE EN BAS ─────────────────────────────── */
@@ -704,6 +656,105 @@
   gap:        8px;
   margin:     12px 0;
   flex-wrap:  wrap;
+}
+
+/* Barre d'export : GeoJSON principal + menu CSV/GPX + Effacer */
+.actions-bar-export {
+  display:               grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items:           stretch;
+  gap:                   8px;
+}
+
+.export-primary {
+  min-width:      0;
+  border:         none;
+  border-radius:  var(--radius-lg);
+  background:     var(--color-primary);
+  color:          white;   /* texte sur fond vert : exception documentée */
+  padding:        12px 14px;
+  font-family:    var(--font);
+  font-size:      14px;
+  font-weight:    800;
+  letter-spacing: 0.2px;
+  white-space:    nowrap;
+  cursor:         pointer;
+  box-shadow:     var(--shadow-sm);
+  transition:     var(--transition);
+}
+
+.export-primary:hover  { background: var(--color-primary-deep); }
+.export-primary:active { transform: scale(0.99); }
+
+.export-menu {
+  position:   relative;
+  display:    flex;
+}
+
+.export-menu-toggle {
+  width:           46px;
+  min-height:      44px;
+  padding:         0;
+  border:          2px solid var(--border);
+  border-radius:   var(--radius-lg);
+  background:      var(--color-white);
+  color:           var(--text2);
+  font-family:     var(--font);
+  font-size:       22px;
+  font-weight:     800;
+  line-height:     1;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  transition:      var(--transition);
+}
+
+.export-menu-toggle:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale-bg);
+}
+
+/* Mini-menu : s'ouvre au-dessus du bouton pour ne pas passer sous la barre fixe */
+.export-menu-list {
+  display:          none;
+  position:         absolute;
+  right:            0;
+  bottom:           calc(100% + 8px);
+  min-width:        150px;
+  padding:          6px;
+  background:       var(--color-white);
+  border:           1px solid var(--border);
+  border-radius:    var(--radius-lg);
+  box-shadow:       var(--shadow-lg);
+  z-index:          40;
+}
+
+.export-menu-list.show {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+}
+
+.export-menu-item {
+  width:         100%;
+  padding:       10px 12px;
+  border:        none;
+  border-radius: var(--radius-md);
+  background:    transparent;
+  color:         var(--text);
+  font-family:   var(--font);
+  font-size:     12px;
+  font-weight:   700;
+  text-align:    left;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.export-menu-item:hover {
+  background: var(--color-primary-pale-bg);
+  color:      var(--color-primary-deep);
 }
 
 .btn-action-bar {

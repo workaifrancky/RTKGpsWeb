@@ -10,7 +10,7 @@ scripts dans un ordre contractuel.
 ESP32 (UM980 + NTRIP)
         │  BLE — notifications texte
         ▼
-   js/ble.js  ──►  js/parser.js  ──►  js/ui.js (fix bar, cartes données)
+   js/ble.js  ──►  js/parser.js  ──►  js/ui.js (bandeau Fix, alertes)
                                    ├─► js/map.js (position live, trail)
                                    └─► js/camera.js (boussole, visée, distance)
 
@@ -30,23 +30,35 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
-| `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones, marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
+| `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones (distances de segments via `leaflet-measure-path`), marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
 | `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
 | `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
-| `js/export.js` | Exports CSV, GPX, GeoJSON + calcul d'enveloppe convexe |
+| `js/export.js` | Export GeoJSON principal, menu CSV/GPX (`toggleExportMenu()`), calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
-| `js/ui.js` | Mise à jour des éléments d'interface à partir des données GPS |
+| `js/ui.js` | Bandeau Fix (fix, précision) et alertes GPS à partir des trames |
 
 ### Ordre de chargement (`index.html`)
 
 ```text
-Leaflet (CDN) → parser → ntrip → app → projects → ble → points → map
-             → stats → simulation → export → camera → history → ui
+Leaflet + leaflet-measure-path (CDN) → parser → ntrip → app → projects → ble
+             → points → map → stats → simulation → export → camera → history → ui
 ```
 
 Cet ordre fait office de graphe de dépendances. `ui.js` doit rester en dernier. Une nouvelle
 brique doit être insérée **après ses dépendances**.
+
+### Navigation et bandeau Parcelle
+
+- Cinq onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CARTE, CAMÉRA, RELEVÉ,
+  HISTORIQUE. L'onglet GPS / DONNÉES a été supprimé (doublon avec TRACÉS) ; le `data-tab` de
+  TRACÉS reste `tab-points`.
+- `showTab(tabId)` (`js/app.js`) active l'écran correspondant et pose `.active` sur le bouton
+  portant le même `data-tab`. Aucun radio : le navigateur ne défile plus tout seul.
+- `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` : la barre d'onglets ne
+  revient jamais à gauche lors d'un clic.
+- `#projectBar` est placé **sous** `.tabs-wrapper` et reste visible en permanence
+  (`margin-bottom: 12px`).
 
 ## État et persistance
 
@@ -113,9 +125,9 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
 `addPointToCurrentProject()`. `currentZoneId` passe à 2 avant l'injection de la seconde zone.
 
 `simulateGpsFrame()` injecte une trame texte fixe dans le pipeline `parseGpsFrame()` →
-`updateUI()` pour remplir l'onglet DONNÉES sans BLE (fix RTK, Lat/Lon, altitude, satellites,
-HDOP, vitesse). `simulateGpsAt(lat, lon, course, fix)` fait de même avec une position et un cap
-paramétrables (test du guidage caméra), uniquement depuis la console.
+`updateUI()` pour alimenter le bandeau Fix sans BLE (fix RTK). `simulateGpsAt(lat, lon, course,
+fix)` fait de même avec une position et un cap paramétrables (test du guidage caméra),
+uniquement depuis la console.
 
 Les trois fonctions retournent `null` et émettent un `console.warn` quand le flag est `false` :
 elles ne touchent ni `localStorage`, ni l'interface, ni la caméra.
@@ -125,6 +137,6 @@ elles ne touchent ni `localStorage`, ni l'interface, ni la caméra.
 1. Ouvrir l'application via `node serve-http.cjs` (ou le tunnel HTTPS).
 2. Passer `ENABLE_SIMULATION` à `true` et restaurer les boutons (voir
    [simulation.md](simulation.md)), puis recharger la page.
-3. Onglet DONNÉES → `🎮 Mode Simulation`.
-4. Vérifier la carte, les statistiques et l'export GeoJSON.
+3. Onglet TRACÉS → `🎮 Mode Simulation`.
+4. Vérifier la carte, les statistiques (RELEVÉ) et l'export GeoJSON.
 5. Pour un contrôle statique : `node --check js/<fichier>.js`.

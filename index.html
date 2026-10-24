@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/map.css">
   <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@luomus/leaflet-measure-path@1.5.0/leaflet-measure-path.css"/>
 </head>
 <body>
 <div class="app-wrapper">
@@ -43,7 +44,23 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- BARRE PROJET                                            -->
+  <!-- ALERTE GPS                                              -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div id="alertBar"></div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- ONGLETS                                                 -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="tabs-wrapper">
+    <button type="button" class="tab-label active" data-tab="tab-points" onclick="showTab('tab-points')">📍 TRACÉS</button>
+    <button type="button" class="tab-label" data-tab="tab-map" onclick="showTab('tab-map')">🗺 CARTE</button>
+    <button type="button" class="tab-label" data-tab="tab-camera" onclick="showTab('tab-camera')">📷 CAMÉRA</button>
+    <button type="button" class="tab-label" data-tab="tab-stats" onclick="showTab('tab-stats')">📊 RELEVÉ</button>
+    <button type="button" class="tab-label" data-tab="tab-history" onclick="showTab('tab-history')">🕐 HISTORIQUE</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BARRE PROJET (sous les onglets, visible en permanence)   -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="projectBar">
     <span class="project-label">PARCELLE</span>
@@ -54,114 +71,9 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ALERTE GPS                                              -->
+  <!-- ONGLET 1 : POINTS                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="alertBar"></div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ONGLETS                                                 -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div class="tabs-wrapper">
-    <input type="radio" name="tab" id="tab-data-radio" class="tab-input" checked>
-    <label for="tab-data-radio" class="tab-label" onclick="showTab('tab-data')">📡 GPS</label>
-
-    <input type="radio" name="tab" id="tab-points-radio" class="tab-input">
-    <label for="tab-points-radio" class="tab-label" onclick="showTab('tab-points')">📍 POINTS</label>
-
-    <input type="radio" name="tab" id="tab-map-radio" class="tab-input">
-    <label for="tab-map-radio" class="tab-label" onclick="showTab('tab-map')">🗺 CARTE</label>
-
-    <input type="radio" name="tab" id="tab-camera-radio" class="tab-input">
-    <label for="tab-camera-radio" class="tab-label" onclick="showTab('tab-camera')">📷 CAMÉRA</label>
-
-    <input type="radio" name="tab" id="tab-stats-radio" class="tab-input">
-    <label for="tab-stats-radio" class="tab-label" onclick="showTab('tab-stats')">📊 RELEVÉ</label>
-
-    <input type="radio" name="tab" id="tab-history-radio" class="tab-input">
-    <label for="tab-history-radio" class="tab-label" onclick="showTab('tab-history')">🕐 HISTORIQUE</label>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ONGLET 1 : DONNÉES GPS                                  -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="tab-data" class="screen active">
-    <div style="padding:12px 12px 0">
-
-      <!-- Position (pleine largeur, lisible en plein soleil) -->
-      <div class="data-grid">
-        <div class="data-card data-card-primary">
-          <div class="data-primary-row">
-            <div class="data-primary-col">
-              <div class="data-label">LATITUDE</div>
-              <div class="data-primary-value">
-                <div class="data-value" id="dLat">—</div>
-                <span class="data-unit">°</span>
-              </div>
-            </div>
-            <div class="data-primary-col">
-              <div class="data-label">LONGITUDE</div>
-              <div class="data-primary-value">
-                <div class="data-value" id="dLon">—</div>
-                <span class="data-unit">°</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Données secondaires (grille 2x2) -->
-        <div class="data-card">
-          <div class="data-label">ALTITUDE</div>
-          <div class="data-value" id="dAlt">—</div>
-        </div>
-        <div class="data-card">
-          <div class="data-label">SATELLITES</div>
-          <div class="data-value" id="dSat">—</div>
-        </div>
-        <div class="data-card">
-          <div class="data-label">HDOP</div>
-          <div class="data-value" id="dHdop">—</div>
-        </div>
-        <div class="data-card">
-          <div class="data-label">VITESSE</div>
-          <div class="data-value" id="dSpeed">—</div>
-        </div>
-      </div>
-
-      <button id="btnToggleDataDetails" class="btn-map-tool data-detail-toggle" onclick="toggleDataDetails()">Afficher REL/CAP/DATE</button>
-
-      <!-- Outils de simulation retirés de l'interface terrain.
-           Réactivation : voir docs/simulation.md. -->
-
-      <!-- Détail -->
-      <div class="card-full data-detail-card is-collapsed" id="dataDetailCard">
-        <div class="card-row">
-          <span class="card-key">REL_X</span>
-          <span class="card-val" id="dRelX">—</span>
-        </div>
-        <div class="card-row">
-          <span class="card-key">REL_Y</span>
-          <span class="card-val" id="dRelY">—</span>
-        </div>
-        <div class="card-row">
-          <span class="card-key">CAP</span>
-          <span class="card-val" id="dCap">—</span>
-        </div>
-        <div class="card-row">
-          <span class="card-key">DATE / HEURE</span>
-          <span class="card-val" id="dDate">—</span>
-        </div>
-      </div>
-
-      <!-- Trame brute -->
-      <div class="section-title">TRAME BRUTE ESP32</div>
-      <div id="rawData">En attente de connexion BLE...</div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- ONGLET 2 : POINTS                                       -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="tab-points" class="screen">
+  <div id="tab-points" class="screen active">
     <div style="padding:12px 12px 0">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
@@ -171,10 +83,19 @@
         </div>
       </div>
       <div id="pointsList"></div>
-      <div class="actions-bar">
-        <button class="action-button action-button-compact" onclick="exportCSV()">⬇ CSV</button>
-        <button class="action-button action-button-compact" onclick="exportGPX()">⬇ GPX</button>
-        <button class="action-button action-button-compact" onclick="exportGeoJSON()">⬇ GeoJSON</button>
+      <div class="actions-bar actions-bar-export">
+        <button class="action-button export-primary" onclick="exportGeoJSON()">⬇ Exporter GeoJSON</button>
+        <div class="export-menu">
+          <button id="btnExportMenu" class="export-menu-toggle" onclick="toggleExportMenu(event)"
+            title="Autres formats d'export (CSV, GPX)"
+            aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">⋮</button>
+          <div id="exportMenu" class="export-menu-list" role="menu">
+            <button type="button" class="export-menu-item" role="menuitem"
+              onclick="exportCSV(); closeExportMenu()">⬇ CSV</button>
+            <button type="button" class="export-menu-item" role="menuitem"
+              onclick="exportGPX(); closeExportMenu()">⬇ GPX</button>
+          </div>
+        </div>
         <button class="action-button-danger action-button-compact" onclick="clearAllPoints()">🗑 Effacer</button>
       </div>
     </div>
@@ -427,6 +348,7 @@
 <!-- SCRIPTS — ordre obligatoire                                 -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@luomus/leaflet-measure-path@1.5.0/leaflet-measure-path.js"></script>
 <script src="js/parser.js"></script>
 <script src="js/ntrip.js"></script>
 <script src="js/app.js"></script>

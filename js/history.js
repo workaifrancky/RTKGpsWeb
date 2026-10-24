@@ -28,7 +28,7 @@ function loadHistory() {
         🟡 ${obstacle} obstacle(s)
       </div>
       <div class="session-actions">
-        <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-data')">📂 Ouvrir</button>
+        <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-points')">📂 Ouvrir</button>
         <button class="btn-action-bar" onclick="exportProjectCSV('${p.id}')">⬇ CSV</button>
         <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">🗑 Suppr.</button>
       </div>

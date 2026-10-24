@@ -173,6 +173,39 @@ function exportGeoJSON() {
   showToast(`✅ GeoJSON exporté — ${features.length} feature(s)`,'info');
 }
 
+// ─── MENU D'EXPORT SECONDAIRE (CSV / GPX) ───────────────────
+function toggleExportMenu(event) {
+  if (event) event.stopPropagation();
+  const list = document.getElementById('exportMenu');
+  const btn  = document.getElementById('btnExportMenu');
+  if (!list) return;
+
+  const willShow = !list.classList.contains('show');
+  list.classList.toggle('show', willShow);
+  if (btn) btn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+}
+
+function closeExportMenu() {
+  const list = document.getElementById('exportMenu');
+  const btn  = document.getElementById('btnExportMenu');
+  if (!list) return;
+
+  list.classList.remove('show');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Ferme le menu au clic extérieur et avec Échap.
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('.export-menu')) return;
+    closeExportMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeExportMenu();
+  });
+});
+
 function downloadFile(content, filename, mime) {
   const blob = new Blob([content],{type:mime});
   const url  = URL.createObjectURL(blob);

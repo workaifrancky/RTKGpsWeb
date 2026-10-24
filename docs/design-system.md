@@ -82,37 +82,46 @@ Overrides de lisibilité :
 - `.action-button-danger` : fond `--color-danger`, hover `#b71c1c`.
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
+- `.actions-bar-export` : grille `minmax(0, 1fr) auto auto` (GeoJSON principal / menu / Effacer).
+- `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
+  hover `--color-primary-deep`.
+- `.export-menu-toggle` : bouton `⋮` 46 × 44 px, fond `--color-white`, bordure `--border`.
+- `.export-menu-list` : panneau flottant au-dessus du bouton (fond `--color-white`,
+  `--shadow-lg`, `z-index: 40`), ouvert par `.show` ; items `.export-menu-item`
+  (hover `--color-primary-pale-bg`). Fermeture au clic extérieur, à Échap et au changement
+  d'onglet.
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
   **Inutilisé** : les boutons de simulation sont retirés de l'interface terrain, la classe est
   conservée pour une réactivation (voir [simulation.md](simulation.md)).
 - `.action-button-simulation-gps` : variante teal (`--color-teal`), injecte une trame GPS
-  fictive dans l'onglet DONNÉES. **Inutilisé** pour la même raison.
+  fictive dans le pipeline (bandeau Fix). **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
 ### Bandeau d'onglets « pills » (`main.css`, overrides dans `theme.css`)
 
-Structure : un conteneur `.tabs-wrapper`, puis pour chaque onglet un
-`<input type="radio" class="tab-input">` immédiatement suivi d'un
-`<label class="tab-label">`. L'état actif est purement CSS (`:checked + .tab-label`), la
-navigation reste assurée par `showTab()` (`js/app.js`), qui coche aussi le radio correspondant
-(`#<tabId>-radio`) pour rester synchrone avec les appels programmatiques (`map.js`, `history.js`).
+Structure : un conteneur `.tabs-wrapper` et, pour chaque onglet, un
+`<button type="button" class="tab-label" data-tab="tab-…">` (TRACÉS, CARTE, CAMÉRA, RELEVÉ,
+HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showTab()`
+(`js/app.js`) : **aucun radio**, donc aucun défilement automatique du conteneur.
 
 - `.tabs-wrapper` : fond `var(--color-bg-muted)`, `padding: 8px 10px`, `gap: 6px`, filet
   inférieur 2 px `var(--green-dark)`, une seule ligne (`overflow-x: auto`,
   `scrollbar-width: none`).
-- `.tab-input` : `position: absolute`, `opacity: 0`, 1×1 px → invisible mais focusable
-  (`:focus-visible + .tab-label` affiche un contour `--color-primary-accent`).
-- `.tab-label` : pill (`border-radius: 999px`), `min-height: 44px`, padding `10px 16px`,
-  12 px / 700, fond `var(--color-white)` (blanc en thème jour), texte `var(--green-dark)`,
-  bordure `--border`, ombre `--shadow-sm`, transitions 0,18 s.
+- `.tab-label` : bouton « reset » (`appearance: none`, `font-family: var(--font)`) en pill
+  (`border-radius: 999px`), `min-height: 44px`, padding `10px 16px`, 12 px / 700, fond
+  `var(--color-white)` (blanc en thème jour), texte `var(--green-dark)`, bordure `--border`,
+  ombre `--shadow-sm`, transitions 0,18 s.
 - `.tab-label:hover` : fond `--color-primary-pale-bg`, bordure `--color-primary-accent` ;
   `:active` : `scale(0.97)`.
-- `.tab-input:checked + .tab-label` : fond `var(--green-main)` (`#2e7d32`), texte blanc,
-  ombre `--shadow-md` (la pill active « ressort »).
+- `.tab-label.active` : fond `var(--green-main)` (`#2e7d32`), texte blanc, ombre
+  `--shadow-md` (la pill active « ressort »).
+- `.tab-label:focus-visible` : contour 3 px `--color-primary-accent`.
 - Thème nuit : pills inactives = fond `--color-white` (`#1a1d27`) + texte
   `--color-primary-accent` (`#4ade80`) ; pill active = fond `--color-primary-accent` + texte
   `--green-dark` (contraste 8,55:1). Filet inférieur `--color-primary-light`.
 - ≤ 360 px : `gap: 5px`, `padding: 7px 8px`, labels en `9px 12px` / 11 px.
+- `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` pour que la barre ne
+  revienne jamais à gauche au clic.
 - Le bandeau est masqué en plein écran caméra
   (`body.camera-ui-fullscreen .tabs-wrapper`).
 
@@ -156,18 +165,21 @@ navigation reste assurée par `showTab()` (`js/app.js`), qui coche aussi le radi
 
 - `.prec-card`, `.data-card`, `.card-full`, `.point-item`, `.stat-card`, `.session-item` :
   fond `--color-white`, rayon `--radius-xl`, ombre `--shadow-sm`.
-- `.data-card` (données GPS) : rayon `--radius-lg`, padding 12 px, sans bordure gauche ;
-  toutes les valeurs (Lat/Lon, altitude, satellites, HDOP, vitesse) sont **uniformes :
+- `.data-card` (onglet RELEVÉ) : rayon `--radius-lg`, padding 12 px, sans bordure gauche ;
+  toutes les valeurs (surface, temps, linéaire, périmètre, zones) sont **uniformes :
   24 px / 800 en `--color-primary-deep`** (override `--color-primary-light` en nuit).
-- `.data-card-primary` : bloc Position pleine largeur (Latitude + Longitude côte à côte),
-  mêmes valeurs 24 px / 800, labels 10 px (9 px pour les secondaires).
+- `.data-card-primary` : bloc pleine largeur (Surface à tondre), mêmes valeurs 24 px / 800,
+  labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.
-- `.zone-badge` : badge « Zone #N » de l'onglet POINTS (fond pâle, bordure verte, override nuit).
+- `.zone-badge` : badge « Zone #N » de l'onglet TRACÉS (fond pâle, bordure verte, override nuit).
 - `.zone-label` : médaillon circulaire `ZN` centré sur chaque polygone de tonte.
+- `.leaflet-measure-path-measurement` : longueurs de segments affichées sur les polygones de
+  tonte par `leaflet-measure-path` (11 px / 800, `--font` ; halo blanc/texte noir du plugin,
+  lisible en thème clair et nuit).
 
 ## Règles
 

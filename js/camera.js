@@ -584,7 +584,7 @@ function updateCameraOverlay() {
 
 function renderTargetMode(overlay) {
   if (!targetPoint) {
-    overlay.innerHTML = '<div class="cam-message">Sélectionnez un point cible<br>dans l\'onglet POINTS</div>';
+    overlay.innerHTML = '<div class="cam-message">Sélectionnez un point cible<br>dans l\'onglet TRACÉS</div>';
     return;
   }
 

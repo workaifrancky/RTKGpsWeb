@@ -16,10 +16,12 @@ Fonctionnalités principales :
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit` et `obstacle` ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
-- carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
-- **relevé de parcelle** (onglet STATS) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
+- carte Leaflet (Relief / Satellite), polygones, surfaces et **distances de segments**
+  (`leaflet-measure-path`) calculées en direct ;
+- **relevé de parcelle** (onglet RELEVÉ) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
 - caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
-- export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
+- export **GeoJSON** (format principal, contrat Mower Planner), **CSV** et **GPX** via le menu
+  secondaire de l'onglet TRACÉS ;
 - outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les
   tests terrain, réactivables via `ENABLE_SIMULATION` (voir [docs/simulation.md](docs/simulation.md)).
 
@@ -28,7 +30,7 @@ Fonctionnalités principales :
 | Élément | Choix |
 |---|---|
 | Langage | Vanilla JavaScript (ES2020+, scripts classiques) |
-| Cartographie | Leaflet **1.9.4** (CDN) |
+| Cartographie | Leaflet **1.9.4** + **leaflet-measure-path 1.5.0** (CDN) |
 | Communication | Web Bluetooth API (BLE) |
 | Styles | CSS pur (aucun framework, aucun Tailwind) |
 | Données | `localStorage` (projets + points) |
@@ -74,16 +76,19 @@ peut être isolé.
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
 2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une, `✏️` pour
-   la renommer, `🗑` pour supprimer la parcelle courante). Le bandeau est masqué sur l'onglet GPS.
+   la renommer, `🗑` pour supprimer la parcelle courante). Le bandeau Parcelle reste visible
+   sous les onglets, sur tous les écrans.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
-   - onglet **POINTS** ou barre terrain en bas : `TONTE`, `INTERDIT`, `OBSTACLE` ;
-   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS) ;
-   - `✏️` sur une ligne POINTS ou dans la popup carte : renommer un point (nom exporté dans
+   - onglet **TRACÉS** ou barre terrain en bas : `TONTE`, `INTERDIT`, `OBSTACLE` ;
+   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans TRACÉS) ;
+   - `✏️` sur une ligne TRACÉS ou dans la popup carte : renommer un point (nom exporté dans
      `properties.name` pour les obstacles).
-4. **Consulter** la carte (onglet CARTE), les statistiques (STATS) et l'historique.
-5. **Exporter** depuis l'onglet POINTS : CSV, GPX ou GeoJSON. Le GeoJSON suit le contrat
-   décrit dans [docs/format-geojson.md](docs/format-geojson.md).
+4. **Consulter** la carte (onglet CARTE), le relevé (onglet RELEVÉ) et l'historique. Les
+   polygones de tonte affichent la longueur de chaque segment.
+5. **Exporter** depuis l'onglet TRACÉS avec `⬇ Exporter GeoJSON` (format principal) ; CSV et
+   GPX sont dans le menu `⋮`. Le GeoJSON suit le contrat décrit dans
+   [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet
 
@@ -103,13 +108,13 @@ RTKGpsWeb/
 │   ├── ble.js              # Connexion Web Bluetooth, reconnexion, réception des trames
 │   ├── parser.js           # Parsing des trames GPS ESP32, normalisation du fix, validation
 │   ├── ntrip.js            # Stations NTRIP de référence et sélection persistée
-│   ├── map.js              # Carte Leaflet, couches Relief/Satellite, polygones, base, live
+│   ├── map.js              # Carte Leaflet, couches Relief/Satellite, polygones, position live
 │   ├── camera.js           # Caméra, boussole, visée cible et mesure de distance
 │   ├── stats.js            # Relevé de parcelle (surface, temps, linéaire, contraintes)
 │   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull)
 │   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
-│   └── ui.js               # Mise à jour de l'interface (fix bar, cartes de données)
+│   └── ui.js               # Bandeau Fix et alertes GPS
 ├── docs/
 │   ├── architecture.md     # Architecture, flux de données, modules
 │   ├── design-system.md    # Tokens et composants UI
@@ -126,8 +131,8 @@ RTKGpsWeb/
 ## Format d'export GeoJSON
 
 Le fichier est nommé `RTK_<projet>_<YYYY-MM-DD>.geojson` et contient une `FeatureCollection`
-ordonnée : domaine (enveloppe convexe), zone de tonte, zone interdite, obstacles, puis base
-du rover. Les coordonnées sont en `[longitude, latitude]` et les polygones sont fermés.
+ordonnée : domaine (enveloppe convexe), zones de tonte, zone interdite puis obstacles. Les
+coordonnées sont en `[longitude, latitude]` et les polygones sont fermés.
 
 Spécification complète : **[docs/format-geojson.md](docs/format-geojson.md)**.
 

@@ -24,14 +24,14 @@
   border-color: var(--color-primary-accent);
 }
 
-[data-theme="dark"] .tab-input:checked + .tab-label {
+[data-theme="dark"] .tab-label.active {
   background:   var(--color-primary-accent);
   color:        var(--green-dark);
   border-color: var(--color-primary-accent);
   box-shadow:   var(--shadow-md);
 }
 
-[data-theme="dark"] .tab-input:checked + .tab-label:hover {
+[data-theme="dark"] .tab-label.active:hover {
   background:   var(--color-primary-accent);
   color:        var(--green-dark);
   border-color: var(--color-primary-accent);

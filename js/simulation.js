@@ -115,7 +115,7 @@ function generateSimulationData() {
 
 // ─── SIMULATION D'UNE TRAME GPS ──────────────────────────────
 // Injecte une fausse trame dans le même pipeline que le BLE
-// (parseGpsFrame → updateUI) pour tester l'onglet DONNÉES.
+// (parseGpsFrame → updateUI) pour tester le bandeau Fix et la carte.
 function simulateGpsFrame() {
   if (!ENABLE_SIMULATION) return simulationDisabled('simulateGpsFrame()');
 

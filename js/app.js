@@ -5,7 +5,7 @@
 
 const APP = {
   version:      '2.0.0',
-  currentTab:   'tab-data',
+  currentTab:   'tab-points',
   theme:        'light',
   bleConnected: false,
   hasGpsData:   false,
@@ -44,17 +44,27 @@ function toggleTheme() {
 function initNavigation() { showTab(APP.currentTab); }
 
 function showTab(tabId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const screen = document.getElementById(tabId);
-  if (screen) screen.classList.add('active');
-  // Onglets « pills » : le style actif vient de :checked. La synchronisation est
-  // nécessaire quand showTab() est appelée par du code (map.js, history.js) et
-  // pas seulement par un clic sur le label.
-  const tabRadio = document.getElementById(`${tabId}-radio`);
-  if (tabRadio) tabRadio.checked = true;
+  if (!screen) return;
+
+  // Mémorise le défilement horizontal des onglets : le navigateur ne doit jamais
+  // ramener la barre à gauche lors d'un changement d'onglet.
+  const tabsWrapper = document.querySelector('.tabs-wrapper');
+  const tabsScrollLeft = tabsWrapper ? tabsWrapper.scrollLeft : 0;
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  screen.classList.add('active');
+
+  // Onglets = boutons : l'état actif est géré en JS (plus de radios).
+  document.querySelectorAll('.tabs-wrapper .tab-label').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+
+  if (tabsWrapper) tabsWrapper.scrollLeft = tabsScrollLeft;
+
   APP.currentTab = tabId;
   syncTerrainBarVisibility(tabId);
-  syncProjectBarVisibility(tabId);
+  if (typeof closeExportMenu === 'function') closeExportMenu();
 
   if (tabId === 'tab-map') {
     setTimeout(() => { if (typeof refreshMap === 'function') refreshMap(); }, 120);
@@ -82,14 +92,6 @@ function syncTerrainBarVisibility(tabId) {
   const show = tabId === 'tab-points';
   terrainBar.classList.toggle('show', show);
   terrainBar.setAttribute('aria-hidden', show ? 'false' : 'true');
-}
-
-// La parcelle n'est pas utile sur l'onglet GPS : le bandeau est masqué.
-function syncProjectBarVisibility(tabId) {
-  const projectBar = document.getElementById('projectBar');
-  if (!projectBar) return;
-
-  projectBar.style.display = tabId === 'tab-data' ? 'none' : 'flex';
 }
 
 // ─── BLE SUPPORT ─────────────────────────────────────────────

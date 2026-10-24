@@ -101,6 +101,15 @@
   color:      #666 !important;
 }
 
+/* Distances de segments des zones de tonte (leaflet-measure-path).
+   Le halo blanc/texte noir du plugin reste lisible sur les deux thèmes. */
+.leaflet-container .leaflet-measure-path-measurement {
+  font-family:    var(--font);
+  font-size:      11px;
+  font-weight:    800;
+  letter-spacing: 0.2px;
+}
+
 /* Marqueur position live */
 .live-marker-pulse {
   animation: pulse-map 2s infinite;

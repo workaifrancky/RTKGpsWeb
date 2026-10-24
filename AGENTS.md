@@ -38,7 +38,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 | Domaine | Choix imposé |
 |---|---|
 | UI | Vanilla JS, CSS pur (pas de framework, pas de Tailwind) |
-| Cartographie | Leaflet 1.9.4 via CDN |
+| Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
 | Bluetooth | Web Bluetooth API |
 | Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkTheme`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
@@ -136,8 +136,15 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   de point de référence à exclure).
 - **Suppression de parcelle** : bouton `#btnDeleteProject` de la barre PARCELLE →
   `deleteCurrentProject()` (`js/projects.js`), qui refuse de supprimer la dernière parcelle.
-- **Bandeau Parcelle** : masqué (`display: none`) sur l'onglet GPS par
-  `syncProjectBarVisibility()` (`js/app.js`), affiché (`display: flex`) sur les autres onglets.
+- **Bandeau Parcelle** : placé **sous** `.tabs-wrapper` dans `index.html` et visible en
+  permanence sur tous les onglets. Ne pas réintroduire de masquage par onglet.
+- **Export** : GeoJSON est le format principal (bouton `.export-primary`). CSV et GPX sont
+  dans le menu `#exportMenu`, piloté par `toggleExportMenu()` / `closeExportMenu()`
+  (`js/export.js`) ; le menu se ferme au clic extérieur, avec Échap et au changement d'onglet.
+- **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
+  dans `<head>`, JS après `leaflet.js`). Les polygones de tonte passent
+  `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
+  `minPixelDistance: 10`) dans `js/map.js`. Ne pas retirer ces deux balises CDN.
 - **Renommage** : `renameCurrentProject()` (parcelle) et `renamePoint(id)` (points) utilisent
   `prompt()`, refusent un nom vide et persistent via `saveProjects()`. Le nom d'un point est
   stocké dans `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour
@@ -284,6 +291,28 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   stocké dans `point.name`, affiché à la place du sous-type (`getPointDisplayName()`), exporté
   en `properties.name` pour les obstacles. La popup carte reçoit aussi un bouton `🗑` de
   suppression (`deletePoint()`). Noms vides refusés.
+- **3.13 — Suppression de l'onglet GPS, onglets boutons et bandeau sous les onglets** :
+  l'onglet `GPS`/`DONNÉES` (`#tab-data`) est supprimé (doublon avec POINTS) ; `APP.currentTab`
+  démarre sur `'tab-points'` et l'écran POINTS porte `.active`. Les `<input type="radio">` +
+  `<label>` sont remplacés par cinq `<button class="tab-label" data-tab="…">` (POINTS, CARTE,
+  CAMÉRA, RELEVÉ, HISTORIQUE) ; `showTab()` pose la classe `.active` et restaure le
+  `scrollLeft` de `.tabs-wrapper` pour supprimer tout retour à gauche au clic. `#projectBar`
+  est déplacé sous `.tabs-wrapper` (toujours visible, `margin-bottom: 12px`) ;
+  `syncProjectBarVisibility()` est supprimée. `js/ui.js` est réduit au bandeau Fix et aux
+  alertes (`updateDataCards`, `updateDetailCard`, `updateRawData`, `toggleDataDetails`,
+  `showEmptyState`, `colorSat`, `colorHdop` supprimés) ; le bouton « Ouvrir » de
+  `history.js` cible désormais `tab-points`. CSS : `.tab-input` et les sélecteurs
+  `:checked + .tab-label` remplacés par `.tab-label.active` ; styles morts de l'onglet GPS
+  retirés.
+- **3.14 — Onglet TRACÉS, export GeoJSON prioritaire et distances sur la carte** : l'onglet
+  `tab-points` est libellé `📍 TRACÉS` (le `data-tab` reste `tab-points`). La barre d'actions
+  devient `.actions-bar-export` (grille) : bouton principal `.export-primary`
+  « ⬇ Exporter GeoJSON », bouton `⋮` (`#btnExportMenu`) ouvrant `#exportMenu` avec CSV/GPX,
+  puis « Effacer ». `leaflet-measure-path` 1.5.0 (CDN) affiche la longueur de chaque segment
+  des polygones de tonte (`showMeasurements`, `ZONE_MEASUREMENT_OPTIONS`) ; le libellé est mis
+  en forme dans `css/map.css`. Le `padding-bottom` de `.screen` passe à 190 px pour que la
+  barre d'export reste accessible au-dessus de la barre terrain fixe. Message de la caméra mis
+  à jour (« onglet TRACÉS »).
 
 ## 9. Langue et communication
 

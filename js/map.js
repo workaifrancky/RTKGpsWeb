@@ -19,6 +19,14 @@ const COLORS = {
   live:     '#1a6b1a',
 };
 
+// Distances de chaque segment des zones de tonte (leaflet-measure-path).
+// minPixelDistance évite d'afficher les étiquettes sur les segments trop courts à l'écran.
+const ZONE_MEASUREMENT_OPTIONS = {
+  showDistances:     true,
+  showArea:          false,
+  minPixelDistance:  10,
+};
+
 function initMap() {
   if (map) return;
   const station = typeof getSelectedNtripStation === 'function'
@@ -129,6 +137,8 @@ function renderMap() {
       const area = calculateArea(zonePts);
       L.polygon(zonePts.map(p => [p.lat, p.lon]), {
         color: palette.stroke, weight: 2.5, fillColor: palette.fill, fillOpacity: 1,
+        showMeasurements: true,
+        measurementOptions: ZONE_MEASUREMENT_OPTIONS,
       })
         .addTo(layerTonte)
         .bindPopup(`<b>Zone de tonte #${zoneId}</b><br>Surface : ${formatArea(area)}`);
