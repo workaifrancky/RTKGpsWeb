@@ -7,23 +7,72 @@
 [data-theme="dark"] header         { background: #14532d; }
 [data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
 [data-theme="dark"] #projectBar    { background: var(--bg2); }
-[data-theme="dark"] .tabs          { background: var(--green-dark); }
+[data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
 
-/* Bandeau d'onglets : en thème nuit, --color-white et --bg sont des surfaces
-   sombres. L'onglet actif utilise donc une surface surélevée et l'accent vert
-   clair pour rester nettement distinct des onglets inactifs. */
-[data-theme="dark"] .tab.active {
-  background:          var(--color-bg-muted);
-  color:               var(--color-primary-accent);
-  border-bottom-color: var(--color-primary-accent);
-  box-shadow:          inset 0 3px 0 var(--color-primary-accent);
+/* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
+   sombre et --green-dark (#052e16) y serait illisible. Les pills inactives
+   passent donc en texte vert clair, et la pill active en fond vert clair avec
+   texte sombre (contraste > 8:1 dans les deux cas). */
+[data-theme="dark"] .tab-label {
+  background:   var(--color-white);
+  color:        var(--color-primary-accent);
+  border-color: var(--border2);
 }
 
-[data-theme="dark"] .tab.active:hover {
-  background:  var(--color-bg-muted);
-  color:       var(--color-primary-accent);
+[data-theme="dark"] .tab-label:hover {
+  background:   var(--color-bg-muted);
+  border-color: var(--color-primary-accent);
+}
+
+[data-theme="dark"] .tab-input:checked + .tab-label {
+  background:   var(--color-primary-accent);
+  color:        var(--green-dark);
+  border-color: var(--color-primary-accent);
+  box-shadow:   var(--shadow-md);
+}
+
+[data-theme="dark"] .tab-input:checked + .tab-label:hover {
+  background:   var(--color-primary-accent);
+  color:        var(--green-dark);
+  border-color: var(--color-primary-accent);
 }
 [data-theme="dark"] .terrain-bar   { background: #14532d; border-color: #052e16; }
+
+/* Boutons terrain : sur fond sombre, le reflet blanc est atténué et l'ombre
+   noire renforcée pour conserver le relief sans halo « sale ». */
+[data-theme="dark"] .terrain-btn-circle {
+  border-color: rgba(255,255,255,0.22);
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,0.20),
+    inset 0 -5px 8px rgba(0,0,0,0.45),
+    0 6px 14px rgba(0,0,0,0.55);
+}
+
+[data-theme="dark"] .terrain-btn-circle::before { opacity: 0.45; }
+
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .terrain-btn-circle:not(.disabled):hover {
+    box-shadow:
+      inset 0 2px 1px rgba(255,255,255,0.28),
+      inset 0 -5px 8px rgba(0,0,0,0.40),
+      0 10px 22px rgba(0,0,0,0.60);
+  }
+}
+
+[data-theme="dark"] .terrain-btn:active .terrain-btn-circle:not(.disabled),
+[data-theme="dark"] .terrain-btn-circle:not(.disabled):active {
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,0.55),
+    inset 0 -1px 1px rgba(255,255,255,0.12),
+    0 2px 6px rgba(0,0,0,0.45);
+}
+
+[data-theme="dark"] .terrain-btn-circle.disabled {
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,0.14),
+    inset 0 -4px 6px rgba(0,0,0,0.40),
+    0 3px 8px rgba(0,0,0,0.40);
+}
 
 [data-theme="dark"] .data-card,
 [data-theme="dark"] .card-full,
@@ -188,7 +237,7 @@
 body.camera-ui-fullscreen #projectBar,
 body.camera-ui-fullscreen #alertBar,
 body.camera-ui-fullscreen .fix-ntrip,
-body.camera-ui-fullscreen .tabs,
+body.camera-ui-fullscreen .tabs-wrapper,
 body.camera-ui-fullscreen .terrain-bar {
   display: none !important;
 }

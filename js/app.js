@@ -45,11 +45,13 @@ function initNavigation() { showTab(APP.currentTab); }
 
 function showTab(tabId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   const screen = document.getElementById(tabId);
   if (screen) screen.classList.add('active');
-  const tab = document.querySelector(`[data-tab="${tabId}"]`);
-  if (tab) tab.classList.add('active');
+  // Onglets « pills » : le style actif vient de :checked. La synchronisation est
+  // nécessaire quand showTab() est appelée par du code (map.js, history.js) et
+  // pas seulement par un clic sur le label.
+  const tabRadio = document.getElementById(`${tabId}-radio`);
+  if (tabRadio) tabRadio.checked = true;
   APP.currentTab = tabId;
   syncTerrainBarVisibility(tabId);
 

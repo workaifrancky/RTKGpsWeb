@@ -59,13 +59,24 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLETS                                                 -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <div class="tabs">
-    <div class="tab active" data-tab="tab-data"    onclick="showTab('tab-data')">📡 GPS</div>
-    <div class="tab"        data-tab="tab-points"  onclick="showTab('tab-points')">📍 POINTS</div>
-    <div class="tab"        data-tab="tab-map"     onclick="showTab('tab-map')">🗺 CARTE</div>
-    <div class="tab"        data-tab="tab-camera"  onclick="showTab('tab-camera')">📷 CAMÉRA</div>
-    <div class="tab"        data-tab="tab-stats"   onclick="showTab('tab-stats')">📊 RELEVÉ</div>
-    <div class="tab"        data-tab="tab-history" onclick="showTab('tab-history')">🕐 HISTORIQUE</div>
+  <div class="tabs-wrapper">
+    <input type="radio" name="tab" id="tab-data-radio" class="tab-input" checked>
+    <label for="tab-data-radio" class="tab-label" onclick="showTab('tab-data')">📡 GPS</label>
+
+    <input type="radio" name="tab" id="tab-points-radio" class="tab-input">
+    <label for="tab-points-radio" class="tab-label" onclick="showTab('tab-points')">📍 POINTS</label>
+
+    <input type="radio" name="tab" id="tab-map-radio" class="tab-input">
+    <label for="tab-map-radio" class="tab-label" onclick="showTab('tab-map')">🗺 CARTE</label>
+
+    <input type="radio" name="tab" id="tab-camera-radio" class="tab-input">
+    <label for="tab-camera-radio" class="tab-label" onclick="showTab('tab-camera')">📷 CAMÉRA</label>
+
+    <input type="radio" name="tab" id="tab-stats-radio" class="tab-input">
+    <label for="tab-stats-radio" class="tab-label" onclick="showTab('tab-stats')">📊 RELEVÉ</label>
+
+    <input type="radio" name="tab" id="tab-history-radio" class="tab-input">
+    <label for="tab-history-radio" class="tab-label" onclick="showTab('tab-history')">🕐 HISTORIQUE</label>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -316,23 +327,52 @@
   <div class="terrain-bar-title">ENREGISTRER UN POINT</div>
   <div class="terrain-btns">
     <div class="terrain-btn" onclick="recordTonte()">
-      <div class="terrain-btn-circle tonte disabled" id="btnTonte">🟢</div>
+      <div class="terrain-btn-circle tonte disabled" id="btnTonte">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4.5 19.5c1.6-4.2 4-6.9 7.5-8.2"/>
+          <path d="M9.5 19.5c.9-3.1 2.6-5.3 5.2-6.6"/>
+          <path d="M14.5 19.5c.7-2.2 2-3.9 4-4.8"/>
+        </svg>
+      </div>
       <div class="terrain-btn-label">ZONE<br>TONTE</div>
     </div>
     <div class="terrain-btn" onclick="recordInterdit()">
-      <div class="terrain-btn-circle interdit disabled" id="btnInterdit">🔴</div>
+      <div class="terrain-btn-circle interdit disabled" id="btnInterdit">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="8.5"/>
+          <path d="M6 18 18 6"/>
+        </svg>
+      </div>
       <div class="terrain-btn-label">ZONE<br>INTERDITE</div>
     </div>
     <div class="terrain-btn" onclick="openObstacleMenu()">
-      <div class="terrain-btn-circle obstacle disabled" id="btnObstacle">🟡</div>
+      <div class="terrain-btn-circle obstacle disabled" id="btnObstacle">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 4.2 3.3 19.5h17.4L12 4.2Z"/>
+          <path d="M12 9.5v4.2"/>
+          <path d="M12 16.4h.01"/>
+        </svg>
+      </div>
       <div class="terrain-btn-label">OBSTACLE<br>ISOLÉ</div>
     </div>
     <div class="terrain-btn" onclick="recordBase()">
-      <div class="terrain-btn-circle base disabled" id="btnBase">🏠</div>
+      <div class="terrain-btn-circle base disabled" id="btnBase">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 10.8 12 4l8 6.8"/>
+          <path d="M6.3 9.4V20h11.4V9.4"/>
+          <path d="M10 20v-5.2h4V20"/>
+        </svg>
+      </div>
       <div class="terrain-btn-label">BASE</div>
     </div>
     <div class="terrain-btn" onclick="startNewZone()">
-      <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">➕</div>
+      <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="8.5"/>
+          <path d="M12 8v8"/>
+          <path d="M8 12h8"/>
+        </svg>
+      </div>
       <div class="terrain-btn-label">NOUVELLE<br>ZONE</div>
     </div>
   </div>

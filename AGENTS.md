@@ -236,6 +236,23 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.tab.active` : fond `var(--bg)`, texte `var(--green-dark)`, 800, liseré 3 px
   `--color-primary-accent` en haut et en bas ; override nuit sur `--color-bg-muted` +
   `--color-primary-accent`. Responsive ≤ 360 px ajusté. Aucun changement de `showTab()`.
+- **3.9-bis — Onglets « pills » (style boutons)** : les `<div class="tab">` sont remplacés
+  par `<input type="radio" class="tab-input">` + `<label class="tab-label">` dans un
+  `.tabs-wrapper` ; l'état actif est géré en CSS par `.tab-input:checked + .tab-label`
+  (pill vert `--green-main` + `--shadow-md`, inactifs blancs `--color-white` + `--shadow-sm`).
+  `showTab()` ne manipule plus `.tab` : elle coche le radio `#<tabId>-radio` pour rester
+  synchrone avec les appels de `map.js` et `history.js`. Overrides nuit dans `theme.css`
+  (pill active `--color-primary-accent` / texte `--green-dark`), sélecteur plein écran caméra
+  mis à jour (`.tabs-wrapper`).
+- **3.10 — Boutons terrain « premium » et icônes SVG outline** : les 5 emoji des boutons
+  ronds (`🟢 🔴 🟡 🏠 ➕`) sont remplacés par des SVG inline `fill: none` /
+  `stroke: currentColor` (30 px, 26 px sous 360 px), colorés par `color` du bouton.
+  `.terrain-btn-circle` gagne un relief (`box-shadow` double interne + ombre portée), un
+  dégradé vertical et un reflet `::before` (`pointer-events: none`) ; les variantes passent
+  de `background:` à `background-color:` pour ne pas écraser le dégradé. Survol réservé aux
+  pointeurs fins (`@media (hover: hover) and (pointer: fine)`), clic enfoncé
+  (`translateY(1px) scale(0.94)`). La propriété invalide `active-scale` est supprimée.
+  Overrides nuit dans `theme.css` (reflet atténué, ombre noire renforcée).
 
 ## 9. Langue et communication
 

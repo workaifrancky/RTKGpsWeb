@@ -89,20 +89,32 @@ Overrides de lisibilité :
   fictive dans l'onglet DONNÉES. **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
-### Bandeau d'onglets (`main.css`, overrides dans `theme.css`)
+### Bandeau d'onglets « pills » (`main.css`, overrides dans `theme.css`)
 
-- `.tabs` : fond `var(--green-dark)`, une seule ligne, `overflow-x: auto` +
-  `scrollbar-width: none` (scroll horizontal sans barre sur petit écran), filet inférieur
-  3 px `--color-primary`.
-- `.tab` : `min-height: 44px` (cible tactile terrain), padding `13px 18px`, 12 px / 700,
-  texte `rgba(255,255,255,0.7)`, coins supérieurs arrondis (`--radius-sm`), transitions
-  `background-color` / `color` / `border-color` (0,18 s).
-- `.tab:hover` : texte blanc + voile `rgba(255,255,255,0.08)` ; `.tab:active` : voile 0,14.
-- `.tab.active` : fond `var(--bg)`, texte `var(--green-dark)`, 800, liseré 3 px
-  `--color-primary-accent` en bas et en haut (`box-shadow: inset 0 3px 0`).
-- Thème nuit : `[data-theme="dark"] .tab.active` passe sur `--color-bg-muted` avec texte et
-  liserés `--color-primary-accent` (les tokens `--bg` / `--color-white` deviennent sombres).
-- ≤ 360 px : padding `12px 12px`, 11 px, `letter-spacing: 0.2px` (les onglets défilent).
+Structure : un conteneur `.tabs-wrapper`, puis pour chaque onglet un
+`<input type="radio" class="tab-input">` immédiatement suivi d'un
+`<label class="tab-label">`. L'état actif est purement CSS (`:checked + .tab-label`), la
+navigation reste assurée par `showTab()` (`js/app.js`), qui coche aussi le radio correspondant
+(`#<tabId>-radio`) pour rester synchrone avec les appels programmatiques (`map.js`, `history.js`).
+
+- `.tabs-wrapper` : fond `var(--color-bg-muted)`, `padding: 8px 10px`, `gap: 6px`, filet
+  inférieur 2 px `var(--green-dark)`, une seule ligne (`overflow-x: auto`,
+  `scrollbar-width: none`).
+- `.tab-input` : `position: absolute`, `opacity: 0`, 1×1 px → invisible mais focusable
+  (`:focus-visible + .tab-label` affiche un contour `--color-primary-accent`).
+- `.tab-label` : pill (`border-radius: 999px`), `min-height: 44px`, padding `10px 16px`,
+  12 px / 700, fond `var(--color-white)` (blanc en thème jour), texte `var(--green-dark)`,
+  bordure `--border`, ombre `--shadow-sm`, transitions 0,18 s.
+- `.tab-label:hover` : fond `--color-primary-pale-bg`, bordure `--color-primary-accent` ;
+  `:active` : `scale(0.97)`.
+- `.tab-input:checked + .tab-label` : fond `var(--green-main)` (`#2e7d32`), texte blanc,
+  ombre `--shadow-md` (la pill active « ressort »).
+- Thème nuit : pills inactives = fond `--color-white` (`#1a1d27`) + texte
+  `--color-primary-accent` (`#4ade80`) ; pill active = fond `--color-primary-accent` + texte
+  `--green-dark` (contraste 8,55:1). Filet inférieur `--color-primary-light`.
+- ≤ 360 px : `gap: 5px`, `padding: 7px 8px`, labels en `9px 12px` / 11 px.
+- Le bandeau est masqué en plein écran caméra
+  (`body.camera-ui-fullscreen .tabs-wrapper`).
 
 ### Modales (`main.css`)
 
@@ -113,11 +125,24 @@ Overrides de lisibilité :
 
 ### Barre terrain
 
-- `.terrain-btn-circle` : 64 px, `border-radius: 50%`, bordure blanche translucide.
+- `.terrain-btn-circle` : 64 px, `border-radius: 50%`, bouton « premium » :
+  - **relief** : `box-shadow` double interne (filet clair en haut, ombre en bas) + ombre
+    portée externe ;
+  - **reflet** : `::before` (ellipse dégradée blanche, `opacity: 0.7`) en `pointer-events:
+    none` et `z-index: 0`, l'icône étant en `z-index: 1` ;
+  - **dégradé** : `background-image: linear-gradient(180deg, …)` sur la couleur de base
+    (`background-color` par variante, pour ne pas écraser le dégradé) ;
+  - **survol** (souris uniquement, `@media (hover: hover) and (pointer: fine)`) :
+    `translateY(-2px) scale(1.06)` + halo ;
+  - **clic** : `translateY(1px) scale(0.94)` + ombres internes inversées (enfoncement).
+- `.terrain-btn-circle svg` : icônes **SVG outline** (`fill: none`, `stroke: currentColor`,
+  `stroke-width: 1.8`, 30 px, 26 px sous 360 px). La couleur de l'icône suit donc
+  `color` du bouton (`white`, ou `--color-warning-text` pour l'obstacle sur fond ambre).
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
   base `--color-primary`, nouvelle zone `--color-teal`.
-- Classe `.disabled` : opacité 0.35 (gérée par `updateTerrainButtons()`).
-- Responsive : 56 px sous 360 px de large.
+- Classe `.disabled` : opacité 0.35, `saturate(0.7)` (gérée par `updateTerrainButtons()`).
+- Thème nuit : reflet atténué (`opacity: 0.45`), ombre noire renforcée, bordure à 0.22.
+- Responsive : 56 px sous 360 px de large, icône 26 px.
 
 ### Cartes et listes
 
