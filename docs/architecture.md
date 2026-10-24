@@ -35,6 +35,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/stats.js` | Statistiques de session (base exclue) |
 | `js/export.js` | Exports CSV, GPX, GeoJSON + calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
+| `js/gps-test.js` | Mode « Test GPS » : remplace le flux BLE par le GPS interne du téléphone (`watchPosition`) |
 | `js/history.js` | Historique des parcelles/sessions |
 | `js/ui.js` | Mise à jour des éléments d'interface à partir des données GPS |
 
@@ -42,7 +43,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 
 ```text
 Leaflet (CDN) → parser → ntrip → app → projects → ble → points → map
-             → stats → simulation → export → camera → history → ui
+             → stats → simulation → export → camera → history → ui → gps-test
 ```
 
 Cet ordre fait office de graphe de dépendances. `ui.js` doit rester en dernier. Une nouvelle
@@ -118,11 +119,48 @@ paramétrables (test du guidage caméra), uniquement depuis la console.
 Les trois fonctions retournent `null` et émettent un `console.warn` quand le flag est `false` :
 elles ne touchent ni `localStorage`, ni l'interface, ni la caméra.
 
+## Mode « Test GPS » (GPS interne du téléphone)
+
+> Bouton `#btnGpsTest` (`📱 TEST GPS`) dans le header, à côté de `#btnBle`.
+> Fichier : `js/gps-test.js`.
+
+Le mode Test remplace **temporairement** le flux BLE par le GPS du téléphone, sans rien changer au
+parser ni au NTRIP.
+
+1. `toggleGpsTest()` → `startGpsTest()` : si le BLE est connecté, `disconnectBle()` est appelé,
+   puis `#btnBle` est verrouillé (`⬡ BLE DÉSACTIVÉ`) pour empêcher deux flux concurrents.
+2. `navigator.geolocation.watchPosition()` (`enableHighAccuracy: true`, pas de cache, timeout 15 s)
+   alimente `onGpsTestPosition()`.
+3. `buildGpsTestData()` reconstruit une **trame texte au format ESP32** (`Fix:`, `Lat:`, `Lon:`,
+   `Alt:`, `Rel_X:`, `Rel_Y:`, `HDOP:`, `Speed:`, `Cap:`, `Date:`) puis appelle
+   `parseGpsFrame()`. L'objet produit est donc strictement identique à celui du BLE.
+4. Le pipeline est celui de `js/ble.js` : `updateUI()` → `updateLivePosition()` →
+   `updateCameraTarget()`. Carte, onglet GPS et guidage caméra fonctionnent sans matériel.
+5. Un second clic (`stopGpsTest()`) arrête le `watch`, libère `#btnBle` et restaure son libellé.
+
+Limites assumées :
+
+- **Fix `GPS` (score 1)** : le téléphone n'est pas RTK. `isPositionValid()` exigeant `Float RTK`
+  (score 3), l'enregistrement de points reste bloqué en mode Test — c'est volontaire pour ne pas
+  polluer un relevé réel. `APP.bleConnected` reste `false` : les boutons terrain demeurent
+  désactivés et l'alerte « plus de données depuis 10 s » de `ui.js` ne se déclenche pas.
+- **Satellites indisponibles** (l'API ne les expose pas) → la carte Sat affiche `—`.
+- **HDOP estimé** : `accuracy / 5` (1 unité ≈ 5 m), valeur indicative, arrondie à 0,1.
+- **Cap et vitesse** : fournis par `coords.heading` / `coords.speed` ; souvent `null` à l'arrêt.
+- **`Rel_X` / `Rel_Y`** : calculés par rapport à la base de la parcelle courante si elle existe
+  (même convention que `js/simulation.js`), sinon `—`.
+- **Contexte sécurisé obligatoire** : HTTPS ou `localhost`/`127.0.0.1`, sinon le navigateur refuse
+  la géolocalisation.
+- La dernière position reçue reste affichée après désactivation jusqu'à la prochaine trame BLE.
+
 ## Tester sans matériel
 
-1. Ouvrir l'application via `node serve-http.cjs` (ou le tunnel HTTPS).
-2. Passer `ENABLE_SIMULATION` à `true` et restaurer les boutons (voir
-   [simulation.md](simulation.md)), puis recharger la page.
-3. Onglet DONNÉES → `🎮 Mode Simulation`.
-4. Vérifier la carte, les statistiques et l'export GeoJSON.
+1. Ouvrir l'application via `node serve-http.cjs` (`http://127.0.0.1:8000/`, contexte sécurisé) ou
+   via le tunnel HTTPS.
+2. **GPS réel du téléphone** : appuyer sur `📱 TEST GPS` puis vérifier l'onglet GPS, la position
+   live sur la carte et le guidage de l'onglet Caméra. Un second clic rend la main au BLE.
+3. **Données fictives** : passer `ENABLE_SIMULATION` à `true`, restaurer les boutons (voir
+   [simulation.md](simulation.md)) et recharger la page — le rechargement coupe le mode Test GPS.
+4. Onglet DONNÉES → `🎮 Mode Simulation`, puis vérifier la carte, les statistiques et l'export
+   GeoJSON.
 5. Pour un contrôle statique : `node --check js/<fichier>.js`.

@@ -25,6 +25,9 @@
     <div class="header-actions">
       <button id="btnTheme" onclick="toggleTheme()" title="Thème">🌙</button>
       <button id="btnBle" class="off" onclick="toggleBle()">⬡ CONNECTER BLE</button>
+      <button id="btnGpsTest" class="gps-test-btn" onclick="toggleGpsTest()"
+        title="Utiliser le GPS interne du téléphone (test sans récepteur RTK)"
+        aria-pressed="false"><span>📱</span> TEST GPS</button>
     </div>
   </header>
 
@@ -463,6 +466,7 @@
 <script src="js/camera.js"></script>
 <script src="js/history.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/gps-test.js"></script>
 
 </body>
 </html>

@@ -14,7 +14,9 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 - **Export** : CSV, GPX et **GeoJSON compatible Mower Planner** (contrat inter-applications).
 - **Tests sans matériel** : outils de simulation `js/simulation.js`, **désactivés par défaut**
   (`ENABLE_SIMULATION = false`) et sans bouton dans l'interface ; réactivation documentée dans
-  [docs/simulation.md](docs/simulation.md).
+  [docs/simulation.md](docs/simulation.md). Le mode **Test GPS** (`js/gps-test.js`, bouton
+  `📱 TEST GPS` du header) utilise le GPS interne du téléphone à la place du flux BLE, sans
+  toucher au parser ni au NTRIP (voir [docs/architecture.md](docs/architecture.md)).
 
 ## 2. Règles absolues (non négociables)
 
@@ -148,6 +150,11 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   retirés d'`index.html` depuis la mise en production terrain. Ne pas réintroduire un bouton
   de simulation sans repasser le flag à `true` (sinon le bouton reste inerte) ; procédure
   complète dans [docs/simulation.md](docs/simulation.md).
+- **Mode Test GPS** : le mode annonce le fix `GPS` (score 1) — jamais `RTK Fix` — car le
+  téléphone n'est pas RTK. `isPositionValid()` (Float RTK requis) bloque donc l'enregistrement
+  de points, et `APP.bleConnected` reste `false` (boutons terrain désactivés). La
+  géolocalisation exige un contexte sécurisé (HTTPS ou `127.0.0.1`/`localhost`). `#btnBle` doit rester
+  verrouillé tant que le mode Test est actif.
 
 ## 8. Sessions validées
 
@@ -253,6 +260,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   pointeurs fins (`@media (hover: hover) and (pointer: fine)`), clic enfoncé
   (`translateY(1px) scale(0.94)`). La propriété invalide `active-scale` est supprimée.
   Overrides nuit dans `theme.css` (reflet atténué, ombre noire renforcée).
+- **4.1 — Mode « Test GPS » (GPS interne du téléphone)** : bouton `📱 TEST GPS`
+  (`#btnGpsTest`, `.gps-test-btn`) dans `.header-actions`, à côté de `#btnBle`. Nouveau
+  `js/gps-test.js` (chargé après `ui.js`) : `toggleGpsTest()`, `startGpsTest()`,
+  `stopGpsTest()`, `buildGpsTestData()`. `navigator.geolocation.watchPosition()` alimente
+  une trame texte au **format ESP32** (`Fix:` `GPS` → score 1, `Lat`, `Lon`, `Alt`,
+  `Rel_X`/`Rel_Y` relatifs à la base de la parcelle, `HDOP` estimé `accuracy / 5`,
+  `Speed` en km/h, `Cap`, `Date`) passée à `parseGpsFrame()` puis au pipeline BLE
+  (`updateUI` → `updateLivePosition` → `updateCameraTarget`). `#btnBle` est verrouillé
+  (`⬡ BLE DÉSACTIVÉ`) pendant le test et le BLE est déconnecté s'il était actif. Le fix `GPS`
+  laisse `isPositionValid()` bloquant l'enregistrement (Float RTK requis) et `APP.bleConnected`
+  à `false`. Aucun changement du parser, du NTRIP ni de l'export ; header en `flex-wrap` et
+  compactage ≤ 360 px pour trois boutons.
 
 ## 9. Langue et communication
 
