@@ -7,7 +7,22 @@
 [data-theme="dark"] header         { background: #14532d; }
 [data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
 [data-theme="dark"] #projectBar    { background: var(--bg2); }
-[data-theme="dark"] .tabs          { background: #052e16; }
+[data-theme="dark"] .tabs          { background: var(--green-dark); }
+
+/* Bandeau d'onglets : en thème nuit, --color-white et --bg sont des surfaces
+   sombres. L'onglet actif utilise donc une surface surélevée et l'accent vert
+   clair pour rester nettement distinct des onglets inactifs. */
+[data-theme="dark"] .tab.active {
+  background:          var(--color-bg-muted);
+  color:               var(--color-primary-accent);
+  border-bottom-color: var(--color-primary-accent);
+  box-shadow:          inset 0 3px 0 var(--color-primary-accent);
+}
+
+[data-theme="dark"] .tab.active:hover {
+  background:  var(--color-bg-muted);
+  color:       var(--color-primary-accent);
+}
 [data-theme="dark"] .terrain-bar   { background: #14532d; border-color: #052e16; }
 
 [data-theme="dark"] .data-card,

@@ -345,35 +345,63 @@ header {
 }
 
 /* ─── ONGLETS ───────────────────────────────────────────────── */
+/* Bandeau sombre, une seule ligne scrollable sur petit écran.
+   L'onglet actif est une « languette » claire posée sur le bandeau. */
 .tabs {
-  background:    var(--color-primary-deep);
-  display:       flex;
-  border-bottom: 3px solid var(--color-primary);
-  overflow-x:    auto;
-  scrollbar-width: none;
+  background:          var(--green-dark);
+  display:             flex;
+  align-items:         stretch;
+  border-bottom:       3px solid var(--color-primary);
+  overflow-x:          auto;
+  overflow-y:          hidden;
+  scrollbar-width:     none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabs::-webkit-scrollbar { display: none; }
 
 .tab {
-  flex:            0 0 auto;
-  padding:         11px 16px;
-  text-align:      center;
-  font-size:       11px;
-  font-weight:     700;
-  color:           rgba(255,255,255,0.45);
-  cursor:          pointer;
-  border-bottom:   3px solid transparent;
-  margin-bottom:   -3px;
-  transition:      var(--transition);
-  white-space:     nowrap;
-  letter-spacing:  0.5px;
+  flex:                  0 0 auto;
+  display:               flex;
+  align-items:           center;
+  justify-content:       center;
+  min-height:            44px;
+  padding:               13px 18px;
+  text-align:            center;
+  font-size:             12px;
+  font-weight:           700;
+  color:                 rgba(255,255,255,0.7);
+  cursor:                pointer;
+  white-space:           nowrap;
+  letter-spacing:        0.4px;
+  border-bottom:         3px solid transparent;
+  margin-bottom:         -3px;
+  border-radius:         var(--radius-sm) var(--radius-sm) 0 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:            background-color 0.18s ease, color 0.18s ease,
+                         border-color 0.18s ease;
 }
 
-.tab:hover  { color: rgba(255,255,255,0.75); }
+.tab:hover {
+  color:       white;
+  background:  rgba(255,255,255,0.08);
+}
+
+.tab:active { background: rgba(255,255,255,0.14); }
+
+/* Onglet actif : fond clair, texte vert foncé, liserés de 3 px
+   en haut et en bas. Contraste fort avec les onglets inactifs. */
 .tab.active {
-  color:        white;
-  border-color: var(--color-primary-accent);
+  background:           var(--bg);
+  color:                var(--green-dark);
+  font-weight:          800;
+  border-bottom-color:  var(--color-primary-accent);
+  box-shadow:           inset 0 3px 0 var(--color-primary-accent);
+}
+
+.tab.active:hover {
+  background:  var(--bg);
+  color:       var(--green-dark);
 }
 
 /* ─── ÉCRANS ─────────────────────────────────────────────────── */
@@ -509,7 +537,7 @@ header {
 
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
-  .tab    { padding: 10px 10px; font-size: 10px; }
+  .tab    { padding: 12px 12px; font-size: 11px; letter-spacing: 0.2px; }
   .logo   { font-size: 17px; }
   #btnBle { font-size: 11px; padding: 7px 12px; }
   #fixBar { gap: 6px; padding: 8px 10px; }

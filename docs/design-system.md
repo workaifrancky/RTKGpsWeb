@@ -89,6 +89,21 @@ Overrides de lisibilité :
   fictive dans l'onglet DONNÉES. **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
+### Bandeau d'onglets (`main.css`, overrides dans `theme.css`)
+
+- `.tabs` : fond `var(--green-dark)`, une seule ligne, `overflow-x: auto` +
+  `scrollbar-width: none` (scroll horizontal sans barre sur petit écran), filet inférieur
+  3 px `--color-primary`.
+- `.tab` : `min-height: 44px` (cible tactile terrain), padding `13px 18px`, 12 px / 700,
+  texte `rgba(255,255,255,0.7)`, coins supérieurs arrondis (`--radius-sm`), transitions
+  `background-color` / `color` / `border-color` (0,18 s).
+- `.tab:hover` : texte blanc + voile `rgba(255,255,255,0.08)` ; `.tab:active` : voile 0,14.
+- `.tab.active` : fond `var(--bg)`, texte `var(--green-dark)`, 800, liseré 3 px
+  `--color-primary-accent` en bas et en haut (`box-shadow: inset 0 3px 0`).
+- Thème nuit : `[data-theme="dark"] .tab.active` passe sur `--color-bg-muted` avec texte et
+  liserés `--color-primary-accent` (les tokens `--bg` / `--color-white` deviennent sombres).
+- ≤ 360 px : padding `12px 12px`, 11 px, `letter-spacing: 0.2px` (les onglets défilent).
+
 ### Modales (`main.css`)
 
 - `.modal-overlay` : fond `rgba(0,0,0,0.5)`, `opacity: 0` → `.show` pour l'ouverture.

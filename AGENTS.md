@@ -229,6 +229,13 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `simulateGpsFrame()` et `simulateGpsAt()`, suppression des boutons « Mode Simulation » et
   « Simuler une trame GPS » d'`index.html`, documentation de réactivation dans
   `docs/simulation.md` (classes CSS conservées).
+- **3.9 — Refonte du bandeau d'onglets** : libellés `📡 GPS` (ex-DONNÉES) et `📊 RELEVÉ`
+  (ex-STATS), les autres inchangés. `.tabs` passe sur `var(--green-dark)`, une seule ligne
+  scrollable (`overflow-x`, scrollbar masquée). `.tab` : 44 px de haut minimum, padding
+  `13px 18px`, 12 px / 700, inactifs `rgba(255,255,255,0.7)`, transitions 0,18 s.
+  `.tab.active` : fond `var(--bg)`, texte `var(--green-dark)`, 800, liseré 3 px
+  `--color-primary-accent` en haut et en bas ; override nuit sur `--color-bg-muted` +
+  `--color-primary-accent`. Responsive ≤ 360 px ajusté. Aucun changement de `showTab()`.
 
 ## 9. Langue et communication
 
