@@ -17,6 +17,8 @@ const FIX_META = {
   'DGPS':      { score:2, precision:'< 1 m',   label:'Moyenne',    cssClass:'fix-dgps',  badgeClass:'badge-dgps',  icon:'📡', dotClass:'dgps'  },
   'GPS':       { score:1, precision:'< 5 m',   label:'Faible',     cssClass:'fix-gps',   badgeClass:'badge-gps',   icon:'📡', dotClass:'gps'   },
   'None':      { score:0, precision:'Inconnue',label:'Aucune',     cssClass:'fix-none',  badgeClass:'badge-none',  icon:'🚫', dotClass:'none'  },
+  // Point saisi manuellement depuis la cible de la carte (pas de fix GNSS).
+  'Manuel':    { score:0, precision:'Position carte', label:'Manuelle', cssClass:'fix-none', badgeClass:'badge-none', icon:'✋', dotClass:'none' },
 };
 
 function normalizeFix(raw) {

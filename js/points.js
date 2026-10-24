@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Recharge les compteurs depuis le projet courant
   setTimeout(syncCounters, 300);
   renderPointsList();
+  // La carte partagée peut déjà être initialisée : on reflète les points chargés.
+  if (typeof renderMap === 'function') renderMap();
 });
 
 function syncCounters() {
@@ -33,12 +35,32 @@ function syncCounters() {
   pts.forEach(p => { if (counters[p.type] !== undefined) counters[p.type]++; });
 }
 
+// ─── POSITION D'ENREGISTREMENT (GPS OU CIBLE CARTE) ──────────
+// GPS valide (Float RTK minimum) → coordonnées du rover.
+// Sinon → centre de la carte TRACÉS (mode manuel).
+function getPointPosition() {
+  if (APP.bleConnected && isPositionValid(lastGpsData)) {
+    return { lat: lastGpsData.lat, lon: lastGpsData.lon, source: 'gps' };
+  }
+
+  const target = typeof getTargetCoords === 'function' ? getTargetCoords() : null;
+  if (target && Number.isFinite(target.lat) && Number.isFinite(target.lon)) {
+    return { lat: target.lat, lon: target.lon, source: 'manual' };
+  }
+
+  return null;
+}
+
 // ─── ENREGISTRER — ZONE DE TONTE ─────────────────────────────
 function recordTonte() {
-  if (!checkGps()) return;
-  const pt = buildPoint('tonte', null, '🟢');
+  const pos = getPointPosition();
+  if (!pos) {
+    showToast('Position indisponible — placez la cible sur la carte', 'error');
+    return;
+  }
+  const pt = buildPoint('tonte', null, '🟢', pos);
   savePoint(pt);
-  showToast(`🟢 Tonte #${pt.index} enregistré — zone #${pt.zoneId}`, 'tonte');
+  showToast(`🟢 Tonte #${pt.index} enregistré — zone #${pt.zoneId}${pos.source === 'manual' ? ' (manuel)' : ''}`, 'tonte');
 }
 
 // ─── ZONES DE TONTE ──────────────────────────────────────────
@@ -87,22 +109,36 @@ function updateZoneBadge() {
 
 // ─── ENREGISTRER — ZONE INTERDITE ────────────────────────────
 function recordInterdit() {
-  if (!checkGps()) return;
-  const pt = buildPoint('interdit', null, '🔴');
+  const pos = getPointPosition();
+  if (!pos) {
+    showToast('Position indisponible — placez la cible sur la carte', 'error');
+    return;
+  }
+  const pt = buildPoint('interdit', null, '🔴', pos);
   savePoint(pt);
-  showToast(`🔴 Interdit #${pt.index} enregistré`, 'interdit');
+  showToast(`🔴 Interdit #${pt.index} enregistré${pos.source === 'manual' ? ' (manuel)' : ''}`, 'interdit');
 }
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
 function recordObstacle(subtype, icon) {
-  if (!checkGps()) return;
-  const pt = buildPoint('obstacle', subtype, icon || '🟡');
+  const pos = getPointPosition();
+  if (!pos) {
+    showToast('Position indisponible — placez la cible sur la carte', 'error');
+    return;
+  }
+  const pt = buildPoint('obstacle', subtype, icon || '🟡', pos);
   savePoint(pt);
-  showToast(`${icon} ${subtype} #${pt.index} enregistré`, 'obstacle');
+  showToast(`${icon} ${subtype} #${pt.index} enregistré${pos.source === 'manual' ? ' (manuel)' : ''}`, 'obstacle');
 }
 
 // ─── CONSTRUCTION D'UN POINT ─────────────────────────────────
-function buildPoint(type, subtype, icon) {
+function buildPoint(type, subtype, icon, position) {
+  const pos = position || getPointPosition();
+  if (!pos) return null;
+
+  const gps = pos.source === 'gps';
+  const src = gps ? lastGpsData : null;
+
   counters[type] = (counters[type] || 0) + 1;
   return {
     id:         Date.now(),
@@ -112,28 +148,17 @@ function buildPoint(type, subtype, icon) {
     icon:       icon || '📍',
     index:      counters[type],
     ...(type === 'tonte' ? { zoneId: getCurrentZoneId() } : {}),
-    lat:        lastGpsData.lat,
-    lon:        lastGpsData.lon,
-    alt:        lastGpsData.alt,
-    relX:       lastGpsData.relX,
-    relY:       lastGpsData.relY,
-    fix:        lastGpsData.fix,
-    fixScore:   lastGpsData.score,
-    satellites: lastGpsData.satellites,
-    hdop:       lastGpsData.hdop,
+    lat:        pos.lat,
+    lon:        pos.lon,
+    alt:        gps && src ? src.alt : null,
+    relX:       gps && src ? src.relX : null,
+    relY:       gps && src ? src.relY : null,
+    fix:        gps && src ? src.fix : 'Manuel',
+    fixScore:   gps && src ? src.score : 0,
+    satellites: gps && src ? src.satellites : null,
+    hdop:       gps && src ? src.hdop : null,
     timestamp:  new Date().toISOString(),
   };
-}
-
-// ─── VALIDATION GPS ──────────────────────────────────────────
-function checkGps() {
-  if (!APP.bleConnected) {
-    showToast('BLE non connecté', 'error'); return false;
-  }
-  if (!isPositionValid(lastGpsData)) {
-    showToast(getRecordBlockReason(lastGpsData) || 'Fix insuffisant', 'error'); return false;
-  }
-  return true;
 }
 
 // ─── SAUVEGARDER ─────────────────────────────────────────────

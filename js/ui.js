@@ -11,6 +11,7 @@ const ALERT_CONFIG = { minSat:6, maxHdop:2.0, timeout:10000 };
 function updateUI(data) {
   lastGpsData = data;
   resetDataTimeout();
+  if (typeof updateRecordModeBadge === 'function') updateRecordModeBadge();
   if (!data.isValid) { showRejectedFrame(data); return; }
   updateFixBar(data);
   checkAlerts(data);

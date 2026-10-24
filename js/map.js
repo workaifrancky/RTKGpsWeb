@@ -12,6 +12,14 @@ let liveMarker=null, liveTrail=[], livePolyline=null;
 let surfaceOverlayControl = null;
 let surfaceOverlayEl = null;
 
+// Mode de tracé : suivi GPS, position connue et état de la vue TRACÉS.
+let followGps = true;
+let lastMapPosition = null;
+let gpsControl = null;
+let gpsFollowBtn = null;
+let pointsViewProjectId = null;
+let pointsViewNeedsFit = true;
+
 const COLORS = {
   tonte:    { stroke:'#16a34a', fill:'rgba(22,163,74,0.12)'   },
   interdit: { stroke:'#dc2626', fill:'rgba(220,38,38,0.15)'   },
@@ -66,6 +74,10 @@ function initMap() {
   layerObstacle = L.layerGroup().addTo(map);
 
   initSurfaceOverlayControl();
+  initGpsControl();
+
+  // Un déplacement manuel désactive le suivi GPS (le bouton permet de le réactiver).
+  map.on('dragstart', disableGpsFollow);
 
   // Marqueur station NTRIP sélectionnée
   L.circleMarker([centerLat,centerLon],{
@@ -115,6 +127,12 @@ function renderMap() {
   const pts = getPoints();
   if (pts.length === 0) {
     updateSurfaceOverlay('');
+    // Évite un recadrage intempestif au premier point manuel : la vue courante
+    // de l'onglet TRACÉS est conservée.
+    if (APP.currentTab === 'tab-points' && map.getSize().x > 0) {
+      pointsViewProjectId = typeof currentProject !== 'undefined' ? currentProject?.id : null;
+      pointsViewNeedsFit = false;
+    }
     return;
   }
 
@@ -198,10 +216,25 @@ function renderMap() {
       .bindPopup(pointPopup(p,i+1));
   });
 
-  // Fitbounds sur tous les points
-  const allLls = pts.filter(p=>p.lat&&p.lon).map(p=>[p.lat,p.lon]);
-  if (allLls.length === 1) map.setView(allLls[0], 19);
-  else if (allLls.length > 1) map.fitBounds(allLls, {padding:[30,30]});
+  // CARTE : cadrage automatique sur les points.
+  // TRACÉS : cadrage uniquement à l'initialisation ou au changement de parcelle,
+  // pour ne pas faire sauter la cible pendant un tracé manuel.
+  const isPointsTab = APP.currentTab === 'tab-points';
+  const projectId = typeof currentProject !== 'undefined' ? currentProject?.id : null;
+  const mapHasSize = map.getSize().x > 0;
+
+  if (isPointsTab && projectId !== pointsViewProjectId) {
+    pointsViewProjectId = projectId;
+    pointsViewNeedsFit = true;
+  }
+
+  if (!isPointsTab || (pointsViewNeedsFit && mapHasSize)) {
+    const allLls = pts.filter(p=>p.lat&&p.lon).map(p=>[p.lat,p.lon]);
+    if (allLls.length === 1) map.setView(allLls[0], 19);
+    else if (allLls.length > 1) map.fitBounds(allLls, {padding:[30,30]});
+
+    if (isPointsTab) pointsViewNeedsFit = false;
+  }
 
   updateSurfaceOverlay(surfaceParts.join(' &nbsp;•&nbsp; '));
 }
@@ -257,6 +290,8 @@ function addPointToMap(pt) {
 function updateLivePosition(data) {
   if (!map || !data.lat || !data.lon) return;
   const pos=[data.lat,data.lon];
+  lastMapPosition = { lat: data.lat, lon: data.lon };
+
   if (!liveMarker) {
     liveMarker = L.circleMarker(pos,{radius:7,fillColor:COLORS.live,color:'white',weight:2,fillOpacity:1,className:'live-marker-pulse'}).addTo(map);
   } else {
@@ -266,6 +301,135 @@ function updateLivePosition(data) {
   if (liveTrail.length>500) liveTrail.shift();
   if (livePolyline) livePolyline.setLatLngs(liveTrail);
   else livePolyline = L.polyline(liveTrail,{color:COLORS.live,weight:2,opacity:0.5}).addTo(map);
+
+  if (followGps) map.panTo(pos, { animate: false });
+  updateRecordModeBadge();
+}
+
+// ─── CIBLE, MODE GPS / MANUEL ET SUIVI ──────────────────────
+// Coordonnées du centre de la carte active (cible fixe de l'onglet TRACÉS).
+function getTargetCoords() {
+  if (!map) initMap();
+  if (!map) return null;
+
+  const center = map.getCenter();
+  return { lat: center.lat, lon: center.lng };
+}
+
+function getGpsPositionForMap() {
+  if (lastMapPosition) return lastMapPosition;
+  if (typeof lastGpsData !== 'undefined' && lastGpsData
+      && Number.isFinite(lastGpsData.lat) && Number.isFinite(lastGpsData.lon)) {
+    return { lat: lastGpsData.lat, lon: lastGpsData.lon };
+  }
+  return null;
+}
+
+function isGpsFollowActive() { return followGps; }
+
+function centerMapOnGps() {
+  if (!map) return;
+
+  const pos = getGpsPositionForMap();
+  if (!pos) {
+    showToast('Aucune position GPS disponible', 'info');
+    return;
+  }
+
+  map.setView([pos.lat, pos.lon], map.getZoom(), { animate: false });
+  updateRecordModeBadge();
+}
+
+function toggleGpsFollow() {
+  followGps = !followGps;
+  updateGpsFollowControl();
+  if (followGps) centerMapOnGps();
+}
+
+function disableGpsFollow() {
+  if (!followGps) return;
+  followGps = false;
+  updateGpsFollowControl();
+}
+
+function updateGpsFollowControl() {
+  const btn = gpsFollowBtn || document.getElementById('btnFollowGps');
+  if (!btn) return;
+
+  btn.classList.toggle('active', followGps);
+  btn.setAttribute('aria-pressed', followGps ? 'true' : 'false');
+  btn.title = followGps
+    ? 'Suivi GPS activé — toucher pour désactiver'
+    : 'Suivi GPS désactivé — toucher pour activer';
+}
+
+function initGpsControl() {
+  if (!map || gpsControl) return;
+
+  gpsControl = L.control({ position: 'bottomleft' });
+  gpsControl.onAdd = () => {
+    const container = L.DomUtil.create('div', 'map-gps-control');
+
+    const recenterBtn = L.DomUtil.create('button', 'map-gps-btn', container);
+    recenterBtn.type      = 'button';
+    recenterBtn.textContent = '⌖';
+    recenterBtn.title     = 'Recentrer sur la position GPS';
+
+    const followBtn = L.DomUtil.create('button', 'map-gps-btn', container);
+    followBtn.type        = 'button';
+    followBtn.id          = 'btnFollowGps';
+    followBtn.textContent = '➤';
+    gpsFollowBtn = followBtn;
+
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    L.DomEvent.on(recenterBtn, 'click', L.DomEvent.stop)
+      .on(recenterBtn, 'click', centerMapOnGps);
+    L.DomEvent.on(followBtn, 'click', L.DomEvent.stop)
+      .on(followBtn, 'click', toggleGpsFollow);
+
+    updateGpsFollowControl();
+    return container;
+  };
+
+  gpsControl.addTo(map);
+}
+
+// Une seule instance de carte est partagée entre CARTE et TRACÉS :
+// on la déplace dans l'onglet actif puis on recalcule sa taille.
+function mountMapForTab(tabId) {
+  const slot = document.getElementById(tabId === 'tab-points' ? 'map-points-slot' : 'map-carte-slot');
+  if (!slot) return;
+
+  if (!map) initMap();
+  if (!map) return;
+
+  const container = map.getContainer();
+  if (container.parentElement !== slot) slot.appendChild(container);
+
+  setTimeout(() => {
+    if (!map) return;
+    map.invalidateSize({ animate: false });
+
+    if (tabId === 'tab-points') {
+      renderMap();
+      updateRecordModeBadge();
+      if (followGps && getGpsPositionForMap()) centerMapOnGps();
+    }
+  }, 60);
+}
+
+// Badge de mode : GPS dès qu'une position RTK valide est disponible,
+// sinon mode manuel (cible au centre de la carte).
+function updateRecordModeBadge() {
+  const badge = document.getElementById('recordModeBadge');
+  if (!badge) return;
+
+  const gpsMode = typeof APP !== 'undefined' && APP.bleConnected
+    && typeof isPositionValid === 'function' && isPositionValid(lastGpsData);
+
+  badge.textContent = gpsMode ? '🛰 MODE GPS' : '✋ MODE MANUEL';
+  badge.classList.toggle('gps', gpsMode);
 }
 
 function centerMapOnPoint(lat, lon) {

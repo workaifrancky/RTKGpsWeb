@@ -66,6 +66,11 @@ function showTab(tabId) {
   syncTerrainBarVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
 
+  // Une seule instance de carte, déplacée dans l'onglet actif.
+  if ((tabId === 'tab-points' || tabId === 'tab-map') && typeof mountMapForTab === 'function') {
+    mountMapForTab(tabId);
+  }
+
   if (tabId === 'tab-map') {
     setTimeout(() => { if (typeof refreshMap === 'function') refreshMap(); }, 120);
   }
@@ -137,8 +142,9 @@ function hideAlert() {
 
 // ─── MODAL OBSTACLE ──────────────────────────────────────────
 function openObstacleMenu() {
-  if (!isPositionValid(lastGpsData)) {
-    showToast('Fix GPS insuffisant pour enregistrer', 'error');
+  const pos = typeof getPointPosition === 'function' ? getPointPosition() : null;
+  if (!pos) {
+    showToast('Position indisponible — placez la cible sur la carte', 'error');
     return;
   }
   const modal = document.getElementById('obstacleModal');

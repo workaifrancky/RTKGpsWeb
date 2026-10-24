@@ -98,12 +98,15 @@ function setBleStatus(status) {
 }
 
 function updateTerrainButtons() {
-  const connected = APP.bleConnected;
+  const connected   = APP.bleConnected;
+  const manualReady = typeof getTargetCoords === 'function'
+    && !!document.getElementById('map-points-slot');
+  const enabled = connected || manualReady;
+
   ['btnTonte','btnInterdit','btnObstacle'].forEach(id => {
     const circle = document.getElementById(id);
-    if (circle) {
-      if (connected) circle.classList.remove('disabled');
-      else           circle.classList.add('disabled');
-    }
+    if (circle) circle.classList.toggle('disabled', !enabled);
   });
+
+  if (typeof updateRecordModeBadge === 'function') updateRecordModeBadge();
 }

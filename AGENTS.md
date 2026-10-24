@@ -313,6 +313,11 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   en forme dans `css/map.css`. Le `padding-bottom` de `.screen` passe à 190 px pour que la
   barre d'export reste accessible au-dessus de la barre terrain fixe. Message de la caméra mis
   à jour (« onglet TRACÉS »).
+- **3.15 — Cible fixe au centre de la carte** : `#map` est enveloppé dans `.map-wrapper`
+  (`position: relative`) ; `#map-crosshair` (SVG 64 px) est centré en absolu
+  (`top/left: 50%`, `translate(-50%, -50%)`), `z-index: 1000`, `pointer-events: none`, et ne
+  bouge pas lors du panoramique. Couleur centralisée par `--color-crosshair` (`#16a34a`) dans
+  `main.css`, appliquée en `stroke`/`fill`.
 
 ## 9. Langue et communication
 

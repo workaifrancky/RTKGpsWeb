@@ -180,6 +180,9 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
 - `.leaflet-measure-path-measurement` : longueurs de segments affichées sur les polygones de
   tonte par `leaflet-measure-path` (11 px / 800, `--font` ; halo blanc/texte noir du plugin,
   lisible en thème clair et nuit).
+- `#map-crosshair` : cible fixe de 64 px centrée sur `.map-wrapper` (`position: absolute`,
+  `translate(-50%, -50%)`, `pointer-events: none`, `z-index: 1000`), `stroke`/`fill`
+  `--color-crosshair` ; elle reste immobile quand la carte se déplace.
 
 ## Règles
 
