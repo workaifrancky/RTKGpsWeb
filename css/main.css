@@ -170,12 +170,9 @@ header {
 }
 
 .header-actions {
-  display:         flex;
-  align-items:     center;
-  justify-content: flex-end;
-  flex-wrap:       wrap;   /* 3 boutons : autorise le passage à la ligne */
-  gap:             8px;
-  margin-left:     8px;
+  display:     flex;
+  align-items: center;
+  gap:         8px;
 }
 
 /* ─── BOUTON BLE HEADER ─────────────────────────────────────── */
@@ -201,34 +198,6 @@ header {
 }
 #btnBle.off:hover { border-color: white; color: white; }
 #btnBle:disabled  { opacity: 0.5; cursor: not-allowed; }
-
-/* ─── BOUTON TEST GPS (GPS interne du téléphone) ────────────── */
-.gps-test-btn {
-  background:     transparent;
-  color:          rgba(255,255,255,0.8);
-  border:         2px solid rgba(255,255,255,0.4);
-  border-radius:  var(--radius-lg);
-  font-size:      11px;
-  font-weight:    800;
-  padding:        6px 10px;
-  cursor:         pointer;
-  transition:     var(--transition);
-  letter-spacing: 0.4px;
-  white-space:    nowrap;
-  display:        inline-flex;
-  align-items:    center;
-  gap:            4px;
-}
-
-.gps-test-btn:hover      { border-color: white; color: white; }
-.gps-test-btn.connecting { opacity: 0.7; cursor: progress; }
-.gps-test-btn.on {
-  background:   var(--color-teal);
-  border-color: var(--color-teal);
-  color:        white; /* texte sur fond teal : même exception que #btnBle */
-  box-shadow:   var(--shadow-sm);
-}
-.gps-test-btn.on:hover   { border-color: white; }
 
 /* ─── BOUTON THÈME ──────────────────────────────────────────── */
 #btnTheme {
@@ -587,13 +556,8 @@ header {
 @media (max-width: 360px) {
   .tabs-wrapper { gap: 5px; padding: 7px 8px; }
   .tab-label    { padding: 9px 12px; font-size: 11px; letter-spacing: 0.1px; }
-  header      { padding: 10px 10px; }
-  .logo       { font-size: 16px; gap: 5px; }
-  .logo-sub   { display: none; }
-  #btnTheme   { padding: 6px 7px; font-size: 14px; }
-  .header-actions { gap: 5px; margin-left: 6px; }
-  #btnBle     { font-size: 10px; padding: 6px 8px; }
-  .gps-test-btn { font-size: 10px; padding: 6px 8px; }
+  .logo   { font-size: 17px; }
+  #btnBle { font-size: 11px; padding: 7px 12px; }
   #fixBar { gap: 6px; padding: 8px 10px; }
   .fix-name { font-size: 12px; }
   .fix-prec { font-size: 10px; }
