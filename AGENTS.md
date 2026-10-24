@@ -253,6 +253,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   pointeurs fins (`@media (hover: hover) and (pointer: fine)`), clic enfoncé
   (`translateY(1px) scale(0.94)`). La propriété invalide `active-scale` est supprimée.
   Overrides nuit dans `theme.css` (reflet atténué, ombre noire renforcée).
+- **3.11 — Libellés dans les boutons terrain** : les quatre premiers boutons de la barre
+  terrain (Tonte, Interdit, Obstacle, Base) affichent leur texte **dans le cercle** via
+  `.terrain-btn-text` (TONTE, INTERDIT, OBSTACLE, BASE — 10 px / 800, 9 px sous 360 px,
+  `color: inherit` donc `--color-warning-text` pour l'obstacle, `pointer-events: none`).
+  Les SVG inline correspondants sont retirés du HTML ; « Nouvelle zone » conserve son icône
+  `+` en SVG et son libellé `.terrain-btn-label` sous le cercle. `.terrain-btns` passe en
+  `align-items: flex-start` pour aligner parfaitement les cinq cercles sur la même ligne
+  haute malgré le libellé sous le cinquième bouton. Les identifiants (`btnTonte`,
+  `btnInterdit`, `btnObstacle`, `btnBase`, `btnNewZone`), les couleurs et
+  `updateTerrainButtons()` sont inchangés.
 
 ## 9. Langue et communication
 

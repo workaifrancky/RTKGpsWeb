@@ -198,7 +198,9 @@
 .terrain-btns {
   display:         flex;
   justify-content: space-around;
-  align-items:     center;
+  /* Les cercles sont alignés sur la même ligne haute : le bouton « Nouvelle
+     zone » conserve son libellé sous le cercle sans décaler les autres. */
+  align-items:     flex-start;
   gap:             8px;
 }
 
@@ -239,7 +241,25 @@
   will-change:      transform;
 }
 
-/* Icône SVG outline : hérite de la couleur du bouton via currentColor. */
+/* Libellé à l'intérieur du cercle (TONTE / INTERDIT / OBSTACLE / BASE).
+   La couleur suit `color` du bouton : blanc, ou --color-warning-text pour
+   l'obstacle sur fond ambre. */
+.terrain-btn-text {
+  position:       relative;
+  z-index:        1;
+  max-width:      90%;
+  color:          inherit;
+  font-size:      10px;
+  font-weight:    800;
+  letter-spacing: 0.2px;
+  line-height:    1.05;
+  text-align:     center;
+  text-shadow:    0 1px 1px rgba(0,0,0,0.35);
+  pointer-events: none;                       /* le texte ne capte pas le clic */
+}
+
+/* Icône SVG outline (bouton « Nouvelle zone ») : hérite de la couleur du
+   bouton via currentColor. */
 .terrain-btn-circle svg {
   position:       relative;
   z-index:        1;
@@ -830,8 +850,18 @@
   .data-value               { font-size: 19px; }
   .terrain-btn-circle       { width: 56px; height: 56px; }
   .terrain-btn-circle svg   { width: 26px; height: 26px; }
+  .terrain-btn-text         { font-size: 9px; }
   .terrain-btn-label        { font-size: 8px; }
   .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
   .obstacle-option          { padding: 10px 4px; }
   .obstacle-option-icon     { font-size: 20px; }
+}
+
+/* Écrans très étroits : les cinq boutons doivent rester dans la barre. */
+@media (max-width: 340px) {
+  .terrain-bar            { padding-left: 8px; padding-right: 8px; }
+  .terrain-btns           { gap: 4px; }
+  .terrain-btn-circle     { width: 52px; height: 52px; }
+  .terrain-btn-circle svg { width: 24px; height: 24px; }
+  .terrain-btn-text       { font-size: 8px; }
 }
