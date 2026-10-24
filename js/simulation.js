@@ -3,13 +3,26 @@
 // RTKGpsWeb v2 — RTK Mower
 // ============================================================
 
+// Permet de réactiver les outils de simulation (développement / démonstration).
+// Passer à true pour retrouver les boutons et les fonctions de simulation.
+// Procédure complète : docs/simulation.md.
+const ENABLE_SIMULATION = false;
+
 const SIMULATION_PROJECT_NAME = 'Simulation';
 const SIM_BASE_LAT = 44.832223;
 const SIM_BASE_LON = -0.701992;
 
+// Message commun aux outils désactivés (aucun effet sur les données terrain).
+function simulationDisabled(toolName) {
+  console.warn(`[simulation] ${toolName} désactivé (ENABLE_SIMULATION = false).`);
+  return null;
+}
+
 // Génère un projet fictif complet et l'injecte dans les données.
 // Retourne la liste des points générés.
 function generateSimulationData() {
+  if (!ENABLE_SIMULATION) return simulationDisabled('generateSimulationData()');
+
   // ── 1. Projet « Simulation » (créé ou réutilisé) ────────────
   let simProject = typeof projects !== 'undefined'
     ? projects.find(p => p.name === SIMULATION_PROJECT_NAME)
@@ -109,6 +122,8 @@ function generateSimulationData() {
 // Injecte une fausse trame dans le même pipeline que le BLE
 // (parseGpsFrame → updateUI) pour tester l'onglet DONNÉES.
 function simulateGpsFrame() {
+  if (!ENABLE_SIMULATION) return simulationDisabled('simulateGpsFrame()');
+
   const raw = [
     'Fix: RTK Fix',
     'Lat: 44.832223',
@@ -137,6 +152,8 @@ function simulateGpsFrame() {
 // Même pipeline que simulateGpsFrame(), avec latitude, longitude,
 // cap et fix paramétrables (test du guidage caméra sans matériel).
 function simulateGpsAt(lat, lon, course = 0, fix = 'RTK Fix') {
+  if (!ENABLE_SIMULATION) return simulationDisabled('simulateGpsAt()');
+
   const safeLat    = Number.isFinite(Number(lat))  ? Number(lat)  : SIM_BASE_LAT;
   const safeLon    = Number.isFinite(Number(lon))  ? Number(lon)  : SIM_BASE_LON;
   const safeCourse = Number.isFinite(Number(course)) ? Number(course) : 0;

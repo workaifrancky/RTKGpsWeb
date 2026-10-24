@@ -12,7 +12,9 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 - **Application** : page unique `index.html`, Vanilla JS + Leaflet, sans build ni framework.
 - **Données** : parcelles (projets) et points stockés dans `localStorage`.
 - **Export** : CSV, GPX et **GeoJSON compatible Mower Planner** (contrat inter-applications).
-- **Tests sans matériel** : mode Simulation (`js/simulation.js`).
+- **Tests sans matériel** : outils de simulation `js/simulation.js`, **désactivés par défaut**
+  (`ENABLE_SIMULATION = false`) et sans bouton dans l'interface ; réactivation documentée dans
+  [docs/simulation.md](docs/simulation.md).
 
 ## 2. Règles absolues (non négociables)
 
@@ -142,6 +144,10 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   et `map.js`, avant `export.js`).
 - **Pas de cache** : `serve-http.cjs` envoie `Cache-Control: no-store` ; ne pas le retirer
   pendant les phases de test terrain.
+- **Outils de simulation** : `ENABLE_SIMULATION = false` dans `js/simulation.js` et boutons
+  retirés d'`index.html` depuis la mise en production terrain. Ne pas réintroduire un bouton
+  de simulation sans repasser le flag à `true` (sinon le bouton reste inerte) ; procédure
+  complète dans [docs/simulation.md](docs/simulation.md).
 
 ## 8. Sessions validées
 
@@ -211,6 +217,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `MOWING_SPEED_KMH = 4.0` (ordre de grandeur pour préparer le travail).
   L'interface réutilise les classes de l'onglet DONNÉES (`.data-grid`, `.data-card`,
   `.data-card-primary`, `.data-value`).
+- **3.7 — Perspective 3D du guidage caméra** (commit `900b794`, message d'origine « Session »,
+  conservé tel quel car déjà poussé sur `origin/main`) : `deviceBeta` / `deviceGamma` sont mémorisés par
+  `handleDeviceOrientation()`, `getCameraSceneTransform()` construit
+  `perspective(700px) rotateX(…) rotateZ(…)` avec `CAMERA_3D_BETA_NEUTRAL = 45`,
+  `CAMERA_3D_BETA_RATIO = 0.4`, `CAMERA_3D_ROLL_RATIO = 0.4`, `CAMERA_3D_ROLL_MAX = 25` et une
+  inclinaison bornée à 10–85°. Les scènes `.cam-3d-scene-arrow` (base 30°) et
+  `.cam-3d-scene-circle` (base 55°) enveloppent la flèche et le cercle de proximité.
+- **3.7-bis — Nettoyage pré-terrain de la simulation** : `ENABLE_SIMULATION = false` dans
+  `js/simulation.js`, garde-fous `simulationDisabled()` sur `generateSimulationData()`,
+  `simulateGpsFrame()` et `simulateGpsAt()`, suppression des boutons « Mode Simulation » et
+  « Simuler une trame GPS » d'`index.html`, documentation de réactivation dans
+  `docs/simulation.md` (classes CSS conservées).
 
 ## 9. Langue et communication
 

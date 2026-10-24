@@ -20,8 +20,8 @@ Fonctionnalités principales :
 - **relevé de parcelle** (onglet STATS) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
 - caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
 - export **CSV**, **GPX** et **GeoJSON** compatible Mower Planner ;
-- mode **Simulation** (2 zones de tonte, zone interdite, obstacles et base) et bouton
-  **Simuler une trame GPS** pour tester l'application et l'onglet DONNÉES sans matériel GPS.
+- outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les
+  tests terrain, réactivables via `ENABLE_SIMULATION` (voir [docs/simulation.md](docs/simulation.md)).
 
 ## Stack technique
 
@@ -78,8 +78,7 @@ peut être isolé.
 3. **Enregistrer des points** :
    - onglet **POINTS** ou barre terrain en bas : `ZONE TONTE`, `ZONE INTERDITE`, `OBSTACLE ISOLÉ` ;
    - `BASE` (🏠) : définit la base du rover (une seule par parcelle, remplace l'ancienne) ;
-   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS) ;
-   - le bouton `🎮 Mode Simulation` (onglet DONNÉES) génère un projet fictif complet.
+   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS).
 4. **Consulter** la carte (onglet CARTE), les statistiques (STATS) et l'historique.
 5. **Exporter** depuis l'onglet POINTS : CSV, GPX ou GeoJSON. Le GeoJSON suit le contrat
    décrit dans [docs/format-geojson.md](docs/format-geojson.md).
@@ -106,12 +105,13 @@ RTKGpsWeb/
 │   ├── camera.js           # Caméra, boussole, visée cible et mesure de distance
 │   ├── stats.js            # Relevé de parcelle (surface, temps, linéaire, contraintes)
 │   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull)
-│   ├── simulation.js       # Mode simulation (projet fictif sans GPS)
+│   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
 │   └── ui.js               # Mise à jour de l'interface (fix bar, cartes de données)
 ├── docs/
 │   ├── architecture.md     # Architecture, flux de données, modules
 │   ├── design-system.md    # Tokens et composants UI
+│   ├── simulation.md       # Outils de simulation et procédure de réactivation
 │   └── format-geojson.md   # Contrat d'export GeoJSON Mower Planner
 ├── assets/                 # Ressources statiques (icônes, images)
 ├── serve-http.cjs          # Serveur statique Node (sans dépendance)

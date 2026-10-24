@@ -102,18 +102,27 @@ La base suit le même flux mais `recordBase()` supprime d'abord l'ancienne base 
 
 ## Mode simulation
 
+> **Désactivé en production terrain.** `js/simulation.js` déclare `ENABLE_SIMULATION = false`
+> et les boutons ont été retirés d'`index.html`. Procédure de réactivation :
+> [simulation.md](simulation.md).
+
 `generateSimulationData()` crée ou réutilise le projet `Simulation`, le vide, puis injecte
 15 points (1 base, 2 zones de 4 points de tonte, 3 points interdits, 3 obstacles) via
 `addPointToCurrentProject()`. `currentZoneId` passe à 2 avant l'injection de la seconde zone.
 
-Le bouton **« Simuler une trame GPS »** (`simulateGpsFrame()`) injecte une trame texte fixe
-dans le pipeline `parseGpsFrame()` → `updateUI()` pour remplir l'onglet DONNÉES sans BLE
-(fix RTK, Lat/Lon, altitude, satellites, HDOP, vitesse).
-Aucun matériel GPS n'est requis ; le bouton est disponible dans l'onglet DONNÉES.
+`simulateGpsFrame()` injecte une trame texte fixe dans le pipeline `parseGpsFrame()` →
+`updateUI()` pour remplir l'onglet DONNÉES sans BLE (fix RTK, Lat/Lon, altitude, satellites,
+HDOP, vitesse). `simulateGpsAt(lat, lon, course, fix)` fait de même avec une position et un cap
+paramétrables (test du guidage caméra), uniquement depuis la console.
+
+Les trois fonctions retournent `null` et émettent un `console.warn` quand le flag est `false` :
+elles ne touchent ni `localStorage`, ni l'interface, ni la caméra.
 
 ## Tester sans matériel
 
 1. Ouvrir l'application via `node serve-http.cjs` (ou le tunnel HTTPS).
-2. Onglet DONNÉES → `🎮 Mode Simulation`.
-3. Vérifier la carte, les statistiques et l'export GeoJSON.
-4. Pour un contrôle statique : `node --check js/<fichier>.js`.
+2. Passer `ENABLE_SIMULATION` à `true` et restaurer les boutons (voir
+   [simulation.md](simulation.md)), puis recharger la page.
+3. Onglet DONNÉES → `🎮 Mode Simulation`.
+4. Vérifier la carte, les statistiques et l'export GeoJSON.
+5. Pour un contrôle statique : `node --check js/<fichier>.js`.

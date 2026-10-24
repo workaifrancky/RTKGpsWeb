@@ -83,8 +83,10 @@ Overrides de lisibilité :
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
+  **Inutilisé** : les boutons de simulation sont retirés de l'interface terrain, la classe est
+  conservée pour une réactivation (voir [simulation.md](simulation.md)).
 - `.action-button-simulation-gps` : variante teal (`--color-teal`), injecte une trame GPS
-  fictive dans l'onglet DONNÉES.
+  fictive dans l'onglet DONNÉES. **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
 ### Modales (`main.css`)
