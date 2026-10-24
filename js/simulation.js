@@ -64,11 +64,7 @@ function generateSimulationData() {
   });
 
   const points = [
-    // Base du rover (centre)
-    makePoint('base', baseLat, baseLon, 1,
-      { icon:'🏠', alt:120, satellites:25, hdop:0.5, offset:0 }),
-
-    // Zone de tonte n°1 : carré autour de la base
+    // Zone de tonte n°1 : carré autour de la base NTRIP
     makePoint('tonte', baseLat + 0.0001, baseLon - 0.0001, 1, { icon:'🟢', zoneId:1, offset:10 }),
     makePoint('tonte', baseLat + 0.0001, baseLon + 0.0001, 2, { icon:'🟢', zoneId:1, offset:20 }),
     makePoint('tonte', baseLat - 0.0001, baseLon + 0.0001, 3, { icon:'🟢', zoneId:1, offset:30 }),
@@ -96,14 +92,13 @@ function generateSimulationData() {
 
   // ── 3. Injection via les helpers existants ──────────────────
   // La zone 1 est injectée, puis currentZoneId passe à 2 pour la seconde zone.
-  const basePoints     = points.filter(p => p.type === 'base');
   const zone1Points    = points.filter(p => p.type === 'tonte' && p.zoneId === 1);
   const zone2Points    = points.filter(p => p.type === 'tonte' && p.zoneId === 2);
   const interditPoints = points.filter(p => p.type === 'interdit');
   const obstaclePoints = points.filter(p => p.type === 'obstacle');
 
   simProject.currentZoneId = 1;
-  basePoints.concat(zone1Points).forEach(pt => addPointToCurrentProject(pt));
+  zone1Points.forEach(pt => addPointToCurrentProject(pt));
 
   simProject.currentZoneId = 2;
   zone2Points.concat(interditPoints, obstaclePoints).forEach(pt => addPointToCurrentProject(pt));
@@ -114,7 +109,7 @@ function generateSimulationData() {
   if (typeof renderMap === 'function') renderMap();
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
 
-  showToast('🎮 Mode simulation activé — 2 zones, 3 obstacles, 1 base', 'info');
+  showToast('🎮 Mode simulation activé — 2 zones, 3 obstacles', 'info');
   return points;
 }
 

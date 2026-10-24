@@ -28,7 +28,7 @@ avant tous les autres styles.
 | Token | Valeur | Usage |
 |---|---|---|
 | `--color-primary-deep` | `#1b5e20` | Titres, hover des boutons, texte sur fond pâle |
-| `--color-primary` | `#2e7d32` | Boutons principaux, header, base du rover |
+| `--color-primary` | `#2e7d32` | Boutons principaux, header |
 | `--color-primary-light` | `#4caf50` | Bordures gauche, accents, tonte |
 | `--color-primary-pale` | `#c8e6c9` | Fonds pâles, hover secondaire |
 | `--color-warning` | `#f59e0b` | Obstacles, fix Float |
@@ -135,21 +135,21 @@ navigation reste assurée par `showTab()` (`js/app.js`), qui coche aussi le radi
   - **survol** (souris uniquement, `@media (hover: hover) and (pointer: fine)`) :
     `translateY(-2px) scale(1.06)` + halo ;
   - **clic** : `translateY(1px) scale(0.94)` + ombres internes inversées (enfoncement).
-- `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle /
-  Base (10 px / 800, 9 px sous 360 px), en `currentColor` — donc blanc, ou
+- `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle
+  (10 px / 800, 9 px sous 360 px), en `currentColor` — donc blanc, ou
   `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`.
-  Ces quatre boutons n'ont plus de libellé sous le cercle.
+  Ces trois boutons n'ont plus de libellé sous le cercle.
 - `.terrain-btn-circle svg` : icône **SVG outline** conservée pour « Nouvelle zone »
   (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 26 px sous 360 px).
   Ce bouton garde son libellé `.terrain-btn-label` **sous** le cercle.
-- Alignement : `.terrain-btns` est en `align-items: flex-start` ; les cinq cercles partagent
+- Alignement : `.terrain-btns` est en `align-items: flex-start` ; les quatre cercles partagent
   la même ligne haute et le libellé de « Nouvelle zone » ne décale pas les autres boutons.
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
-  base `--color-primary`, nouvelle zone `--color-teal`.
+  nouvelle zone `--color-teal`.
 - Classe `.disabled` : opacité 0.35, `saturate(0.7)` (gérée par `updateTerrainButtons()`).
 - Thème nuit : reflet atténué (`opacity: 0.45`), ombre noire renforcée, bordure à 0.22.
 - Responsive : 56 px sous 360 px de large, icône 26 px, texte 9 px ; sous 340 px, cercles
-  52 px, icône 24 px, texte 8 px, `gap: 4px` et padding latéral 8 px pour que les cinq
+  52 px, icône 24 px, texte 8 px, `gap: 4px` et padding latéral 8 px pour que les quatre
   boutons restent dans la barre.
 
 ### Cartes et listes

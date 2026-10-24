@@ -14,7 +14,7 @@ Fonctionnalités principales :
 
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
-- enregistrement de points `tonte`, `interdit`, `obstacle` et d'une **base du rover** unique ;
+- enregistrement de points `tonte`, `interdit` et `obstacle` ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - carte Leaflet (Relief / Satellite), polygones et surfaces calculées en direct ;
 - **relevé de parcelle** (onglet STATS) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
@@ -73,11 +73,11 @@ peut être isolé.
 
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
-2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une).
+2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une, bouton
+   `🗑` pour supprimer la parcelle courante).
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
-   - onglet **POINTS** ou barre terrain en bas : `ZONE TONTE`, `ZONE INTERDITE`, `OBSTACLE ISOLÉ` ;
-   - `BASE` (🏠) : définit la base du rover (une seule par parcelle, remplace l'ancienne) ;
+   - onglet **POINTS** ou barre terrain en bas : `TONTE`, `INTERDIT`, `OBSTACLE` ;
    - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans POINTS).
 4. **Consulter** la carte (onglet CARTE), les statistiques (STATS) et l'historique.
 5. **Exporter** depuis l'onglet POINTS : CSV, GPX ou GeoJSON. Le GeoJSON suit le contrat

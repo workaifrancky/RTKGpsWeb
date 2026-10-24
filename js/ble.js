@@ -99,7 +99,7 @@ function setBleStatus(status) {
 
 function updateTerrainButtons() {
   const connected = APP.bleConnected;
-  ['btnTonte','btnInterdit','btnObstacle','btnBase'].forEach(id => {
+  ['btnTonte','btnInterdit','btnObstacle'].forEach(id => {
     const circle = document.getElementById(id);
     if (circle) {
       if (connected) circle.classList.remove('disabled');

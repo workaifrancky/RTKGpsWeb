@@ -49,6 +49,7 @@
     <span class="project-label">PARCELLE</span>
     <select id="projectSelect" onchange="switchProject(this.value)"></select>
     <button id="btnNewProject" onclick="openNewProjectModal()" title="Nouvelle parcelle">＋</button>
+    <button id="btnDeleteProject" onclick="deleteCurrentProject()" title="Supprimer la parcelle actuelle" style="color: var(--color-danger);">🗑</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -174,7 +175,6 @@
         <button class="action-button action-button-compact" onclick="exportGPX()">⬇ GPX</button>
         <button class="action-button action-button-compact" onclick="exportGeoJSON()">⬇ GeoJSON</button>
         <button class="action-button-danger action-button-compact" onclick="clearAllPoints()">🗑 Effacer</button>
-        <button class="action-button action-button-compact" onclick="recordBase()" title="Enregistrer la position actuelle comme base du rover">🏠 Définir la base</button>
       </div>
     </div>
   </div>
@@ -339,11 +339,6 @@
     <div class="terrain-btn" onclick="openObstacleMenu()">
       <div class="terrain-btn-circle obstacle disabled" id="btnObstacle">
         <span class="terrain-btn-text">OBSTACLE</span>
-      </div>
-    </div>
-    <div class="terrain-btn" onclick="recordBase()">
-      <div class="terrain-btn-circle base disabled" id="btnBase">
-        <span class="terrain-btn-text">BASE</span>
       </div>
     </div>
     <div class="terrain-btn" onclick="startNewZone()">

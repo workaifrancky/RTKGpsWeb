@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     currentProject = projects[0];
     saveCurrentProject();
   }
-  renderProjectSelect();
+  // Persiste la migration éventuelle (purge des anciens points `base`)
+  // et rafraîchit la liste déroulante.
+  saveProjects();
 });
 
 // ─── AJOUT D'UN PROJET ───────────────────────────────────────
@@ -54,12 +56,14 @@ function deleteCurrentProject() {
   }
   if (!confirm(`Supprimer la parcelle "${currentProject.name}" et tous ses points ?`)) return;
   projects = projects.filter(p => p.id !== currentProject.id);
-  saveProjects();
   currentProject = projects[0];
+  saveProjects();          // persiste + rafraîchit la liste déroulante
   saveCurrentProject();
-  renderProjectSelect();
-  if (typeof renderMap       === 'function') renderMap();
-  if (typeof renderPointsList=== 'function') renderPointsList();
+  if (typeof updateZoneBadge  === 'function') updateZoneBadge();
+  if (typeof renderMap        === 'function') renderMap();
+  if (typeof renderPointsList === 'function') renderPointsList();
+  if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+  if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') loadHistory();
   showToast('Parcelle supprimée', 'info');
 }
 
@@ -140,6 +144,10 @@ function loadProjects() {
 function normalizeProject(project) {
   if (!project || typeof project !== 'object') return project;
   if (!Array.isArray(project.points)) project.points = [];
+
+  // Migration : la fonction « base du rover » a été supprimée. Les anciens
+  // points de type `base` sont purgés du stockage local.
+  project.points = project.points.filter(p => p && p.type !== 'base');
 
   project.points.forEach(p => {
     if (p && p.type === 'tonte') {

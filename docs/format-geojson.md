@@ -15,17 +15,16 @@ deux applications.
 
 | # | `properties.type` | Géométrie | Condition |
 |---|---|---|---|
-| 1 | `domaine` | `Polygon` | ≥ 3 points uniques hors base |
+| 1 | `domaine` | `Polygon` | ≥ 3 points uniques |
 | 2 | `zone` (× N) | `Polygon` | ≥ 3 points `tonte` par `zoneId` |
 | 3 | `zone_interdite` | `Polygon` | ≥ 3 points `interdit` |
 | 4 | `obstacle` (× N) | `Point` | 1 feature par point `obstacle` |
-| 5 | `base` | `Point` | 0 ou 1 (base unique) |
 
 Les zones de tonte sont triées par `zone_id` croissant.
 
 ## 1. Domaine
 
-Enveloppe convexe (**Andrew's monotone chain**) de tous les points du projet **sauf la base**.
+Enveloppe convexe (**Andrew's monotone chain**) de tous les points du projet.
 Polygone fermé : la première coordonnée est répétée à la fin.
 
 ```json
@@ -143,37 +142,15 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 - `rayon` : rayon de sécurité en mètres (constante `1.0`).
 - `index` : numérotation de l'obstacle dans la parcelle.
 
-## 5. Base du rover
-
-Position de référence unique par parcelle. Elle est **exclue** du domaine et des statistiques,
-mais toujours exportée si elle existe.
-
-```json
-{
-  "type": "Feature",
-  "geometry": {
-    "type": "Point",
-    "coordinates": [-0.701992, 44.832223, 120]
-  },
-  "properties": {
-    "type": "base",
-    "name": "Base du rover",
-    "timestamp": "2026-10-23T10:00:00.000Z",
-    "source": "rtk-mower"
-  }
-}
-```
-
 ## Règles à ne pas casser
 
-1. Ne pas renommer les `properties.type` (`domaine`, `zone`, `zone_interdite`, `obstacle`, `base`).
+1. Ne pas renommer les `properties.type` (`domaine`, `zone`, `zone_interdite`, `obstacle`).
 2. Ne jamais inverser les coordonnées : toujours `[lon, lat]`.
 3. Toujours fermer les anneaux de polygones.
-4. Conserver l'ordre des features (domaine en premier, zones par `zone_id` croissant, base en dernier).
-5. Une seule feature `base` par export.
-6. La base ne doit pas influencer le convex hull.
-7. Conserver `source: 'rtk-mower'` sur toutes les features.
-8. Conserver `zone_id` sur chaque Feature `zone` et ne pas fusionner les zones.
+4. Conserver l'ordre des features (domaine en premier, zones par `zone_id` croissant).
+5. Conserver `source: 'rtk-mower'` sur toutes les features.
+6. Conserver `zone_id` sur chaque Feature `zone` et ne pas fusionner les zones.
+7. Aucune Feature `base` : la fonction « base du rover » est supprimée de l'application.
 
 ## Liste de contrôle avant livraison
 
@@ -183,4 +160,4 @@ mais toujours exportée si elle existe.
 - [ ] `zone_id` et le nom `« <projet> - Zone N »` sont corrects.
 - [ ] Les polygones sont fermés et en `[lon, lat]`.
 - [ ] Les `surface_m2` sont numériques et > 0.
-- [ ] La base apparaît une seule fois et n'est pas dans le domaine.
+- [ ] Aucune Feature `base` n'est présente.

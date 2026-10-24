@@ -1,12 +1,12 @@
 // ============================================================
-// map.js — Carte Leaflet v2 — tonte / interdit / obstacle / base
+// map.js — Carte Leaflet v2 — tonte / interdit / obstacle
 // ============================================================
 
 const BOD1_LAT = 44.832223988119964;
 const BOD1_LON = -0.7019923801219144;
 const MAP_BASE_LAYER_KEY = 'rtkMapBaseLayer';
 
-let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null, layerBase=null;
+let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
 let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
 let surfaceOverlayControl = null;
@@ -16,7 +16,6 @@ const COLORS = {
   tonte:    { stroke:'#16a34a', fill:'rgba(22,163,74,0.12)'   },
   interdit: { stroke:'#dc2626', fill:'rgba(220,38,38,0.15)'   },
   obstacle: { stroke:'#d97706', fill:'rgba(217,119,6,0.9)'    },
-  base:     { stroke:'#2e7d32'                                 },
   live:     '#1a6b1a',
 };
 
@@ -57,7 +56,6 @@ function initMap() {
   layerTonte    = L.layerGroup().addTo(map);
   layerInterdit = L.layerGroup().addTo(map);
   layerObstacle = L.layerGroup().addTo(map);
-  layerBase     = L.layerGroup().addTo(map); // au-dessus des autres couches
 
   initSurfaceOverlayControl();
 
@@ -105,7 +103,6 @@ function renderMap() {
   layerTonte.clearLayers();
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
-  layerBase.clearLayers();
 
   const pts = getPoints();
   if (pts.length === 0) {
@@ -116,7 +113,6 @@ function renderMap() {
   const tonte    = pts.filter(p=>p.type==='tonte');
   const interdit = pts.filter(p=>p.type==='interdit');
   const obstacle = pts.filter(p=>p.type==='obstacle');
-  const base     = pts.find(p=>p.type==='base') || null;
   const surfaceParts = [];
 
   // Zones de tonte : un polygone par zoneId, teinte de vert différente
@@ -192,13 +188,6 @@ function renderMap() {
       .bindPopup(pointPopup(p,i+1));
   });
 
-  // Base du Rover (icône maison, toujours au-dessus des autres couches)
-  if (base) {
-    L.marker([base.lat, base.lon], { icon: baseIcon(), zIndexOffset: 1000 })
-      .addTo(layerBase)
-      .bindPopup(basePopup(base));
-  }
-
   // Fitbounds sur tous les points
   const allLls = pts.filter(p=>p.lat&&p.lon).map(p=>[p.lat,p.lon]);
   if (allLls.length === 1) map.setView(allLls[0], 19);
@@ -208,39 +197,14 @@ function renderMap() {
 }
 
 function pointPopup(p, idx) {
-  const label = p.type === 'base'
-    ? '🏠 Base du Rover'
-    : p.subtype ? `${p.icon} ${p.subtype}` : (p.type==='tonte'?'Tonte':'Interdit');
-  const suffix = p.type === 'base' ? '' : ` #${idx}`;
+  const label = p.subtype ? `${p.icon} ${p.subtype}` : (p.type==='tonte'?'Tonte':'Interdit');
   const zone = p.type === 'tonte' ? `Zone ${p.zoneId || 1} · ` : '';
-  return `<b>${label}${suffix}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
-}
-
-// Icône « maison » de la base du rover (distincte des obstacles)
-function baseIcon() {
-  return L.divIcon({
-    html:`<div style="background:${COLORS.base.stroke};width:30px;height:30px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1">🏠</div>`,
-    iconSize:[30,30], iconAnchor:[15,15], className:'',
-  });
-}
-
-function basePopup(p) {
-  return `<b>🏠 Base du Rover</b><br>${fmt(p.lat,6)}, ${fmt(p.lon,6)}<br>`
-    + `Alt: ${fmt(p.alt,1)}m<br>Fix: ${p.fix}<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
+  return `<b>${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}`;
 }
 
 // Ajoute un seul point sans tout redessiner
 function addPointToMap(pt) {
   if (!map) return;
-
-  if (pt.type === 'base') {
-    L.marker([pt.lat, pt.lon], { icon: baseIcon(), zIndexOffset: 1000 })
-      .addTo(layerBase)
-      .bindPopup(basePopup(pt))
-      .openPopup();
-    map.panTo([pt.lat, pt.lon]);
-    return;
-  }
 
   // Les zones de tonte sont redessinées en entier (polygone + numéro + couleurs)
   if (pt.type === 'tonte') {

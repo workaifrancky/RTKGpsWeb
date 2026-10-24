@@ -30,11 +30,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 4. **Coordonnées GeoJSON en `[lon, lat]`** (standard GeoJSON), éventuellement `[lon, lat, alt]`
    pour les points. Ne jamais écrire `[lat, lon]`.
 5. **Polygones fermés** : la première coordonnée doit être répétée à la fin de chaque anneau.
-6. **Base du rover unique par parcelle** : `recordBase()` supprime l'ancienne base avant
-   d'enregistrer la nouvelle. Ne pas permettre plusieurs points `base`.
-7. **La base est exclue du convex hull (domaine) et des statistiques** :
-   `pts.filter(p => p.type !== 'base')`. Elle reste exportée comme Feature `base`.
-8. **`maxNativeZoom` doit être défini** sur chaque `L.tileLayer` pour éviter les tuiles
+6. **`maxNativeZoom` doit être défini** sur chaque `L.tileLayer` pour éviter les tuiles
    grises/403 (OSM bloque les usages applicatifs ; CARTO exige une clé API).
 
 ## 3. Stack technique figée
@@ -54,7 +50,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
   contractuel (voir `index.html`). Chaque fichier expose des fonctions globales.
   Les modules ES6 (`import`/`export`) **ne sont pas utilisés** aujourd'hui ; ne pas en
   introduire localement sans migration globale de l'ordre de chargement.
-- **camelCase** pour les fonctions et variables (`recordBase`, `renderMap`).
+- **camelCase** pour les fonctions et variables (`recordTonte`, `renderMap`).
 - **UPPER_SNAKE_CASE** pour les constantes (`BLE_CONFIG`, `FIX_META`, `PROJECT_KEY`).
 - `const` / `let` uniquement, **jamais `var`**.
 - Indentation 2 espaces, guillemets simples, point-virgule en fin d'instruction.
@@ -85,7 +81,7 @@ Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet cour
 ```js
 {
   id: 1698055200000,
-  type: 'tonte' | 'interdit' | 'obstacle' | 'base',
+  type: 'tonte' | 'interdit' | 'obstacle',
   subtype: 'Arbre' | null,       // catégorie d'obstacle
   icon: '🟢',
   index: 1,                      // numérotation par type
@@ -104,6 +100,9 @@ Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet cour
 
 - Seuil d'enregistrement : fix **Float RTK minimum** (`fixScore >= 3`).
 - Compteurs par type dans `js/points.js`, resynchronisés par `syncCounters()`.
+- La fonction « base du rover » est **supprimée** : aucun type `base` n'est créé, exporté ou
+  affiché. Les anciens points `base` présents dans `localStorage` sont purgés au chargement
+  par `normalizeProject()` (`js/projects.js`).
 - Le projet de simulation est nommé **`Simulation`** et réutilisé à chaque activation.
 
 ## 6. Format d'export GeoJSON
@@ -112,11 +111,12 @@ Contrat complet : **[docs/format-geojson.md](docs/format-geojson.md)**.
 
 Résumé : `FeatureCollection` dans cet ordre strict :
 
-1. `domaine` — `Polygon` (convex hull des points hors base)
+1. `domaine` — `Polygon` (convex hull de tous les points du projet)
 2. `zone` (× N) — `Polygon` (une Feature par `zoneId`, si ≥ 3 points `tonte`)
 3. `zone_interdite` — `Polygon` (points `interdit`, si ≥ 3)
 4. `obstacle` — un `Point` par obstacle (`categorie`, `rayon`, `index`, fix…)
-5. `base` — `Point` unique (`name: 'Base du rover'`)
+
+Aucune Feature `base` n'est produite.
 
 Nom du fichier : `RTK_<projet>_<YYYY-MM-DD>.geojson`.
 
@@ -128,14 +128,13 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   sans clé renvoie un filigrane « API KEY REQUIRED ». Le fond Relief utilise Esri World Topo
   par défaut (`CARTO_API_KEY` vide dans `js/map.js`). `maxNativeZoom` = 19 avec clé CARTO,
   17 avec Esri, 19 pour le satellite Esri. Toujours conserver `maxZoom: 22`.
-- **Base unique** : toute nouvelle implémentation doit passer par `recordBase()` / `getBase()`.
 - **Multi-zones de tonte** : chaque point `tonte` porte un `zoneId` (défaut 1) et le projet
   stocke `currentZoneId`. Utiliser `getZones()` pour grouper et ne jamais fusionner les zones
   à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante.
-- **Convex hull** : exclure la base (`pts.filter(p => p.type !== 'base')`) avant
-  `calculateConvexHull()`.
-- **Bouton BASE** : `btnBase` doit rester dans la liste de `updateTerrainButtons()`
-  (`js/ble.js`) et démarrer avec la classe `disabled` dans `index.html`.
+- **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
+  de point de référence à exclure).
+- **Suppression de parcelle** : bouton `#btnDeleteProject` de la barre PARCELLE →
+  `deleteCurrentProject()` (`js/projects.js`), qui refuse de supprimer la dernière parcelle.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : un seul Feature regroupant les points `interdit` (pas de notion de
   zones multiples dans le modèle actuel).
@@ -263,6 +262,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   haute malgré le libellé sous le cinquième bouton. Les identifiants (`btnTonte`,
   `btnInterdit`, `btnObstacle`, `btnBase`, `btnNewZone`), les couleurs et
   `updateTerrainButtons()` sont inchangés.
+- **3.12 — Suppression de la base et poubelle de parcelle** : la fonction « base du rover » est
+  supprimée de bout en bout — bouton `🏠 Définir la base` (onglet POINTS), bouton BASE de la
+  barre terrain, `recordBase()` / `getBase()`, compteur `base`, couche Leaflet `layerBase`,
+  icône maison, Feature GeoJSON `base` et filtrage `type !== 'base'` dans `computeStats()` et
+  `calculateConvexHull()`. Les anciens points `base` du `localStorage` sont purgés par
+  `normalizeProject()`. La simulation génère désormais 14 points (sans base). Ajout du bouton
+  `#btnDeleteProject` (`🗑`) dans la barre PARCELLE → `deleteCurrentProject()`, avec rafraîchissement
+  de la zone courante, de la carte, de la liste, des statistiques et de l'historique.
 
 ## 9. Langue et communication
 

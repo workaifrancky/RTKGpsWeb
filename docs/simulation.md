@@ -54,7 +54,7 @@ En cas de doute, fermer l'onglet et rouvrir <http://127.0.0.1:8000/>.
 ## 3. Utilisation
 
 - `generateSimulationData()` — crée (ou réutilise) la parcelle **`Simulation`** et injecte
-  15 points fictifs : 2 zones de tonte de 4 points, 3 points interdits, 3 obstacles et 1 base.
+  14 points fictifs : 2 zones de tonte de 4 points, 3 points interdits et 3 obstacles.
   La parcelle est vidée puis reconstruite à chaque appel.
 - `simulateGpsFrame()` — injecte une trame GPS fixe (`44.832223 / -0.701992`, RTK Fix, cap 45°)
   dans le même pipeline que le BLE (`parseGpsFrame()` → `updateUI()`).

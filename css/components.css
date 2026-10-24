@@ -295,7 +295,6 @@
 .terrain-btn-circle.interdit { background-color: var(--color-danger); }
 .terrain-btn-circle.obstacle { background-color: var(--color-warning);
                                color:            var(--color-warning-text); }
-.terrain-btn-circle.base     { background-color: var(--color-primary); }
 .terrain-btn-circle.new-zone { background-color: var(--color-teal); }
 
 /* Souris uniquement : léger soulèvement + halo. */
@@ -603,7 +602,6 @@
 .point-dot.tonte    { background: var(--color-tonte); }
 .point-dot.interdit { background: var(--color-interdit); }
 .point-dot.obstacle { background: var(--color-obstacle); }
-.point-dot.base     { background: var(--color-primary); }
 
 .point-info { flex: 1; min-width: 0; }
 

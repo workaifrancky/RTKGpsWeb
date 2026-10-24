@@ -316,6 +316,21 @@ header {
 
 #btnNewProject:hover { background: var(--color-primary); }
 
+#btnDeleteProject {
+  background:    transparent;
+  color:         var(--color-danger);
+  border:        1.5px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding:       5px 10px;
+  font-size:     16px;
+  line-height:   1;
+  cursor:        pointer;
+  transition:    var(--transition);
+  flex-shrink:   0;
+}
+
+#btnDeleteProject:hover { background: var(--color-danger-pale); }
+
 /* ─── BARRE D'ALERTE ────────────────────────────────────────── */
 #alertBar {
   display:        none;
