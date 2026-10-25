@@ -144,7 +144,9 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
   dans `<head>`, JS après `leaflet.js`). Les polygones de tonte passent
   `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
-  `minPixelDistance: 10`) dans `js/map.js`. Ne pas retirer ces deux balises CDN.
+  `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
+  `renderMap()` crée une `L.polyline` temporaire (`tempMeasureLine`) mesurée, supprimée dès
+  le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
 - **Renommage** : `renameCurrentProject()` (parcelle) et `renamePoint(id)` (points) utilisent
   `prompt()`, refusent un nom vide et persistent via `saveProjects()`. Le nom d'un point est
   stocké dans `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour
@@ -343,6 +345,12 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `--shadow-sm` détache le bouton de la capsule ; survol `brightness(0.95)`, clic
   `scale(0.95)`, état désactivé `opacity: 0.35` + `saturate(0.7)`. Les overrides nuit
   correspondants sont supprimés de `theme.css` et la capsule passe à `border-radius: 40px`.
+- **3.19 — Métré dès le 2ᵉ point de tonte** : `renderMap()` crée une `L.polyline` temporaire
+  (`tempMeasureLine`) entre les 2 points de la zone courante et lui applique
+  `showMeasurements(ZONE_MEASUREMENT_OPTIONS)` ; `clearTempMeasureLine()` la retire dès le
+  3ᵉ point (le polygone mesuré prend le relais) et à chaque rendu. `ZONE_MEASUREMENT_OPTIONS`
+  reçoit `showTotalDistance: false` pour éviter la 2ᵉ étiquette « longueur totale » que le
+  plugin ajoute par défaut sur les polylignes.
 
 ## 9. Langue et communication
 

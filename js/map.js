@@ -9,6 +9,8 @@ const MAP_BASE_LAYER_KEY = 'rtkMapBaseLayer';
 let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
 let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
+// Métré temporaire du segment en cours de tracé (zone de tonte à 2 points).
+let tempMeasureLine = null;
 let surfaceOverlayControl = null;
 let surfaceOverlayEl = null;
 
@@ -29,9 +31,12 @@ const COLORS = {
 
 // Distances de chaque segment des zones de tonte (leaflet-measure-path).
 // minPixelDistance évite d'afficher les étiquettes sur les segments trop courts à l'écran.
+// showTotalDistance: pour une polyligne (segment en cours à 2 points), le plugin
+// ajoute sinon une 2e étiquette « longueur totale » au dernier sommet.
 const ZONE_MEASUREMENT_OPTIONS = {
   showDistances:     true,
   showArea:          false,
+  showTotalDistance: false,
   minPixelDistance:  10,
 };
 
@@ -118,8 +123,18 @@ function syncMapBaseLayerButtons() {
   if (satelliteBtn) satelliteBtn.classList.toggle('active', activeBaseLayer === 'satellite');
 }
 
+// Supprime la polyligne de métré temporaire (segment en cours de tracé).
+function clearTempMeasureLine() {
+  if (!tempMeasureLine) return;
+  if (layerTonte) layerTonte.removeLayer(tempMeasureLine);
+  else if (map) map.removeLayer(tempMeasureLine);
+  tempMeasureLine = null;
+}
+
 function renderMap() {
   if (!map) return;
+  // Le métré temporaire est recréé à chaque rendu (zone à 2 points).
+  clearTempMeasureLine();
   layerTonte.clearLayers();
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
@@ -177,6 +192,21 @@ function renderMap() {
       }).addTo(layerTonte);
 
       surfaceParts.push(`Zone ${zoneId} : <b>${formatArea(area)}</b>`);
+    }
+
+    // Zone en cours de tracé (2 points) : une ligne seule n'est pas mesurée par
+    // leaflet-measure-path, on crée donc la polyligne temporaire qui porte la
+    // distance du segment. Elle est supprimée dès le 3e point (polygone).
+    if (zonePts.length === 2) {
+      clearTempMeasureLine();
+      tempMeasureLine = L.polyline(zonePts.map(p => [p.lat, p.lon]), {
+        color:       palette.stroke,
+        weight:      2.5,
+        interactive: false,
+      }).addTo(layerTonte);
+      if (typeof tempMeasureLine.showMeasurements === 'function') {
+        tempMeasureLine.showMeasurements(ZONE_MEASUREMENT_OPTIONS);
+      }
     }
 
     // Marqueurs des points de la zone

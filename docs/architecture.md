@@ -98,6 +98,10 @@ brique doit être insérée **après ses dépendances**.
   point GPS périmé ne reste affiché en mode manuel.
 - Les points `tonte` sont groupés par `zoneId` : un polygone coloré (palette `ZONE_PALETTE`)
   et un médaillon `ZN` par zone de ≥ 3 points.
+- Métré en cours de tracé : à **2 points** dans une zone de tonte, `renderMap()` crée une
+  `L.polyline` temporaire (`tempMeasureLine`) mesurée par `showMeasurements()`
+  (`ZONE_MEASUREMENT_OPTIONS`) ; elle est supprimée dès le 3ᵉ point (le polygone prend le
+  relais) par `clearTempMeasureLine()`.
 - La base est toujours affichée au-dessus des autres couches (`zIndexOffset: 1000`).
 - `L.circleMarker` pour tonte/interdit, `L.divIcon` pour obstacles et base.
 
