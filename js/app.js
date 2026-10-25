@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNavigation();
   checkBleSupport();
-  initProjectBar();
+  initProjectUI();
   console.log('App prête ✅');
 });
 
@@ -65,6 +65,7 @@ function showTab(tabId) {
   APP.currentTab = tabId;
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
+  if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
 
   // Une seule instance de carte, déplacée dans l'onglet actif.
   if ((tabId === 'tab-points' || tabId === 'tab-map') && typeof mountMapForTab === 'function') {
@@ -96,11 +97,6 @@ function checkBleSupport() {
     const btn = document.getElementById('btnBle');
     if (btn) { btn.disabled = true; btn.textContent = '⬡ Non supporté'; }
   }
-}
-
-// ─── BARRE PROJETS ───────────────────────────────────────────
-function initProjectBar() {
-  renderProjectSelect();
 }
 
 // ─── TOAST ───────────────────────────────────────────────────

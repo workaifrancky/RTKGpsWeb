@@ -6,7 +6,6 @@
 /* ─── MODE NUIT — overrides spécifiques ─────────────────────── */
 [data-theme="dark"] header         { background: #14532d; }
 [data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
-[data-theme="dark"] #projectBar    { background: var(--bg2); }
 [data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
 
 /* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
@@ -68,9 +67,14 @@
 
 [data-theme="dark"] .obstacle-option-label { color: var(--text2); }
 
-[data-theme="dark"] #projectSelect {
-  background: var(--bg3);
-  border-color: var(--border2);
+/* Tiroir parcelles : fond sombre (--color-white) et ligne active lisible
+   (en nuit --color-primary-pale et --color-primary-deep sont identiques). */
+[data-theme="dark"] .drawer-project.active .drawer-project-main {
+  background: var(--color-bg-muted);
+}
+
+[data-theme="dark"] .drawer-project.active .drawer-project-name {
+  color: var(--color-primary-accent);
 }
 
 [data-theme="dark"] .alert-bar.alert-warning {
@@ -214,7 +218,8 @@
   background: rgba(0,0,0,0.65);
 }
 
-body.camera-ui-fullscreen #projectBar,
+body.camera-ui-fullscreen #projectDrawer,
+body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
 body.camera-ui-fullscreen .fix-ntrip,
 body.camera-ui-fullscreen .tabs-wrapper,

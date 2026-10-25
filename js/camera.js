@@ -115,6 +115,7 @@ function toggleCameraTargetMenu() {
 function setCameraFullscreen(enabled) {
   cameraUiFullscreen = !!enabled;
   const shouldApply = cameraUiFullscreen && APP.currentTab === 'tab-camera';
+  if (shouldApply && typeof closeProjectDrawer === 'function') closeProjectDrawer();
   document.body.classList.toggle('camera-ui-fullscreen', shouldApply);
   if (shouldApply) updateCameraFullscreenOffset();
   else document.documentElement.style.setProperty('--camera-fs-top-offset', '0px');

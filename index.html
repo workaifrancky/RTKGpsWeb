@@ -22,11 +22,20 @@
   <!-- HEADER                                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <header>
-    <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
-    <div class="header-actions">
-      <button id="btnTheme" onclick="toggleTheme()" title="Thème">🌙</button>
-      <button id="btnBle" class="off" onclick="toggleBle()">⬡ CONNECTER BLE</button>
+    <div class="header-top">
+      <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
+      <div class="header-actions">
+        <button id="btnTheme" onclick="toggleTheme()" title="Thème">🌙</button>
+        <button id="btnBle" class="off" onclick="toggleBle()">⬡ CONNECTER BLE</button>
+      </div>
     </div>
+    <button type="button" id="btnProjectDrawer" onclick="toggleProjectDrawer()"
+      aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
+      title="Choisir une parcelle">
+      <span aria-hidden="true">📍</span>
+      <span id="currentProjectName">Aucune parcelle</span>
+      <span class="header-project-caret" aria-hidden="true">▾</span>
+    </button>
   </header>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -57,17 +66,6 @@
     <button type="button" class="tab-label" data-tab="tab-camera" onclick="showTab('tab-camera')">📷 CAMÉRA</button>
     <button type="button" class="tab-label" data-tab="tab-stats" onclick="showTab('tab-stats')">📊 RELEVÉ</button>
     <button type="button" class="tab-label" data-tab="tab-history" onclick="showTab('tab-history')">🕐 HISTORIQUE</button>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- BARRE PROJET (sous les onglets, visible en permanence)   -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="projectBar">
-    <span class="project-label">PARCELLE</span>
-    <select id="projectSelect" onchange="switchProject(this.value)"></select>
-    <button id="btnNewProject" onclick="openNewProjectModal()" title="Nouvelle parcelle">＋</button>
-    <button id="btnRenameProject" onclick="renameCurrentProject()" title="Renommer la parcelle actuelle">✏️</button>
-    <button id="btnDeleteProject" onclick="deleteCurrentProject()" title="Supprimer la parcelle actuelle" style="color: var(--color-danger);">🗑</button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -294,6 +292,22 @@
       <div id="historyList"></div>
     </div>
   </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- TIROIR PARCELLES (drawer latéral)                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="projectDrawerOverlay" class="drawer-overlay" onclick="closeProjectDrawer()"></div>
+  <aside id="projectDrawer" class="drawer" role="dialog" aria-modal="true"
+    aria-label="Parcelles" aria-hidden="true">
+    <div class="drawer-header">
+      <h3>Parcelles</h3>
+      <button type="button" class="drawer-close" onclick="closeProjectDrawer()"
+        aria-label="Fermer le tiroir des parcelles">✕</button>
+    </div>
+    <div id="projectListContainer" class="drawer-list"></div>
+    <button type="button" class="drawer-new" onclick="openNewProjectModal()">＋ Nouvelle parcelle</button>
+  </aside>
 
 </div><!-- fin .app-wrapper -->
 

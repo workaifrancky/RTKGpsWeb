@@ -50,10 +50,6 @@ function exportProjectCSV(projectId) {
   showToast('✅ CSV exporté','info');
 }
 
-function deleteProject(projectId) {
-  if (!confirm('Supprimer cette parcelle ?')) return;
-  const projects=loadProjects().filter(p=>p.id!==projectId);
-  localStorage.setItem('rtkProjects',JSON.stringify(projects));
-  loadHistory();
-  showToast('Parcelle supprimée','info');
-}
+// La suppression de parcelle est centralisée dans projects.js :
+// deleteProject(projectId) met à jour l'état en mémoire, la carte, la liste,
+// les statistiques, le tiroir et l'historique.

@@ -23,9 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
     saveCurrentProject();
   }
   // Persiste la migration éventuelle (purge des anciens points `base`)
-  // et rafraîchit la liste déroulante.
+  // et rafraîchit le tiroir + le nom de la parcelle dans le header.
   saveProjects();
+
+  // Fermeture du tiroir au clavier (Échap).
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeProjectDrawer();
+  });
 });
+
+// ─── THÉÂTRE : ÉCHAPPEMENT HTML ──────────────────────────────
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[ch]));
+}
 
 // ─── AJOUT D'UN PROJET ───────────────────────────────────────
 function addProject(name, renderAfter = true) {
@@ -37,28 +49,35 @@ function addProject(name, renderAfter = true) {
     points:        [],
   };
   projects.push(project);
-  saveProjects();
   currentProject = project;
   saveCurrentProject();
+  saveProjects();           // persiste + rafraîchit tiroir et libellé du header
   if (renderAfter) {
-    renderProjectSelect();
-    if (typeof renderMap === 'function') renderMap();
-    if (typeof renderPointsList === 'function') renderPointsList();
+    if (typeof updateZoneBadge    === 'function') updateZoneBadge();
+    if (typeof renderMap          === 'function') renderMap();
+    if (typeof renderPointsList   === 'function') renderPointsList();
+    if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+    closeProjectDrawer();
   }
   return project;
 }
 
 // ─── SUPPRIMER UN PROJET ─────────────────────────────────────
-function deleteCurrentProject() {
+function deleteProject(projectId) {
   if (projects.length <= 1) {
-    showToast('Impossible — au moins un projet requis', 'error');
+    showToast('Impossible — au moins une parcelle requise', 'error');
     return;
   }
-  if (!confirm(`Supprimer la parcelle "${currentProject.name}" et tous ses points ?`)) return;
-  projects = projects.filter(p => p.id !== currentProject.id);
-  currentProject = projects[0];
-  saveProjects();          // persiste + rafraîchit la liste déroulante
-  saveCurrentProject();
+  const proj = projects.find(p => p.id === projectId);
+  if (!proj) return;
+  if (!confirm(`Supprimer la parcelle "${proj.name}" et tous ses points ?`)) return;
+
+  projects = projects.filter(p => p.id !== projectId);
+  if (!currentProject || currentProject.id === projectId) {
+    currentProject = projects[0];
+    saveCurrentProject();
+  }
+  saveProjects();          // persiste + rafraîchit tiroir et libellé du header
   if (typeof updateZoneBadge  === 'function') updateZoneBadge();
   if (typeof renderMap        === 'function') renderMap();
   if (typeof renderPointsList === 'function') renderPointsList();
@@ -67,24 +86,32 @@ function deleteCurrentProject() {
   showToast('Parcelle supprimée', 'info');
 }
 
-// ─── RENOMMER LE PROJET COURANT ──────────────────────────────
-function renameCurrentProject() {
-  if (!currentProject) return;
+function deleteCurrentProject() {
+  if (currentProject) deleteProject(currentProject.id);
+}
 
-  const input = prompt('Nouveau nom de la parcelle :', currentProject.name);
+// ─── RENOMMER UN PROJET ──────────────────────────────────────
+function renameProject(projectId) {
+  const proj = projects.find(p => p.id === projectId);
+  if (!proj) return;
+
+  const input = prompt('Nouveau nom de la parcelle :', proj.name);
   if (input === null) return;                       // annulation
   const name = input.trim();
   if (!name) {
     showToast('Le nom de la parcelle ne peut pas être vide', 'error');
     return;
   }
-  if (name === currentProject.name) return;
+  if (name === proj.name) return;
 
-  currentProject.name = name;
-  saveProjects();                                   // persiste + rafraîchit #projectSelect
-  if (typeof initProjectBar === 'function') initProjectBar();
+  proj.name = name;
+  saveProjects();                                   // persiste + rafraîchit tiroir/libellé
   if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') loadHistory();
   showToast(`Parcelle renommée : ${name}`, 'info');
+}
+
+function renameCurrentProject() {
+  if (currentProject) renameProject(currentProject.id);
 }
 
 // ─── CHANGER DE PROJET ───────────────────────────────────────
@@ -93,10 +120,13 @@ function switchProject(projectId) {
   if (!proj) return;
   currentProject = proj;
   saveCurrentProject();
+  renderProjectList();       // état actif + libellé du header
+  closeProjectDrawer();
   if (typeof updateZoneBadge === 'function') updateZoneBadge();
   if (typeof renderMap       === 'function') renderMap();
   if (typeof renderPointsList=== 'function') renderPointsList();
   if (typeof updateStatsDisplay==='function') updateStatsDisplay();
+  if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') loadHistory();
 }
 
 // ─── ACCÈS AUX POINTS DU PROJET COURANT ──────────────────────
@@ -136,21 +166,98 @@ function clearCurrentProjectPoints() {
   saveProjects();
 }
 
-// ─── RENDU SELECT PROJET ─────────────────────────────────────
-function renderProjectSelect() {
-  const sel = document.getElementById('projectSelect');
-  if (!sel) return;
-  sel.innerHTML = projects.map(p =>
-    `<option value="${p.id}" ${p.id === currentProject?.id ? 'selected' : ''}>
-      ${p.name} (${p.points.length} pts)
-    </option>`
-  ).join('');
+// ─── TIROIR PARCELLES ────────────────────────────────────────
+// Le bandeau #projectBar est remplacé par un bouton compact dans le header
+// qui ouvre ce tiroir latéral (liste + actions par parcelle).
+function openProjectDrawer() {
+  const drawer = document.getElementById('projectDrawer');
+  const overlay = document.getElementById('projectDrawerOverlay');
+  const toggle = document.getElementById('btnProjectDrawer');
+  if (!drawer) return;
+
+  renderProjectList();
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  if (overlay) overlay.classList.add('show');
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+
+  const closeBtn = drawer.querySelector('.drawer-close');
+  if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+}
+
+function closeProjectDrawer() {
+  const drawer = document.getElementById('projectDrawer');
+  const overlay = document.getElementById('projectDrawerOverlay');
+  const toggle = document.getElementById('btnProjectDrawer');
+  if (!drawer || !drawer.classList.contains('open')) return;
+
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  if (overlay) overlay.classList.remove('show');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+    if (typeof toggle.focus === 'function') toggle.focus();
+  }
+}
+
+function toggleProjectDrawer() {
+  const drawer = document.getElementById('projectDrawer');
+  if (!drawer) return;
+  if (drawer.classList.contains('open')) closeProjectDrawer();
+  else openProjectDrawer();
+}
+
+// ─── RENDU DU TIROIR ET DU LIBELLÉ HEADER ───────────────────
+function renderProjectList() {
+  const container = document.getElementById('projectListContainer');
+  const label = document.getElementById('currentProjectName');
+  const toggle = document.getElementById('btnProjectDrawer');
+
+  if (label) label.textContent = currentProject ? currentProject.name : 'Aucune parcelle';
+  if (toggle) {
+    toggle.title = currentProject
+      ? `Parcelle : ${currentProject.name} — choisir une parcelle`
+      : 'Aucune parcelle — en créer une';
+  }
+
+  if (!container) return;
+  if (!projects.length) {
+    container.innerHTML = '<div class="drawer-empty">Aucune parcelle</div>';
+    return;
+  }
+
+  container.innerHTML = projects.map(p => {
+    const id = escapeHtml(p.id);
+    const name = escapeHtml(p.name);
+    const active = p.id === currentProject?.id;
+    const count = p.points.length;
+    const zone = Number(p.currentZoneId) || 1;
+    return `
+      <div class="drawer-project${active ? ' active' : ''}">
+        <button type="button" class="drawer-project-main" onclick="switchProject('${id}')"
+          ${active ? 'aria-current="true"' : ''}>
+          <span class="drawer-project-name">${name}</span>
+          <span class="drawer-project-meta">${count} point(s) · Zone #${zone}</span>
+        </button>
+        <div class="drawer-project-actions">
+          <button type="button" onclick="renameProject('${id}')"
+            title="Renommer la parcelle" aria-label="Renommer ${name}">✏️</button>
+          <button type="button" class="danger" onclick="deleteProject('${id}')"
+            title="Supprimer la parcelle" aria-label="Supprimer ${name}">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Compatibilité : le tiroir remplace l'ancien <select>.
+function initProjectUI() {
+  renderProjectList();
 }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────
 function saveProjects() {
   localStorage.setItem(PROJECT_KEY, JSON.stringify(projects));
-  renderProjectSelect();
+  renderProjectList();
 }
 
 function loadProjects() {

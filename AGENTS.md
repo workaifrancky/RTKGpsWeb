@@ -134,10 +134,17 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
-- **Suppression de parcelle** : bouton `#btnDeleteProject` de la barre PARCELLE →
-  `deleteCurrentProject()` (`js/projects.js`), qui refuse de supprimer la dernière parcelle.
-- **Bandeau Parcelle** : placé **sous** `.tabs-wrapper` dans `index.html` et visible en
-  permanence sur tous les onglets. Ne pas réintroduire de masquage par onglet.
+- **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. Le header contient
+  `#btnProjectDrawer` (nom de la parcelle courante) qui ouvre `#projectDrawer`
+  (`openProjectDrawer()` / `closeProjectDrawer()` / `toggleProjectDrawer()` dans
+  `js/projects.js`). La liste (`renderProjectList()`) affiche une ligne par parcelle avec
+  `switchProject(id)`, `renameProject(id)` et `deleteProject(id)` ; `saveProjects()` rafraîchit
+  la liste **et** le libellé du header. Fermeture au clic sur l'overlay, avec Échap et au
+  changement d'onglet.
+- **Suppression de parcelle** : `deleteProject(projectId)` (`js/projects.js`) — centralisée,
+  elle refuse de supprimer la dernière parcelle et rafraîchit carte, liste, statistiques,
+  tiroir et historique. `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
+  `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
 - **Export** : GeoJSON est le format principal (bouton `.export-primary`). CSV et GPX sont
   dans le menu `#exportMenu`, piloté par `toggleExportMenu()` / `closeExportMenu()`
   (`js/export.js`) ; le menu se ferme au clic extérieur, avec Échap et au changement d'onglet.
@@ -147,10 +154,10 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
   `renderMap()` crée une `L.polyline` temporaire (`tempMeasureLine`) mesurée, supprimée dès
   le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
-- **Renommage** : `renameCurrentProject()` (parcelle) et `renamePoint(id)` (points) utilisent
-  `prompt()`, refusent un nom vide et persistent via `saveProjects()`. Le nom d'un point est
-  stocké dans `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour
-  les obstacles.
+- **Renommage** : `renameProject(id)` / `renameCurrentProject()` (parcelle) et
+  `renamePoint(id)` (points) utilisent `prompt()`, refusent un nom vide et persistent via
+  `saveProjects()`. Le nom d'un point est stocké dans `point.name` (indépendant de `subtype`)
+  et exporté dans `properties.name` pour les obstacles.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : un seul Feature regroupant les points `interdit` (pas de notion de
   zones multiples dans le modèle actuel).
@@ -351,6 +358,17 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   3ᵉ point (le polygone mesuré prend le relais) et à chaque rendu. `ZONE_MEASUREMENT_OPTIONS`
   reçoit `showTotalDistance: false` pour éviter la 2ᵉ étiquette « longueur totale » que le
   plugin ajoute par défaut sur les polylignes.
+- **3.20 — Bandeau Parcelle remplacé par un tiroir** : `#projectBar` (bandeau sous les onglets)
+  est supprimé au profit d'un bouton compact `#btnProjectDrawer` dans le header (nom de la
+  parcelle courante) ouvrant le tiroir `#projectDrawer` (overlay + panneau latéral). La liste
+  `#projectListContainer` propose par parcelle : sélection (`switchProject`), renommage
+  (`renameProject`), suppression (`deleteProject`) et création (`＋ Nouvelle parcelle`).
+  `saveProjects()` rafraîchit la liste **et** le libellé du header ; fermeture au clic sur le
+  voile, avec Échap et au changement d'onglet. `renderProjectSelect()` et `initProjectBar()`
+  sont supprimés (`initProjectUI()`), les identifiants `#btnNewProject` / `#btnRenameProject` /
+  `#btnDeleteProject` disparaissent. Le doublon historique `deleteProject()` de `js/history.js`
+  est supprimé : la suppression est centralisée dans `js/projects.js`. Z-index revus : voile
+  1040, tiroir 1050, modales 1100, toasts 1200.
 
 ## 9. Langue et communication
 

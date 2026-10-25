@@ -69,7 +69,7 @@ simulateGpsAt(44.832500, -0.701500, 90, 'RTK Fix'); // 90° = cap est
 
 La simulation écrit dans le `localStorage` réel de l'application :
 
-- la parcelle `Simulation` reste dans la liste `PARCELLE` et dans l'historique ;
+- la parcelle `Simulation` reste dans le tiroir **Parcelles** et dans l'historique ;
 - elle apparaît dans les exports (`CSV`, `GPX`, `GeoJSON`) si elle est sélectionnée.
 
 Après un test, supprimer la parcelle `Simulation` depuis l'onglet **HISTORIQUE**, ou vider les

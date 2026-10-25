@@ -75,9 +75,9 @@ peut être isolé.
 
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
-2. **Choisir une parcelle** dans la liste `PARCELLE` (bouton `＋` pour en créer une, `✏️` pour
-   la renommer, `🗑` pour supprimer la parcelle courante). Le bandeau Parcelle reste visible
-   sous les onglets, sur tous les écrans.
+2. **Choisir une parcelle** : bouton `📍 <nom> ▾` dans le header, qui ouvre le tiroir
+   « Parcelles ». Chaque ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou
+   la supprimer (`🗑`) ; le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
    - onglet **TRACÉS** : barre flottante sur la carte — `TONTE`, `INTERDIT`, `OBSTACLE` ;

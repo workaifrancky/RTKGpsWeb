@@ -148,14 +148,21 @@ body {
 /* ─── HEADER ────────────────────────────────────────────────── */
 header {
   background:      var(--color-primary);
-  padding:         14px 16px 12px;
+  padding:         10px 16px;
   display:         flex;
-  justify-content: space-between;
-  align-items:     center;
+  flex-direction:  column;
+  gap:             8px;
   position:        sticky;
   top:             0;
   z-index:         200;
   box-shadow:      0 2px 8px rgba(0,0,0,0.2);
+}
+
+.header-top {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             8px;
 }
 
 .logo {
@@ -179,6 +186,46 @@ header {
   display:     flex;
   align-items: center;
   gap:         8px;
+}
+
+/* ─── BOUTON PARCELLE (header → tiroir) ─────────────────────── */
+#btnProjectDrawer {
+  display:         flex;
+  align-items:     center;
+  gap:             6px;
+  width:           100%;
+  min-width:       0;          /* autorise l'ellipse du nom */
+  padding:         7px 12px;
+  background:      rgba(255,255,255,0.12);
+  border:          1px solid rgba(255,255,255,0.35);
+  border-radius:   999px;
+  color:           white;
+  font-family:     var(--font);
+  font-size:       13px;
+  font-weight:     800;
+  letter-spacing:  0.2px;
+  text-align:      left;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+#btnProjectDrawer:hover {
+  background:   rgba(255,255,255,0.2);
+  border-color: white;
+}
+
+#currentProjectName {
+  flex:          1 1 auto;
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+.header-project-caret {
+  flex-shrink: 0;
+  font-size:   10px;
+  opacity:     0.8;
 }
 
 /* ─── BOUTON BLE HEADER ─────────────────────────────────────── */
@@ -271,88 +318,6 @@ header {
   display:     flex;
   align-items: center;
 }
-
-/* ─── BARRE PROJET ──────────────────────────────────────────── */
-#projectBar {
-  background:      var(--color-white);
-  padding:         8px 16px;
-  margin-bottom:   12px;   /* ne colle pas au contenu de l'onglet */
-  display:         flex;
-  align-items:     center;
-  gap:             10px;
-  border-bottom:   1px solid var(--border);
-}
-
-.project-label {
-  font-size:      10px;
-  font-weight:    700;
-  color:          var(--text3);
-  letter-spacing: 1.5px;
-  white-space:    nowrap;
-}
-
-#projectSelect {
-  flex:          1;
-  min-width:     0;   /* autorise la liste à rétrécir (3 boutons à droite) */
-  padding:       6px 10px;
-  background:    var(--color-bg-muted);
-  border:        1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  color:         var(--text);
-  font-family:   var(--font);
-  font-size:     13px;
-  font-weight:   700;
-  cursor:        pointer;
-}
-
-#projectSelect:focus {
-  outline:      none;
-  border-color: var(--color-primary-light);
-}
-
-#btnNewProject {
-  background:    var(--color-primary-light);
-  color:         white;
-  border:        none;
-  border-radius: var(--radius-sm);
-  padding:       7px 12px;
-  font-size:     18px;
-  cursor:        pointer;
-  transition:    var(--transition);
-  flex-shrink:   0;
-}
-
-#btnNewProject:hover { background: var(--color-primary); }
-
-#btnRenameProject {
-  background:    transparent;
-  color:         var(--color-primary);
-  border:        1.5px solid var(--color-primary);
-  border-radius: var(--radius-sm);
-  padding:       5px 10px;
-  font-size:     15px;
-  line-height:   1;
-  cursor:        pointer;
-  transition:    var(--transition);
-  flex-shrink:   0;
-}
-
-#btnRenameProject:hover { background: var(--color-primary-pale); }
-
-#btnDeleteProject {
-  background:    transparent;
-  color:         var(--color-danger);
-  border:        1.5px solid var(--color-danger);
-  border-radius: var(--radius-sm);
-  padding:       5px 10px;
-  font-size:     16px;
-  line-height:   1;
-  cursor:        pointer;
-  transition:    var(--transition);
-  flex-shrink:   0;
-}
-
-#btnDeleteProject:hover { background: var(--color-danger-pale); }
 
 /* ─── BARRE D'ALERTE ────────────────────────────────────────── */
 #alertBar {
@@ -524,7 +489,7 @@ header {
   opacity:       0;
   transition:    opacity 0.3s;
   pointer-events:none;
-  z-index:       999;
+  z-index:       1200;
   white-space:   nowrap;
   max-width:     90vw;
   box-shadow:    var(--shadow-lg);
@@ -542,7 +507,7 @@ header {
   position:   fixed;
   inset:      0;
   background: rgba(0,0,0,0.5);
-  z-index:    500;
+  z-index:    1100;
   display:    flex;
   align-items:flex-end;
   justify-content: center;
@@ -612,11 +577,7 @@ header {
   .tab-label    { padding: 9px 12px; font-size: 11px; letter-spacing: 0.1px; }
   .logo   { font-size: 17px; }
   #btnBle { font-size: 11px; padding: 7px 12px; }
-  #projectBar { gap: 6px; padding: 8px 10px; }
-  .project-label { letter-spacing: 1px; }
-  #btnNewProject { padding: 6px 9px; font-size: 16px; }
-  #btnRenameProject,
-  #btnDeleteProject { padding: 4px 8px; font-size: 14px; }
+  #btnProjectDrawer { font-size: 12px; padding: 6px 10px; }
   #fixBar { gap: 6px; padding: 8px 10px; }
   .fix-name { font-size: 12px; }
   .fix-prec { font-size: 10px; }

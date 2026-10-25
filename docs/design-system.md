@@ -132,6 +132,24 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
 - `.modal-title` : 18 px, 700, `--color-primary-deep`.
 - `.modal-handle` : poignée grise centrée.
 
+### Tiroir Parcelles
+
+- `#btnProjectDrawer` (`main.css`) : pastille translucide pleine largeur sous la ligne
+  logo/actions du header ; nom ellipsé (`#currentProjectName`) et chevron `▾`.
+- `.drawer-overlay` : voile `rgba(0,0,0,0.5)` en position absolue dans `.app-wrapper`,
+  `opacity` 0 → 1 via `.show`, `z-index: 1040`.
+- `.drawer` : panneau latéral droit `min(320px, 86%)`, fond `--color-white`, bordure
+  `--border`, `--shadow-xl`, glissement `translateX(100%)` → 0 (`visibility` masquée au
+  repos), `z-index: 1050` — au-dessus de la capsule carte (1000), sous les modales (1100)
+  et les toasts (1200).
+- `.drawer-header` : bandeau `--color-primary`, titre 15 px / 800, bouton `✕` blanc.
+- `.drawer-project` : ligne = bouton principal (nom 13 px / 800, méta `N point(s) · Zone #N`)
+  + deux actions rondes 32 px (`✏️`, `🗑`). Ligne active : fond `--color-primary-pale` et nom
+  `--color-primary-deep` ; en nuit, fond `--color-bg-muted` et nom `--color-primary-accent`.
+- `.drawer-new` : bouton plein `--color-primary` en bas du panneau.
+- Accessibilité : `role="dialog"`, `aria-modal="true"`, `aria-expanded` sur le bouton du
+  header, focalisation du bouton de fermeture à l'ouverture, fermeture à Échap / clic voile.
+
 ### Barre d'enregistrement flottante (capsule)
 
 - `.floating-toolbar` : capsule posée sur la carte TRACÉS (`position: absolute`,

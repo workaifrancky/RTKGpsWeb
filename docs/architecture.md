@@ -24,8 +24,8 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 
 | Fichier | Responsabilité |
 |---|---|
-| `js/app.js` | État global `APP`, navigation par onglets, visibilité du bandeau Parcelle, thème, toasts, alertes, ouverture/fermeture des modales |
-| `js/projects.js` | CRUD des parcelles (dont `renameCurrentProject()`), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
+| `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
+| `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
 | `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), renommage (`renamePoint()`), liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
@@ -48,7 +48,7 @@ Leaflet + leaflet-measure-path (CDN) → parser → ntrip → app → projects �
 Cet ordre fait office de graphe de dépendances. `ui.js` doit rester en dernier. Une nouvelle
 brique doit être insérée **après ses dépendances**.
 
-### Navigation et bandeau Parcelle
+### Navigation et tiroir Parcelles
 
 - Cinq onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CARTE, CAMÉRA, RELEVÉ,
   HISTORIQUE. L'onglet GPS / DONNÉES a été supprimé (doublon avec TRACÉS) ; le `data-tab` de
@@ -57,8 +57,10 @@ brique doit être insérée **après ses dépendances**.
   portant le même `data-tab`. Aucun radio : le navigateur ne défile plus tout seul.
 - `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` : la barre d'onglets ne
   revient jamais à gauche lors d'un clic.
-- `#projectBar` est placé **sous** `.tabs-wrapper` et reste visible en permanence
-  (`margin-bottom: 12px`).
+- Le bandeau `#projectBar` a été supprimé : le header contient `#btnProjectDrawer` (nom de la
+  parcelle courante) qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
+  tiroir liste les parcelles (`#projectListContainer`), permet de changer, renommer,
+  supprimer et d'en créer une. `saveProjects()` met à jour la liste et le libellé du header.
 
 ## État et persistance
 
