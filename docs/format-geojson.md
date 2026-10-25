@@ -84,6 +84,10 @@ le premier point est répété pour fermer l'anneau. Les zones sont triées par 
 
 Une zone dont le nombre de points est inférieur à 3 n'est pas exportée.
 
+> Le **nom personnalisé** d'une zone (saisi via la popup « ✏️ Renommer » de l'application)
+> reste une donnée d'interface : `properties.name` conserve le format contractuel
+> `<projet> - Zone N` et le nom personnalisé n'est pas exporté.
+
 ## 3. Zones interdites
 
 Une Feature `zone_interdite` est produite **par `zoneId`** (plusieurs zones interdites possibles

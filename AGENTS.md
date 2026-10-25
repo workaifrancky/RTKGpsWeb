@@ -169,6 +169,21 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
   `renderMap()` crée une `L.polyline` temporaire (`tempMeasureLine`) mesurée, supprimée dès
   le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
+- **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
+  Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
+  Effacer restent dans la barre d'actions de TRACÉS.
+- **Modes lecture / création** : `APP.tracesMode` vaut `lecture` au chargement, à l'ouverture
+  d'une parcelle et après suppression ; il passe à `creation` via `createProject()` ou le
+  bouton `#btnTracesMode`. En lecture, `.floating-toolbar` est masquée, la cible est masquée
+  et `canRecordPoints()` bloque tout ajout. `setTracesMode()` / `toggleTracesMode()` /
+  `syncTracesModeUI()` dans `js/map.js`.
+- **Plein écran carte** : `toggleMapFullscreen()` / `exitMapFullscreen()` (`js/map.js`),
+  classe `body.map-ui-fullscreen` (header, onglets, tiroir et panneau des points masqués ;
+  `#tab-points` fixé plein écran). Fermeture au changement d'onglet.
+- **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
+  `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
+  `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
+  points, recale les zones courantes et rafraîchit carte/liste/stats.
 - **Renommage** : `renameProject(id)` / `renameCurrentProject()` (parcelle) et
   `renamePoint(id)` (points) utilisent `prompt()`, refusent un nom vide et persistent via
   `saveProjects()`. Le nom d'un point est stocké dans `point.name` (indépendant de `subtype`)
@@ -401,6 +416,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`zone_id`, nom `Zone interdite` pour la zone 1 puis `Zone interdite #N`), sans fusion ;
   `computeStats()` somme les surfaces par zone et `statInterdit` affiche le nombre de zones.
   Le bouton du header affiche « Parcelle : <nom> » (`.header-project-label`).
+- **3.22 — Suppression de CARTE, modes lecture/création, zones modifiables et plein écran** :
+  l'onglet CARTE et l'écran `#tab-map` sont supprimés (4 onglets restants) ; Relief/Satellite
+  et le plein écran deviennent des contrôles flottants sur la carte TRACÉS
+  (`.map-floating-controls`), Exporter/Effacer restant dans la barre d'actions. `APP.tracesMode`
+  (`lecture` par défaut, `creation` pour une nouvelle parcelle ou via `#btnTracesMode`) masque
+  la capsule et la cible en lecture et bloque `recordTonte/Interdit/Obstacle` via
+  `canRecordPoints()`. Les polygones de zones ouvrent une popup `zonePopup()` avec
+  `renameZone()` / `deleteZone()` (noms dans `project.zoneNames`). `toggleMapFullscreen()`
+  ajoute `body.map-ui-fullscreen` (header, onglets, tiroir et panneau masqués). Le header
+  affiche « Parcelle : <nom> » via `.header-project-label`.
 
 ## 9. Langue et communication
 

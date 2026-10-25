@@ -218,6 +218,7 @@ function addProject(name, renderAfter = true, importIds = []) {
     createdAt:     new Date().toISOString(),
     currentZoneId: 1,       // zone de tonte en cours d'enregistrement
     currentInterditZoneId: 1, // zone interdite en cours d'enregistrement
+    zoneNames: { tonte: {}, interdit: {} }, // noms personnalisés des zones
     points:        [],
   };
   projects.push(project);
@@ -248,12 +249,14 @@ function deleteProject(projectId) {
   if (!proj) return;
   if (!confirm(`Supprimer la parcelle "${proj.name}" et tous ses points ?`)) return;
 
+  const wasCurrent = !currentProject || currentProject.id === projectId;
   projects = projects.filter(p => p.id !== projectId);
-  if (!currentProject || currentProject.id === projectId) {
+  if (wasCurrent) {
     currentProject = projects[0];
     saveCurrentProject();
   }
   saveProjects();          // persiste + rafraîchit tiroir et libellé du header
+  if (wasCurrent && typeof setTracesMode === 'function') setTracesMode('lecture');
   if (typeof updateZoneBadge  === 'function') updateZoneBadge();
   if (typeof renderMap        === 'function') renderMap();
   if (typeof renderPointsList === 'function') renderPointsList();
@@ -298,6 +301,8 @@ function switchProject(projectId) {
   saveCurrentProject();
   renderProjectList();       // état actif + libellé du header
   closeProjectDrawer();
+  // Ouvrir une parcelle existante = consultation (mode lecture).
+  if (typeof setTracesMode === 'function') setTracesMode('lecture');
   if (typeof updateZoneBadge === 'function') updateZoneBadge();
   if (typeof renderMap       === 'function') renderMap();
   if (typeof renderPointsList=== 'function') renderPointsList();
@@ -481,6 +486,14 @@ function normalizeProject(project) {
   if (!Number.isInteger(currentInterdit) || currentInterdit < 1 || currentInterdit > maxInterditZone) {
     project.currentInterditZoneId = maxInterditZone;
   }
+
+  // Noms personnalisés des zones (migration douce).
+  if (!project.zoneNames || typeof project.zoneNames !== 'object') {
+    project.zoneNames = { tonte: {}, interdit: {} };
+  }
+  if (!project.zoneNames.tonte || typeof project.zoneNames.tonte !== 'object') project.zoneNames.tonte = {};
+  if (!project.zoneNames.interdit || typeof project.zoneNames.interdit !== 'object') project.zoneNames.interdit = {};
+
   return project;
 }
 

@@ -126,7 +126,7 @@
   left:            50%;
   bottom:          20px;
   transform:       translateX(-50%);
-  display:         flex;
+  display:         none;      /* visible en mode création uniquement */
   align-items:     center;
   justify-content: center;
   gap:             clamp(8px, 3vw, 14px);
@@ -137,6 +137,11 @@
   border-radius:   40px;
   box-shadow:      var(--shadow-lg);
   z-index:         1000;
+}
+
+/* La capsule complète n'apparaît qu'en mode création. */
+#tab-points.mode-creation .floating-toolbar {
+  display: flex;
 }
 
 .terrain-btn {
@@ -938,16 +943,7 @@
   flex-wrap:wrap;
 }
 
-/* ─── CARTE ÉCRAN ───────────────────────────────────────────── */
-.map-controls {
-  display:  flex;
-  gap:      8px;
-  padding:  10px 14px;
-  background: var(--color-white);
-  border-bottom: 1px solid var(--border);
-  flex-wrap:wrap;
-}
-
+/* ─── BOUTONS D'OUTILS CARTE (caméra) ───────────────────────── */
 .btn-map-tool {
   flex:          1;
   min-width:     80px;
@@ -967,40 +963,6 @@
 .btn-map-tool:hover       { border-color: var(--color-primary-light); color: var(--color-primary-light); }
 .btn-map-tool.active      { background: var(--color-primary-light); color: white; border-color: var(--color-primary-light); }
 .btn-map-tool.danger:hover{ border-color: var(--color-none); color: var(--color-none); }
-
-.map-legend {
-  display:     flex;
-  gap:         12px;
-  padding:     8px 14px;
-  background:  var(--color-white);
-  border-top:  1px solid var(--border);
-  flex-wrap:   wrap;
-}
-
-.leg-item {
-  display:     flex;
-  align-items: center;
-  gap:         5px;
-  font-size:   10px;
-  font-weight: 700;
-  color:       var(--text2);
-}
-
-.leg-color {
-  width:         12px;
-  height:        12px;
-  border-radius: 3px;
-  flex-shrink:   0;
-}
-
-.leg-dot {
-  width:         12px;
-  height:        12px;
-  border-radius: 50%;
-  flex-shrink:   0;
-  border:        2px solid white;
-  box-shadow:    0 1px 3px rgba(0,0,0,0.2);
-}
 
 /* ─── TIROIR PARCELLES (drawer latéral) ─────────────────────── */
 /* Au-dessus de la carte et de la capsule (z-index 1000), sous les modales

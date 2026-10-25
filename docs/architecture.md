@@ -50,9 +50,9 @@ brique doit être insérée **après ses dépendances**.
 
 ### Navigation et tiroir Parcelles
 
-- Cinq onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CARTE, CAMÉRA, RELEVÉ,
-  HISTORIQUE. L'onglet GPS / DONNÉES a été supprimé (doublon avec TRACÉS) ; le `data-tab` de
-  TRACÉS reste `tab-points`.
+- Quatre onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CAMÉRA, RELEVÉ,
+  HISTORIQUE. Les onglets GPS / DONNÉES et CARTE ont été supprimés (doublons avec TRACÉS) ;
+  le `data-tab` de TRACÉS reste `tab-points`.
 - `showTab(tabId)` (`js/app.js`) active l'écran correspondant et pose `.active` sur le bouton
   portant le même `data-tab`. Aucun radio : le navigateur ne défile plus tout seul.
 - `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` : la barre d'onglets ne
@@ -64,7 +64,8 @@ brique doit être insérée **après ses dépendances**.
 
 ## État et persistance
 
-- `APP` (`js/app.js`) : `theme`, `bleConnected`, `hasGpsData`, `currentTab`, `lastUpdate`.
+- `APP` (`js/app.js`) : `theme`, `bleConnected`, `hasGpsData`, `currentTab`, `tracesMode`
+  (`lecture` | `creation`), `lastUpdate`.
 - `lastGpsData` (`js/ui.js`) : dernière trame GPS valide ou rejetée.
 - Globals projet (`js/projects.js`) : `projects`, `currentProject`, `globalObstacles`.
 - `localStorage` :
@@ -95,8 +96,20 @@ brique doit être insérée **après ses dépendances**.
 - Couches dédiées : `layerTonte`, `layerInterdit`, `layerObstacle`.
 - `#map-crosshair` : cible de visée fixe (overlay HTML hors panes Leaflet) centrée sur
   `.map-wrapper`, `pointer-events: none` ; elle ne suit pas le panoramique. Elle n'est
-  visible que sur l'onglet TRACÉS : `syncCrosshairVisibility()` (`js/map.js`), appelée par
-  `showTab()`, pose `.is-hidden` sur CARTE (consultation seule).
+  visible qu'en **mode création** : `syncCrosshairVisibility()` (`js/map.js`) pose
+  `.is-hidden` en lecture et sur les autres onglets.
+- **Modes lecture / création** : `APP.tracesMode` vaut `lecture` au chargement, à l'ouverture
+  d'une parcelle (`switchProject()`) et après suppression ; il passe à `creation` via
+  `createProject()` ou le bouton `#btnTracesMode` (`setTracesMode()` / `toggleTracesMode()`).
+  En lecture, `.floating-toolbar` est masquée et `canRecordPoints()` bloque tout ajout de point.
+- **Plein écran carte** : `toggleMapFullscreen()` ajoute `body.map-ui-fullscreen` (header,
+  onglets, tiroir et panneau des points masqués, `#tab-points` en `position: fixed`) ; la
+  capsule et les contrôles restent visibles. `exitMapFullscreen()` est appelé au changement
+  d'onglet.
+- **Zones** : les polygones de tonte et interdits ouvrent une popup (`zonePopup()`) avec
+  « ✏️ Renommer » (`renameZone()`) et « 🗑 Supprimer » (`deleteZone()`). Les noms personnalisés
+  sont stockés dans `project.zoneNames = { tonte: { N: nom }, interdit: { N: nom } }` et
+  affichés par `getZoneDisplayName()` ; ils ne modifient pas le contrat GeoJSON.
 - Position live : `liveMarker` / `livePolyline` sont supprimés à la déconnexion BLE par
   `clearLiveGpsPosition()` (`js/map.js`, appelée depuis `onDisconnected()`), pour qu'aucun
   point GPS périmé ne reste affiché en mode manuel.

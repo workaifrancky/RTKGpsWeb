@@ -174,7 +174,7 @@ function renderMap() {
         measurementOptions: ZONE_MEASUREMENT_OPTIONS,
       })
         .addTo(layerTonte)
-        .bindPopup(`<b>Zone de tonte #${zoneId}</b><br>Surface : ${formatArea(area)}`);
+        .bindPopup(zonePopup('tonte', zoneId, area));
 
       // Numéro de zone au centre du polygone
       const center = zonePts.reduce(
@@ -232,7 +232,7 @@ function renderMap() {
         fillColor: COLORS.interdit.fill, fillOpacity: 1,
       })
         .addTo(layerInterdit)
-        .bindPopup(`<b>Zone interdite #${zoneId}</b><br>Surface : ${formatArea(area)}`);
+        .bindPopup(zonePopup('interdit', zoneId, area));
 
       surfaceParts.push(`Zone interdite ${zoneId} : <b>${formatArea(area)}</b>`);
     }
@@ -257,24 +257,21 @@ function renderMap() {
       .bindPopup(pointPopup(p,i+1));
   });
 
-  // CARTE : cadrage automatique sur les points.
   // TRACÉS : cadrage uniquement à l'initialisation ou au changement de parcelle,
   // pour ne pas faire sauter la cible pendant un tracé manuel.
-  const isPointsTab = APP.currentTab === 'tab-points';
   const projectId = typeof currentProject !== 'undefined' ? currentProject?.id : null;
   const mapHasSize = map.getSize().x > 0;
 
-  if (isPointsTab && projectId !== pointsViewProjectId) {
+  if (projectId !== pointsViewProjectId) {
     pointsViewProjectId = projectId;
     pointsViewNeedsFit = true;
   }
 
-  if (!isPointsTab || (pointsViewNeedsFit && mapHasSize)) {
+  if (pointsViewNeedsFit && mapHasSize) {
     const allLls = pts.filter(p=>p.lat&&p.lon).map(p=>[p.lat,p.lon]);
     if (allLls.length === 1) map.setView(allLls[0], 19);
     else if (allLls.length > 1) map.fitBounds(allLls, {padding:[30,30]});
-
-    if (isPointsTab) pointsViewNeedsFit = false;
+    pointsViewNeedsFit = false;
   }
 
   updateSurfaceOverlay(surfaceParts.join(' &nbsp;•&nbsp; '));
@@ -292,6 +289,19 @@ function pointPopup(p, idx) {
       <button class="popup-btn popup-btn-danger" onclick="deletePoint(${p.id})" title="Supprimer ce point">🗑</button>
     </div>`;
   return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}${actions}`;
+}
+
+// Popup d'une zone (tonte ou interdite) : nom personnalisé + actions.
+function zonePopup(type, zoneId, area) {
+  const name = typeof getZoneDisplayName === 'function'
+    ? getZoneDisplayName(type, zoneId)
+    : (type === 'interdit' ? `Zone interdite #${zoneId}` : `Zone de tonte #${zoneId}`);
+  const surface = Number(area) > 0 ? `<br>Surface : ${formatArea(area)}` : '';
+  return `<b>${name}</b>${surface}
+    <div class="popup-actions">
+      <button class="popup-btn" onclick="renameZone('${type}', ${zoneId})" title="Renommer cette zone">✏️ Renommer</button>
+      <button class="popup-btn popup-btn-danger" onclick="deleteZone('${type}', ${zoneId})" title="Supprimer cette zone">🗑</button>
+    </div>`;
 }
 
 // Ajoute un seul point sans tout redessiner
@@ -370,13 +380,14 @@ function getTargetCoords() {
   return { lat: center.lat, lon: center.lng };
 }
 
-// La cible de visée ne sert qu'au tracé manuel : elle est masquée sur CARTE
-// (consultation) et visible uniquement sur TRACÉS.
+// La cible de visée ne sert qu'au tracé : elle est masquée en lecture et sur
+// les autres onglets.
 function syncCrosshairVisibility(tabId) {
   const crosshair = document.getElementById('map-crosshair');
   if (!crosshair) return;
 
-  const visible = tabId === 'tab-points';
+  const creation = typeof APP === 'undefined' || APP.tracesMode === 'creation';
+  const visible = tabId === 'tab-points' && creation;
   crosshair.classList.toggle('is-hidden', !visible);
   crosshair.setAttribute('aria-hidden', visible ? 'false' : 'true');
 }
@@ -463,10 +474,9 @@ function initGpsControl() {
   gpsControl.addTo(map);
 }
 
-// Une seule instance de carte est partagée entre CARTE et TRACÉS :
-// on la déplace dans l'onglet actif puis on recalcule sa taille.
+// Une seule instance de carte, dans l'onglet TRACÉS.
 function mountMapForTab(tabId) {
-  const slot = document.getElementById(tabId === 'tab-points' ? 'map-points-slot' : 'map-carte-slot');
+  const slot = document.getElementById('map-points-slot');
   if (!slot) return;
 
   if (!map) initMap();
@@ -481,11 +491,78 @@ function mountMapForTab(tabId) {
 
     if (tabId === 'tab-points') {
       renderMap();
-      syncCrosshairVisibility(tabId);
+      syncTracesModeUI();
       updateRecordModeBadge();
       if (followGps && getGpsPositionForMap()) centerMapOnGps();
     }
   }, 60);
+}
+
+// ─── MODES LECTURE / CRÉATION ───────────────────────────────
+// En lecture la carte reste déplaçable mais aucun point ne peut être ajouté.
+function isTracesCreation() {
+  return typeof APP !== 'undefined' && APP.tracesMode === 'creation';
+}
+
+function setTracesMode(mode) {
+  if (typeof APP === 'undefined') return;
+  APP.tracesMode = mode === 'creation' ? 'creation' : 'lecture';
+  syncTracesModeUI();
+}
+
+function toggleTracesMode() {
+  setTracesMode(isTracesCreation() ? 'lecture' : 'creation');
+}
+
+function syncTracesModeUI() {
+  const creation = isTracesCreation();
+  const screen = document.getElementById('tab-points');
+  if (screen) {
+    screen.classList.toggle('mode-creation', creation);
+    screen.classList.toggle('mode-lecture', !creation);
+  }
+
+  const btn = document.getElementById('btnTracesMode');
+  if (btn) {
+    btn.textContent = creation ? '✓ Terminer' : '✏️ Modifier';
+    btn.title = creation
+      ? 'Terminer le tracé (passer en lecture)'
+      : 'Modifier la parcelle (ajouter des points)';
+    btn.setAttribute('aria-pressed', creation ? 'true' : 'false');
+  }
+
+  syncCrosshairVisibility(typeof APP !== 'undefined' ? APP.currentTab : 'tab-points');
+  if (typeof updateTerrainButtons === 'function') updateTerrainButtons();
+  // Le bouton « Nouvelle zone interdite » et l'état vide dépendent du mode.
+  if (typeof renderPointsList === 'function') renderPointsList();
+}
+
+// ─── PLEIN ÉCRAN CARTE ──────────────────────────────────────
+let mapUiFullscreen = false;
+
+function setMapFullscreen(enabled) {
+  mapUiFullscreen = !!enabled;
+  if (mapUiFullscreen && typeof closeProjectDrawer === 'function') closeProjectDrawer();
+  document.body.classList.toggle('map-ui-fullscreen', mapUiFullscreen);
+
+  const btn = document.getElementById('btnMapFullscreen');
+  if (btn) {
+    btn.textContent = mapUiFullscreen ? '✕' : '⛶';
+    btn.title = mapUiFullscreen ? 'Quitter le plein écran' : 'Plein écran carte';
+    btn.setAttribute('aria-pressed', mapUiFullscreen ? 'true' : 'false');
+  }
+
+  setTimeout(() => {
+    if (!map) return;
+    map.invalidateSize({ animate: false });
+    renderMap();
+  }, 120);
+}
+
+function toggleMapFullscreen() { setMapFullscreen(!mapUiFullscreen); }
+
+function exitMapFullscreen() {
+  if (mapUiFullscreen) setMapFullscreen(false);
 }
 
 // Badge de mode : GPS dès qu'une position RTK valide est disponible,
@@ -504,7 +581,7 @@ function updateRecordModeBadge() {
 function centerMapOnPoint(lat, lon) {
   if (!map) initMap();
   map.setView([lat,lon],19);
-  showTab('tab-map');
+  showTab('tab-points');
   setTimeout(()=>map.invalidateSize(),120);
 }
 

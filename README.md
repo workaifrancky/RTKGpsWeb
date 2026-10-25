@@ -20,7 +20,7 @@ Fonctionnalités principales :
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - **plusieurs zones interdites** distinctes par parcelle (même principe, `zoneId` dédié) ;
 - carte Leaflet (Relief / Satellite), polygones, surfaces et **distances de segments**
-  (`leaflet-measure-path`) calculées en direct ;
+  (`leaflet-measure-path`) calculées en direct, **plein écran** et modes lecture / création ;
 - **relevé de parcelle** (onglet RELEVÉ) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
 - caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
 - export **GeoJSON** (format principal, contrat Mower Planner), **CSV** et **GPX** via le menu
@@ -88,8 +88,11 @@ peut être isolé.
    - `＋ Nouvelle zone interdite` (sous la liste TRACÉS) : démarre une nouvelle zone interdite ;
    - `✏️` sur une ligne TRACÉS ou dans la popup carte : renommer un point (nom exporté dans
      `properties.name` pour les obstacles).
-4. **Consulter** la carte (onglet CARTE), le relevé (onglet RELEVÉ) et l'historique. Les
-   polygones de tonte affichent la longueur de chaque segment.
+4. **Consulter** : TRACÉS s'ouvre en mode **lecture** (carte déplaçable, aucun point ajouté).
+   Bouton `✏️ Modifier` pour repasser en création, `✓ Terminer` pour revenir en lecture ;
+   `⛶` affiche la carte en plein écran. Cliquer sur une zone (tonte ou interdite) permet de la
+   renommer ou de la supprimer. Le relevé est dans l'onglet RELEVÉ, l'historique dans
+   HISTORIQUE. Les polygones de tonte affichent la longueur de chaque segment.
 5. **Exporter** depuis l'onglet TRACÉS avec `⬇ Exporter GeoJSON` (format principal) ; CSV et
    GPX sont dans le menu `⋮`. Le GeoJSON suit le contrat décrit dans
    [docs/format-geojson.md](docs/format-geojson.md).

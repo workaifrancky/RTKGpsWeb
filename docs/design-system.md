@@ -100,8 +100,8 @@ Overrides de lisibilité :
 ### Bandeau d'onglets « pills » (`main.css`, overrides dans `theme.css`)
 
 Structure : un conteneur `.tabs-wrapper` et, pour chaque onglet, un
-`<button type="button" class="tab-label" data-tab="tab-…">` (TRACÉS, CARTE, CAMÉRA, RELEVÉ,
-HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showTab()`
+`<button type="button" class="tab-label" data-tab="tab-…">` (TRACÉS, CAMÉRA, RELEVÉ,
+HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la classe `.active`, posée par `showTab()`
 (`js/app.js`) : **aucun radio**, donc aucun défilement automatique du conteneur.
 
 - `.tabs-wrapper` : fond `var(--color-bg-muted)`, `padding: 8px 10px`, `gap: 6px`, filet
@@ -162,6 +162,24 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
   `--color-white`, survol `--color-primary-pale`.
 - `.import-obstacles-empty` : message « Aucun obstacle enregistré pour le moment. ».
 - `.modal-box` reçoit `max-height: 90dvh` + `overflow-y: auto` pour les longues listes.
+
+### Modes et plein écran carte
+
+- `#btnTracesMode` (`.map-mode-toggle`, `map.css`) : pastille flottante en bas de la carte.
+  Mode lecture : « ✏️ Modifier » (vert, `bottom: 20px`). Mode création : « ✓ Terminer »
+  (surface `--color-white`, `bottom: 116px`, au-dessus de la capsule).
+- `.floating-toolbar` : `display: none` par défaut ; `#tab-points.mode-creation .floating-toolbar`
+  l'affiche. En lecture, la cible `#map-crosshair` est masquée.
+- `.map-floating-controls` : colonne de trois boutons 36 px sous le zoom Leaflet (gauche) —
+  Relief, Satellite, Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`).
+  `.map-float-btn.active` = fond `--color-primary`, texte blanc.
+- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et `.points-panel` ;
+  `#tab-points` passe en `position: fixed; inset: 0; width: 100vw; height: 100dvh;
+  z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent visibles ; le bouton
+  plein écran devient `✕`.
+- La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose « ✏️ Renommer » et
+  « 🗑 » (`renameZone()`, `deleteZone()`) ; le nom personnalisé est affiché par
+  `getZoneDisplayName()` (stocké dans `project.zoneNames`).
 
 ### Barre d'enregistrement flottante (capsule)
 

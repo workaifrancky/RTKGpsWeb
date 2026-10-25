@@ -6,6 +6,7 @@
 const APP = {
   version:      '2.0.0',
   currentTab:   'tab-points',
+  tracesMode:   'lecture',   // 'lecture' (consultation) | 'creation' (tracé)
   theme:        'light',
   bleConnected: false,
   hasGpsData:   false,
@@ -41,7 +42,10 @@ function toggleTheme() {
 }
 
 // ─── NAVIGATION ──────────────────────────────────────────────
-function initNavigation() { showTab(APP.currentTab); }
+function initNavigation() {
+  showTab(APP.currentTab);
+  if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+}
 
 function showTab(tabId) {
   const screen = document.getElementById(tabId);
@@ -63,18 +67,16 @@ function showTab(tabId) {
   if (tabsWrapper) tabsWrapper.scrollLeft = tabsScrollLeft;
 
   APP.currentTab = tabId;
+  if (typeof exitMapFullscreen === 'function') exitMapFullscreen();
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
 
-  // Une seule instance de carte, déplacée dans l'onglet actif.
-  if ((tabId === 'tab-points' || tabId === 'tab-map') && typeof mountMapForTab === 'function') {
+  // Une seule instance de carte, dans l'onglet TRACÉS.
+  if (tabId === 'tab-points' && typeof mountMapForTab === 'function') {
     mountMapForTab(tabId);
   }
 
-  if (tabId === 'tab-map') {
-    setTimeout(() => { if (typeof refreshMap === 'function') refreshMap(); }, 120);
-  }
   if (tabId === 'tab-camera') {
     if (typeof startCamera === 'function') startCamera();
     if (typeof syncCameraFullscreenForTab === 'function') syncCameraFullscreenForTab();
@@ -128,6 +130,10 @@ function hideAlert() {
 
 // ─── MODAL OBSTACLE ──────────────────────────────────────────
 function openObstacleMenu() {
+  if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
+    showToast('Mode lecture — ✏️ Modifier pour ajouter', 'info');
+    return;
+  }
   const pos = typeof getPointPosition === 'function' ? getPointPosition() : null;
   if (!pos) {
     showToast('Position indisponible — placez la cible sur la carte', 'error');
@@ -172,6 +178,8 @@ function createProject() {
     : [];
 
   if (typeof addProject === 'function') addProject(name, true, importIds);
+  // Nouvelle parcelle = mode création (capsule complète).
+  if (typeof setTracesMode === 'function') setTracesMode('creation');
   closeProjectModal();
   if (typeof resetGlobalObstaclePicker === 'function') resetGlobalObstaclePicker();
   showToast(importIds.length

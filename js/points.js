@@ -51,8 +51,18 @@ function getPointPosition() {
   return null;
 }
 
+// En mode lecture, aucun point ne peut être ajouté (carte consultable).
+function canRecordPoints() {
+  if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
+    showToast('Mode lecture — ✏️ Modifier pour tracer', 'info');
+    return false;
+  }
+  return true;
+}
+
 // ─── ENREGISTRER — ZONE DE TONTE ─────────────────────────────
 function recordTonte() {
+  if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
     showToast('Position indisponible — placez la cible sur la carte', 'error');
@@ -90,6 +100,7 @@ function getInterditZones() {
 
 function startNewInterditZone() {
   if (!currentProject) return;
+  if (!canRecordPoints()) return;
   const currentZone = getCurrentInterditZoneId();
   const currentPoints = getInterditZones()[currentZone] || [];
 
@@ -107,6 +118,83 @@ function startNewInterditZone() {
   showToast(`Nouvelle zone interdite #${nextZone}`, 'info');
 }
 
+// ─── NOMS DES ZONES ─────────────────────────────────────────
+function getZoneDisplayName(type, zoneId) {
+  const kind = type === 'interdit' ? 'interdit' : 'tonte';
+  const id = Number(zoneId) || 1;
+  const custom = currentProject?.zoneNames?.[kind]?.[String(id)];
+  if (custom) return custom;
+  return kind === 'interdit' ? `Zone interdite #${id}` : `Zone de tonte #${id}`;
+}
+
+function renameZone(type, zoneId) {
+  if (!currentProject) return;
+  const kind = type === 'interdit' ? 'interdit' : 'tonte';
+  const id = Number(zoneId) || 1;
+  const current = getZoneDisplayName(kind, id);
+
+  const input = prompt('Nom de la zone :', current);
+  if (input === null) return;
+  const name = input.trim();
+  if (!name) {
+    showToast('Le nom de la zone ne peut pas être vide', 'error');
+    return;
+  }
+
+  if (!currentProject.zoneNames || typeof currentProject.zoneNames !== 'object') {
+    currentProject.zoneNames = { tonte: {}, interdit: {} };
+  }
+  if (!currentProject.zoneNames[kind]) currentProject.zoneNames[kind] = {};
+  currentProject.zoneNames[kind][String(id)] = name;
+
+  saveProjects();
+  renderPointsList();
+  if (typeof renderMap === 'function') renderMap();
+  if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+  showToast(`Zone renommée : ${name}`, 'info');
+}
+
+function deleteZone(type, zoneId) {
+  if (!currentProject) return;
+  const kind = type === 'interdit' ? 'interdit' : 'tonte';
+  const id = Number(zoneId) || 1;
+  const zonePoints = getPoints().filter(p => p.type === kind && (Number(p.zoneId) || 1) === id);
+  if (!zonePoints.length) return;
+
+  const name = getZoneDisplayName(kind, id);
+  if (!confirm(`Supprimer « ${name} » et ses ${zonePoints.length} point(s) ?`)) return;
+
+  currentProject.points = currentProject.points.filter(p => !zonePoints.includes(p));
+
+  // Renumérotation par type
+  ['tonte', 'interdit', 'obstacle'].forEach(t => {
+    let idx = 1;
+    currentProject.points.filter(p => p.type === t).forEach(p => { p.index = idx++; });
+  });
+
+  // Recalage des zones courantes
+  const tonteZones = currentProject.points
+    .filter(p => p.type === 'tonte').map(p => Number(p.zoneId) || 1);
+  const interditZones = currentProject.points
+    .filter(p => p.type === 'interdit').map(p => Number(p.zoneId) || 1);
+  if (!tonteZones.includes(Number(currentProject.currentZoneId))) {
+    currentProject.currentZoneId = tonteZones.length ? Math.max(...tonteZones) : 1;
+  }
+  if (!interditZones.includes(Number(currentProject.currentInterditZoneId))) {
+    currentProject.currentInterditZoneId = interditZones.length ? Math.max(...interditZones) : 1;
+  }
+
+  if (currentProject.zoneNames && currentProject.zoneNames[kind]) {
+    delete currentProject.zoneNames[kind][String(id)];
+  }
+
+  saveProjects();
+  renderPointsList();
+  if (typeof renderMap === 'function') renderMap();
+  if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+  showToast('Zone supprimée', 'info');
+}
+
 function getZones() {
   const zones = {};
   getPoints().forEach(p => {
@@ -121,6 +209,7 @@ function getZones() {
 
 function startNewZone() {
   if (!currentProject) return;
+  if (!canRecordPoints()) return;
   const currentZone = getCurrentZoneId();
   const currentPoints = getZones()[currentZone] || [];
 
@@ -147,6 +236,7 @@ function updateZoneBadge() {
 
 // ─── ENREGISTRER — ZONE INTERDITE ────────────────────────────
 function recordInterdit() {
+  if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
     showToast('Position indisponible — placez la cible sur la carte', 'error');
@@ -159,6 +249,7 @@ function recordInterdit() {
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
 function recordObstacle(subtype, icon) {
+  if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
     showToast('Position indisponible — placez la cible sur la carte', 'error');
@@ -282,10 +373,13 @@ function renderPointsList() {
   updateZoneBadge();
 
   if (pts.length === 0) {
+    const creation = typeof isTracesCreation === 'function' ? isTracesCreation() : true;
     container.innerHTML = `
       <div class="empty-state">
         Aucun point enregistré.<br>
-        Utilisez la barre flottante sur la carte<br>pour enregistrer des points.
+        ${creation
+          ? 'Utilisez la barre flottante sur la carte<br>pour enregistrer des points.'
+          : 'Passez en mode création (✏️ Modifier)<br>pour tracer la parcelle.'}
       </div>`;
     return;
   }
@@ -296,17 +390,18 @@ function renderPointsList() {
   const obstacle      = pts.filter(p => p.type === 'obstacle');
 
   const interditGroups = Object.keys(interditZones).map(Number).sort((a, b) => a - b)
-    .map(zoneId => renderGroup(`Zone interdite #${zoneId}`, interditZones[zoneId], '#dc2626', 'interdit'))
+    .map(zoneId => renderGroup(getZoneDisplayName('interdit', zoneId), interditZones[zoneId], '#dc2626', 'interdit'))
     .join('');
 
-  const interditAction = pts.some(p => p.type === 'interdit')
+  const creationForAction = typeof isTracesCreation === 'function' ? isTracesCreation() : true;
+  const interditAction = creationForAction && pts.some(p => p.type === 'interdit')
     ? `<button type="button" class="points-zone-add" onclick="startNewInterditZone()"
          title="Créer une nouvelle zone interdite">＋ Nouvelle zone interdite</button>`
     : '';
 
   container.innerHTML =
     Object.keys(zones).map(Number).sort((a, b) => a - b)
-      .map(zoneId => renderGroup(`Zone de tonte #${zoneId}`, zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
+      .map(zoneId => renderGroup(getZoneDisplayName('tonte', zoneId), zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
       .join('') +
     interditGroups +
     interditAction +

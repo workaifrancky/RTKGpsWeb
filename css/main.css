@@ -496,7 +496,9 @@ header {
   transition:    opacity 0.3s;
   pointer-events:none;
   z-index:       1200;
-  white-space:   nowrap;
+  white-space:   normal;
+  line-height:   1.3;
+  text-align:    center;
   max-width:     90vw;
   box-shadow:    var(--shadow-lg);
 }

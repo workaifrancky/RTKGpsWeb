@@ -5,7 +5,7 @@
 
 #map {
   position:    relative;
-  height:      calc(100vh - 320px);
+  height:      100%;
   min-height:  280px;
   width:       100%;
   z-index:     1;
@@ -31,31 +31,102 @@
   min-height: 0;
 }
 
-/* Carte de l'onglet CARTE : remplit l'espace restant (contrôles et légende
-   restent visibles), sans dépendre d'une hauteur en pixels. */
-#tab-map.active {
+/* Contrôles flottants : fond de carte + plein écran (sous le zoom Leaflet) */
+.map-floating-controls {
+  position:       absolute;
+  top:            96px;
+  left:           10px;
   display:        flex;
   flex-direction: column;
-  overflow-y:     auto;
+  gap:            6px;
+  z-index:        1000;
 }
 
-#tab-map .map-controls { flex: 0 0 auto; }
-
-#tab-map .map-wrapper {
-  flex:       1 1 auto;
-  min-height: 240px;
+.map-float-btn {
+  width:           36px;
+  height:          36px;
+  padding:         0;
+  background:      var(--color-white);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius-sm);
+  color:           var(--text);
+  font-family:     var(--font);
+  font-size:       16px;
+  line-height:     1;
+  cursor:          pointer;
+  box-shadow:      var(--shadow-sm);
+  transition:      var(--transition);
 }
 
-#tab-map #map-carte-slot {
-  height: 100%;
+.map-float-btn:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
 }
 
-#tab-map #map {
-  height: 100%;
+.map-float-btn.active {
+  background:   var(--color-primary);
+  border-color: var(--color-primary);
+  color:        white;
 }
 
-#surfaceResult,
-#tab-map .map-legend { flex: 0 0 auto; }
+/* Bascule Lecture / Création */
+.map-mode-toggle {
+  position:       absolute;
+  left:           50%;
+  bottom:         20px;
+  transform:      translateX(-50%);
+  z-index:        1001;
+  padding:        10px 18px;
+  border:         none;
+  border-radius:  999px;
+  background:     var(--color-primary);
+  color:          white;   /* texte sur fond vert */
+  font-family:    var(--font);
+  font-size:      12px;
+  font-weight:    800;
+  letter-spacing: 0.3px;
+  white-space:    nowrap;
+  cursor:         pointer;
+  box-shadow:     var(--shadow-lg);
+  transition:     var(--transition);
+}
+
+.map-mode-toggle:hover { background: var(--color-primary-deep); }
+
+#tab-points.mode-creation .map-mode-toggle {
+  bottom:       116px;      /* au-dessus de la capsule */
+  background:   var(--color-white);
+  color:        var(--color-primary-deep);
+  border:       1px solid var(--border);
+}
+
+#tab-points.mode-lecture .map-mode-hint { visibility: hidden; }
+#tab-points.mode-lecture #map-crosshair { display: none; }
+
+/* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
+body.map-ui-fullscreen header,
+body.map-ui-fullscreen #fixBar,
+body.map-ui-fullscreen .tabs-wrapper,
+body.map-ui-fullscreen #projectDrawer,
+body.map-ui-fullscreen #projectDrawerOverlay {
+  display: none !important;
+}
+
+body.map-ui-fullscreen .app-wrapper { max-width: none; }
+
+body.map-ui-fullscreen #tab-points {
+  position: fixed;
+  inset:    0;
+  z-index:  900;
+  width:    100vw;
+  height:   100dvh;
+  padding:  0;
+}
+
+body.map-ui-fullscreen #map-points { height: 100%; min-height: 0; }
+body.map-ui-fullscreen .points-panel { display: none; }
+body.map-ui-fullscreen #btnPointsPanel { display: none; }
+body.map-ui-fullscreen .map-mode-hint { display: none; }
 
 /* Enveloppe de la carte : support de la cible fixe centrée */
 .map-wrapper {
@@ -169,9 +240,9 @@
   border-color: var(--color-primary);
 }
 
-/* Sur TRACÉS, la capsule flottante occupe le bas de la carte : les contrôles
-   GPS (recentrer / suivi) remontent pour ne pas passer dessous. */
-#tab-points .map-gps-control {
+/* En mode création, la capsule occupe le bas de la carte : les contrôles GPS
+   remontent pour ne pas passer dessous. */
+#tab-points.mode-creation .map-gps-control {
   margin-bottom: 104px;
 }
 
