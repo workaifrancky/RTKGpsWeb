@@ -95,16 +95,18 @@
             </svg>
           </div>
         </div>
-      </div>
 
-      <!-- Contrôles de fond de carte et plein écran -->
-      <div class="map-floating-controls">
-        <button type="button" id="btnBaseRelief" class="map-float-btn active"
-          onclick="setMapBaseLayer('relief')" title="Fond Relief" aria-label="Fond Relief">🗺</button>
-        <button type="button" id="btnBaseSatellite" class="map-float-btn"
-          onclick="setMapBaseLayer('satellite')" title="Fond Satellite" aria-label="Fond Satellite">🛰</button>
-        <button type="button" id="btnMapFullscreen" class="map-float-btn"
-          onclick="toggleMapFullscreen()" title="Plein écran carte" aria-pressed="false">⛶</button>
+        <!-- Contrôles de fond de carte et plein écran : dans le conteneur de
+             la carte pour être positionnés sous le zoom Leaflet (la barre de
+             mode au-dessus ne doit pas décaler leur `top`). -->
+        <div class="map-floating-controls">
+          <button type="button" id="btnBaseRelief" class="map-float-btn active"
+            onclick="setMapBaseLayer('relief')" title="Fond Relief" aria-label="Fond Relief">🗺</button>
+          <button type="button" id="btnBaseSatellite" class="map-float-btn"
+            onclick="setMapBaseLayer('satellite')" title="Fond Satellite" aria-label="Fond Satellite">🛰</button>
+          <button type="button" id="btnMapFullscreen" class="map-float-btn"
+            onclick="toggleMapFullscreen()" title="Plein écran carte" aria-pressed="false">⛶</button>
+        </div>
       </div>
 
       <!-- Bascule Lecture / Création -->
@@ -372,6 +374,25 @@
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODALE GÉNÉRIQUE (confirm / prompt personnalisés)           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="customModal" class="modal-overlay" style="display: none;"
+     role="dialog" aria-modal="true"
+     aria-labelledby="customModalTitle" aria-describedby="customModalMessage">
+  <div class="modal-box">
+    <div class="modal-title" id="customModalTitle">Titre</div>
+    <div class="modal-message" id="customModalMessage">Message</div>
+    <input type="text" id="customModalInput" class="form-input"
+      style="display: none; margin-bottom: 16px;" aria-label="Saisie">
+    <div class="modal-error" id="customModalError" role="alert" style="display: none;"></div>
+    <div class="modal-actions">
+      <button type="button" id="customModalCancel" class="btn-secondary">Annuler</button>
+      <button type="button" id="customModalConfirm" class="action-button">Confirmer</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- SCRIPTS — ordre obligatoire                                 -->

@@ -184,10 +184,16 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
   `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
   points, recale les zones courantes et rafraîchit carte/liste/stats.
-- **Renommage** : `renameProject(id)` / `renameCurrentProject()` (parcelle) et
-  `renamePoint(id)` (points) utilisent `prompt()`, refusent un nom vide et persistent via
-  `saveProjects()`. Le nom d'un point est stocké dans `point.name` (indépendant de `subtype`)
-  et exporté dans `properties.name` pour les obstacles.
+- **Renommage** : `renameProject(id)` / `renameCurrentProject()` (parcelle), `renameZone()`,
+  `renamePoint(id)` utilisent `customPrompt()` (modale `#customModal`), refusent un nom vide
+  sans fermer la modale et persistent via `saveProjects()`. Le nom d'un point est stocké dans
+  `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour les obstacles.
+  `deleteProject()`, `deleteZone()`, `renamePoint()`, `renameZone()` et `clearAllPoints()` sont
+  **asynchrones** (`await customConfirm/customPrompt`) : les appels programmatiques doivent
+  attendre leur promesse.
+- **Modales** : ne plus utiliser `confirm()` / `prompt()` natifs. `customConfirm()` et
+  `customPrompt()` (`js/app.js`, `#customModal`) retournent des promesses ; Échap et le clic
+  sur le voile annulent, le focus reste dans la modale et un nom vide est refusé sans la fermer.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : une Feature `zone_interdite` **par zone** (`zone_id`), nommée
   `Zone interdite` pour la zone 1 et `Zone interdite #N` au-delà. Aucune fusion des zones.
@@ -433,6 +439,15 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   ≤360) avec gaps réduits. Cibles tactiles ≥44 px partout (`button { min-height: 44px }`, zoom
   Leaflet et contrôles flottants 44 px, actions de liste/tiroir 44 px) et textes de contrôle
   portés à 12 px. Breakpoints documentés dans `docs/design-system.md`.
+- **3.24 — Contrôles carte et modales personnalisées** : `.map-floating-controls` déplacé dans
+  `#map-points-slot` (`position: relative`) et calé à `top: 110px`, soit **8 px sous le zoom
+  Leaflet** (la barre de mode ne décale plus le `top`). Les contrôles GPS restent en
+  `bottomleft` (les trois contrôles sont au-dessus d'eux) et basculent en `bottomright` si la
+  carte mesure moins de 430 px de haut (`ensureGpsControlPosition()`, paysage), pour ne jamais
+  croiser le rail gauche. Ajout de la modale `#customModal` (`openCustomModal`, `customConfirm`,
+  `customPrompt`) : tous les `confirm()` / `prompt()` natifs sont remplacés (parcelles, zones,
+  points, effacement), validation du nom vide dans la modale, Échap / voile / Annuler, focus
+  piégé et restauré.
 
 ## 9. Langue et communication
 

@@ -442,6 +442,23 @@ function updateGpsFollowControl() {
     : 'Suivi GPS désactivé — toucher pour activer';
 }
 
+// Position adaptative des contrôles GPS : à gauche quand la carte est assez
+// haute (les 3 contrôles restent au-dessus), à droite sur une carte courte
+// (paysage) pour ne jamais croiser la colonne zoom + Relief/Satellite/⛶.
+let gpsControlPosition = 'bottomleft';
+
+function ensureGpsControlPosition() {
+  if (!map || !gpsControl) return;
+  const wanted = map.getSize().y < 430 ? 'bottomright' : 'bottomleft';
+  if (wanted === gpsControlPosition) return;
+
+  map.removeControl(gpsControl);
+  gpsControl.options.position = wanted;
+  gpsControlPosition = wanted;
+  gpsControl.addTo(map);
+  updateGpsFollowControl();
+}
+
 function initGpsControl() {
   if (!map || gpsControl) return;
 
@@ -472,6 +489,8 @@ function initGpsControl() {
   };
 
   gpsControl.addTo(map);
+  gpsControlPosition = 'bottomleft';
+  map.on('resize', ensureGpsControlPosition);
 }
 
 // Une seule instance de carte, dans l'onglet TRACÉS.
@@ -488,6 +507,7 @@ function mountMapForTab(tabId) {
   setTimeout(() => {
     if (!map) return;
     map.invalidateSize({ animate: false });
+    ensureGpsControlPosition();
 
     if (tabId === 'tab-points') {
       renderMap();
@@ -555,6 +575,7 @@ function setMapFullscreen(enabled) {
   setTimeout(() => {
     if (!map) return;
     map.invalidateSize({ animate: false });
+    ensureGpsControlPosition();
     renderMap();
   }, 120);
 }

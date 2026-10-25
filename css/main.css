@@ -569,6 +569,36 @@ header {
   margin-bottom: 16px;
 }
 
+/* ─── MODALE GÉNÉRIQUE (confirm / prompt) ───────────────────── */
+.modal-message {
+  font-size:     14px;
+  line-height:   1.5;
+  color:         var(--text2);
+  margin-bottom: 16px;
+}
+
+.modal-error {
+  font-size:     13px;
+  font-weight:   700;
+  color:         var(--color-danger-text);
+  margin:        -8px 0 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap:     8px;
+  margin-top: 4px;
+}
+
+.modal-actions .action-button,
+.modal-actions .action-button-danger,
+.modal-actions .btn-secondary {
+  flex:       1 1 0;
+  width:      auto;
+  min-width:  0;
+  padding:    12px 10px;
+}
+
 /* ─── SCROLLBAR ─────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

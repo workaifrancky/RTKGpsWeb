@@ -127,13 +127,17 @@ function getZoneDisplayName(type, zoneId) {
   return kind === 'interdit' ? `Zone interdite #${id}` : `Zone de tonte #${id}`;
 }
 
-function renameZone(type, zoneId) {
+async function renameZone(type, zoneId) {
   if (!currentProject) return;
   const kind = type === 'interdit' ? 'interdit' : 'tonte';
   const id = Number(zoneId) || 1;
   const current = getZoneDisplayName(kind, id);
 
-  const input = prompt('Nom de la zone :', current);
+  const input = await customPrompt('Nom de la zone :', current, {
+    title: 'Renommer la zone',
+    placeholder: current,
+    confirmText: 'Renommer',
+  });
   if (input === null) return;
   const name = input.trim();
   if (!name) {
@@ -154,7 +158,7 @@ function renameZone(type, zoneId) {
   showToast(`Zone renommée : ${name}`, 'info');
 }
 
-function deleteZone(type, zoneId) {
+async function deleteZone(type, zoneId) {
   if (!currentProject) return;
   const kind = type === 'interdit' ? 'interdit' : 'tonte';
   const id = Number(zoneId) || 1;
@@ -162,7 +166,11 @@ function deleteZone(type, zoneId) {
   if (!zonePoints.length) return;
 
   const name = getZoneDisplayName(kind, id);
-  if (!confirm(`Supprimer « ${name} » et ses ${zonePoints.length} point(s) ?`)) return;
+  const ok = await customConfirm(
+    `Supprimer « ${name} » et ses ${zonePoints.length} point(s) ?`,
+    { title: 'Supprimer la zone', confirmText: 'Supprimer', danger: true },
+  );
+  if (!ok) return;
 
   currentProject.points = currentProject.points.filter(p => !zonePoints.includes(p));
 
@@ -320,11 +328,15 @@ function getPointDisplayName(p) {
   return p.type === 'tonte' ? 'Tonte' : 'Interdit';
 }
 
-function renamePoint(pointId) {
+async function renamePoint(pointId) {
   const pt = getPoints().find(p => p.id === pointId);
   if (!pt) return;
 
-  const input = prompt('Nouveau nom pour ce point :', pt.name || '');
+  const input = await customPrompt('Nouveau nom pour ce point :', pt.name || '', {
+    title: 'Renommer le point',
+    placeholder: pt.name || 'Nom du point',
+    confirmText: 'Renommer',
+  });
   if (input === null) return;                       // annulation
   const name = input.trim();
   if (!name) {
@@ -340,10 +352,14 @@ function renamePoint(pointId) {
 }
 
 // ─── TOUT EFFACER ────────────────────────────────────────────
-function clearAllPoints() {
+async function clearAllPoints() {
   const pts = getPoints();
   if (pts.length === 0) { showToast('Aucun point à effacer', 'info'); return; }
-  if (!confirm(`Effacer les ${pts.length} points de cette parcelle ?`)) return;
+  const ok = await customConfirm(
+    `Effacer les ${pts.length} points de cette parcelle ?`,
+    { title: 'Effacer les points', confirmText: 'Effacer', danger: true },
+  );
+  if (!ok) return;
   clearCurrentProjectPoints();
   counters = { tonte:0, interdit:0, obstacle:0 };
   renderPointsList();

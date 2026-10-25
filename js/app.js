@@ -17,6 +17,7 @@ const APP = {
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
   initTheme();
+  initCustomModal();
   initNavigation();
   checkBleSupport();
   initProjectUI();
@@ -185,6 +186,184 @@ function createProject() {
   showToast(importIds.length
     ? `Parcelle "${name}" créée — ${importIds.length} obstacle(s) importé(s)`
     : `Parcelle "${name}" créée`, 'tonte');
+}
+
+// ─── MODALE GÉNÉRIQUE (confirm / prompt) ────────────────────
+let customModalResolve = null;
+let customModalPreviousFocus = null;
+
+function initCustomModal() {
+  const overlay = document.getElementById('customModal');
+  if (!overlay) return;
+
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) closeCustomModal(null);
+  });
+
+  document.getElementById('customModalCancel')?.addEventListener('click', () => closeCustomModal(null));
+  document.getElementById('customModalConfirm')?.addEventListener('click', confirmCustomModal);
+
+  const input = document.getElementById('customModalInput');
+  if (input) {
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        confirmCustomModal();
+      }
+    });
+  }
+
+  // Piège de focus : Tab reste dans la modale.
+  overlay.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const focusables = Array.from(overlay.querySelectorAll('button:not(:disabled), input'))
+      .filter(el => el.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last  = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  // Échap ferme uniquement la modale (avant le tiroir / le menu d'export).
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && customModalResolve) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeCustomModal(null);
+    }
+  }, true);
+}
+
+function openCustomModal(options = {}) {
+  const overlay = document.getElementById('customModal');
+  if (!overlay) return Promise.resolve(null);
+
+  // Une seule modale à la fois.
+  if (customModalResolve) closeCustomModal(null);
+
+  const titleEl    = document.getElementById('customModalTitle');
+  const messageEl  = document.getElementById('customModalMessage');
+  const input      = document.getElementById('customModalInput');
+  const errorEl    = document.getElementById('customModalError');
+  const confirmBtn = document.getElementById('customModalConfirm');
+  const cancelBtn  = document.getElementById('customModalCancel');
+
+  const hasInput = Object.prototype.hasOwnProperty.call(options, 'inputValue');
+
+  if (titleEl)   titleEl.textContent = options.title || 'Confirmation';
+  if (messageEl) messageEl.textContent = options.message || '';
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.style.display = 'none';
+  }
+
+  if (input) {
+    input.style.display = hasInput ? 'block' : 'none';
+    input.value = hasInput ? String(options.inputValue ?? '') : '';
+    input.placeholder = options.placeholder || '';
+    input.setAttribute('aria-label', options.inputLabel || options.message || 'Saisie');
+  }
+
+  if (confirmBtn) {
+    confirmBtn.textContent = options.confirmText || 'Confirmer';
+    confirmBtn.className = options.danger
+      ? 'action-button action-button-danger'
+      : 'action-button';
+  }
+  if (cancelBtn) cancelBtn.textContent = options.cancelText || 'Annuler';
+
+  overlay.dataset.required = options.required === false ? '0' : '1';
+  overlay.dataset.errorText = options.errorText || 'Ce champ ne peut pas être vide.';
+
+  customModalPreviousFocus = document.activeElement;
+  overlay.style.display = 'flex';
+  void overlay.offsetHeight;   // force le calcul avant la transition
+  overlay.classList.add('show');
+
+  window.setTimeout(() => {
+    if (!customModalResolve) return;
+    if (hasInput && input) {
+      input.focus();
+      input.select();
+    } else if (confirmBtn) {
+      confirmBtn.focus();
+    }
+  }, 60);
+
+  return new Promise(resolve => { customModalResolve = resolve; });
+}
+
+function confirmCustomModal() {
+  const overlay = document.getElementById('customModal');
+  const input   = document.getElementById('customModalInput');
+  const errorEl = document.getElementById('customModalError');
+  if (!overlay || !customModalResolve) return;
+
+  const hasInput = input && input.style.display !== 'none';
+  if (hasInput) {
+    const value = input.value.trim();
+    if (!value && overlay.dataset.required !== '0') {
+      if (errorEl) {
+        errorEl.textContent = overlay.dataset.errorText || 'Ce champ ne peut pas être vide.';
+        errorEl.style.display = 'block';
+      }
+      input.focus();
+      return;
+    }
+    closeCustomModal(value);
+    return;
+  }
+
+  closeCustomModal(true);
+}
+
+function closeCustomModal(result = null) {
+  const overlay = document.getElementById('customModal');
+  if (!overlay) return;
+
+  overlay.classList.remove('show');
+  overlay.style.display = 'none';
+
+  const resolve = customModalResolve;
+  customModalResolve = null;
+
+  const previous = customModalPreviousFocus;
+  customModalPreviousFocus = null;
+  if (previous && typeof previous.focus === 'function') {
+    try { previous.focus(); } catch { /* élément retiré du DOM */ }
+  }
+
+  if (resolve) resolve(result);
+}
+
+function customConfirm(message, options = {}) {
+  return openCustomModal({
+    title:       options.title || 'Confirmation',
+    message,
+    confirmText: options.confirmText || 'Confirmer',
+    cancelText:  options.cancelText || 'Annuler',
+    danger:      !!options.danger,
+  }).then(result => result === true);
+}
+
+function customPrompt(message, defaultValue = '', options = {}) {
+  return openCustomModal({
+    title:       options.title || 'Renommer',
+    message,
+    inputValue:  defaultValue ?? '',
+    placeholder: options.placeholder || '',
+    inputLabel:  options.inputLabel || message,
+    required:    options.required !== false,
+    errorText:   options.errorText || 'Ce nom ne peut pas être vide.',
+    confirmText: options.confirmText || 'Valider',
+    cancelText:  options.cancelText || 'Annuler',
+  }).then(result => (typeof result === 'string' ? result : null));
 }
 
 // ─── UTILITAIRES ─────────────────────────────────────────────

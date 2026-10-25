@@ -240,14 +240,18 @@ function addProject(name, renderAfter = true, importIds = []) {
 }
 
 // ─── SUPPRIMER UN PROJET ─────────────────────────────────────
-function deleteProject(projectId) {
+async function deleteProject(projectId) {
   if (projects.length <= 1) {
     showToast('Impossible — au moins une parcelle requise', 'error');
     return;
   }
   const proj = projects.find(p => p.id === projectId);
   if (!proj) return;
-  if (!confirm(`Supprimer la parcelle "${proj.name}" et tous ses points ?`)) return;
+  const ok = await customConfirm(
+    `Supprimer la parcelle « ${proj.name} » et tous ses points ?`,
+    { title: 'Supprimer la parcelle', confirmText: 'Supprimer', danger: true },
+  );
+  if (!ok) return;
 
   const wasCurrent = !currentProject || currentProject.id === projectId;
   projects = projects.filter(p => p.id !== projectId);
@@ -266,15 +270,19 @@ function deleteProject(projectId) {
 }
 
 function deleteCurrentProject() {
-  if (currentProject) deleteProject(currentProject.id);
+  if (currentProject) return deleteProject(currentProject.id);
 }
 
 // ─── RENOMMER UN PROJET ──────────────────────────────────────
-function renameProject(projectId) {
+async function renameProject(projectId) {
   const proj = projects.find(p => p.id === projectId);
   if (!proj) return;
 
-  const input = prompt('Nouveau nom de la parcelle :', proj.name);
+  const input = await customPrompt('Nouveau nom de la parcelle :', proj.name, {
+    title: 'Renommer la parcelle',
+    placeholder: proj.name,
+    confirmText: 'Renommer',
+  });
   if (input === null) return;                       // annulation
   const name = input.trim();
   if (!name) {
@@ -290,7 +298,7 @@ function renameProject(projectId) {
 }
 
 function renameCurrentProject() {
-  if (currentProject) renameProject(currentProject.id);
+  if (currentProject) return renameProject(currentProject.id);
 }
 
 // ─── CHANGER DE PROJET ───────────────────────────────────────

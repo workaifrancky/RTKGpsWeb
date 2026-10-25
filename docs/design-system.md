@@ -131,6 +131,11 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
 - `.modal-box` : fond `--color-white`, rayon 10 px, padding 16 px, `--shadow-xl`, max 480 px.
 - `.modal-title` : 18 px, 700, `--color-primary-deep`.
 - `.modal-handle` : poignée grise centrée.
+- **Modale générique** `#customModal` (`app.js`) : remplace `confirm()` / `prompt()` natifs via
+  `customConfirm(message, options)` et `customPrompt(message, valeur, options)`. Utilise
+  `.modal-message` (14 px), `.modal-error` (13 px, `--color-danger-text`) et `.modal-actions`
+  (deux boutons de largeur égale, 44 px min). Fermeture par Annuler, Échap ou clic sur le
+  voile ; focus piégé et restauré, nom vide refusé sans fermer la modale.
 
 ### Tiroir Parcelles
 
@@ -144,7 +149,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
   et les toasts (1200).
 - `.drawer-header` : bandeau `--color-primary`, titre 15 px / 800, bouton `✕` blanc.
 - `.drawer-project` : ligne = bouton principal (nom 13 px / 800, méta `N point(s) · Zone #N`)
-  + deux actions rondes 32 px (`✏️`, `🗑`). Ligne active : fond `--color-primary-pale` et nom
+  + deux actions rondes 44 px (`✏️`, `🗑`). Ligne active : fond `--color-primary-pale` et nom
   `--color-primary-deep` ; en nuit, fond `--color-bg-muted` et nom `--color-primary-accent`.
 - `.drawer-new` : bouton plein `--color-primary` en bas du panneau.
 - Accessibilité : `role="dialog"`, `aria-modal="true"`, `aria-expanded` sur le bouton du
@@ -183,10 +188,15 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
   (surface `--color-white`, `bottom: 116px`, `78px` ≤ 480 px, au-dessus de la capsule).
 - `.floating-toolbar` : `display: none` par défaut ; `#tab-points.mode-creation .floating-toolbar`
   l'affiche. En lecture, la cible `#map-crosshair` est masquée.
-- `.map-floating-controls` : colonne de trois boutons **44 px** à `top: 108px` (sous le zoom
-  Leaflet, lui aussi à 44 px) — Relief, Satellite, Plein écran (`#btnBaseRelief`,
-  `#btnBaseSatellite`, `#btnMapFullscreen`). `.map-float-btn.active` = fond
-  `--color-primary`, texte blanc.
+- `.map-floating-controls` : colonne de trois boutons **44 px** à `top: 110px` **dans
+  `#map-points-slot`** (`position: relative`, hauteur de la carte seule) — Relief, Satellite,
+  Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`). Le `top` ne dépend
+  donc plus de la barre de mode : les boutons sont 8 px sous le zoom Leaflet (44 px chacun).
+  `.map-float-btn.active` = fond `--color-primary`, texte blanc.
+- `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px, remontés de
+  104 px (78 px ≤ 480 px) en mode création pour rester au-dessus de la capsule. Si la carte
+  mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
+  `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
 - `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et `.points-panel` ;
   `#tab-points` passe en `position: fixed; inset: 0; width: 100vw; height: 100dvh;
   z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent visibles ; le bouton
