@@ -69,6 +69,44 @@ function getCurrentZoneId() {
   return Number.isInteger(id) && id > 0 ? id : 1;
 }
 
+// ─── ZONES INTERDITES ────────────────────────────────────────
+// Chaque zone interdite porte un zoneId distinct (comme les zones de tonte).
+function getCurrentInterditZoneId() {
+  const id = Number(currentProject?.currentInterditZoneId);
+  return Number.isInteger(id) && id > 0 ? id : 1;
+}
+
+function getInterditZones() {
+  const zones = {};
+  getPoints().forEach(p => {
+    if (p.type !== 'interdit') return;
+    const zid = Number(p.zoneId);
+    const zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
+    if (!zones[zoneId]) zones[zoneId] = [];
+    zones[zoneId].push(p);
+  });
+  return zones;
+}
+
+function startNewInterditZone() {
+  if (!currentProject) return;
+  const currentZone = getCurrentInterditZoneId();
+  const currentPoints = getInterditZones()[currentZone] || [];
+
+  // Pas de nouvelle zone tant que la zone courante n'est pas exploitable
+  if (currentPoints.length < 3) {
+    showToast("Ajoutez au moins 3 points à la zone interdite courante avant d'en créer une nouvelle", 'error');
+    return;
+  }
+
+  const nextZone = currentZone + 1;
+  currentProject.currentInterditZoneId = nextZone;
+  saveProjects();
+  renderPointsList();
+  if (typeof renderMap === 'function') renderMap();
+  showToast(`Nouvelle zone interdite #${nextZone}`, 'info');
+}
+
 function getZones() {
   const zones = {};
   getPoints().forEach(p => {
@@ -116,7 +154,7 @@ function recordInterdit() {
   }
   const pt = buildPoint('interdit', null, '🔴', pos);
   savePoint(pt);
-  showToast(`🔴 Interdit #${pt.index} enregistré${pos.source === 'manual' ? ' (manuel)' : ''}`, 'interdit');
+  showToast(`🔴 Interdit #${pt.index} enregistré — zone interdite #${pt.zoneId}${pos.source === 'manual' ? ' (manuel)' : ''}`, 'interdit');
 }
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
@@ -149,7 +187,8 @@ function buildPoint(type, subtype, icon, position) {
     name:       null,           // nom personnalisé (facultatif)
     icon:       icon || '📍',
     index:      counters[type],
-    ...(type === 'tonte' ? { zoneId: getCurrentZoneId() } : {}),
+    ...(type === 'tonte'    ? { zoneId: getCurrentZoneId() } : {}),
+    ...(type === 'interdit' ? { zoneId: getCurrentInterditZoneId() } : {}),
     lat:        pos.lat,
     lon:        pos.lon,
     alt:        gps && src ? src.alt : null,
@@ -251,16 +290,26 @@ function renderPointsList() {
     return;
   }
 
-  // Groupes par type (les zones de tonte sont groupées par zoneId)
-  const zones    = getZones();
-  const interdit = pts.filter(p => p.type === 'interdit');
-  const obstacle = pts.filter(p => p.type === 'obstacle');
+  // Groupes par type (zones de tonte et zones interdites groupées par zoneId)
+  const zones         = getZones();
+  const interditZones = getInterditZones();
+  const obstacle      = pts.filter(p => p.type === 'obstacle');
+
+  const interditGroups = Object.keys(interditZones).map(Number).sort((a, b) => a - b)
+    .map(zoneId => renderGroup(`Zone interdite #${zoneId}`, interditZones[zoneId], '#dc2626', 'interdit'))
+    .join('');
+
+  const interditAction = pts.some(p => p.type === 'interdit')
+    ? `<button type="button" class="points-zone-add" onclick="startNewInterditZone()"
+         title="Créer une nouvelle zone interdite">＋ Nouvelle zone interdite</button>`
+    : '';
 
   container.innerHTML =
     Object.keys(zones).map(Number).sort((a, b) => a - b)
       .map(zoneId => renderGroup(`Zone de tonte #${zoneId}`, zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
       .join('') +
-    renderGroup('Zone interdite', interdit, '#dc2626', 'interdit') +
+    interditGroups +
+    interditAction +
     renderGroup('Obstacles isolés', obstacle,'#d97706', 'obstacle');
 }
 

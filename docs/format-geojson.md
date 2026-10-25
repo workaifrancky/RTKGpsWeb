@@ -17,7 +17,7 @@ deux applications.
 |---|---|---|---|
 | 1 | `domaine` | `Polygon` | ≥ 3 points uniques |
 | 2 | `zone` (× N) | `Polygon` | ≥ 3 points `tonte` par `zoneId` |
-| 3 | `zone_interdite` | `Polygon` | ≥ 3 points `interdit` |
+| 3 | `zone_interdite` | `Polygon` | ≥ 3 points `interdit` par `zoneId` |
 | 4 | `obstacle` (× N) | `Point` | 1 feature par point `obstacle` |
 
 Les zones de tonte sont triées par `zone_id` croissant.
@@ -84,10 +84,12 @@ le premier point est répété pour fermer l'anneau. Les zones sont triées par 
 
 Une zone dont le nombre de points est inférieur à 3 n'est pas exportée.
 
-## 3. Zone interdite
+## 3. Zones interdites
 
-Même principe avec les points `interdit`. Le modèle actuel ne gère **qu'une seule** zone
-interdite par parcelle (tous les points `interdit` sont regroupés).
+Une Feature `zone_interdite` est produite **par `zoneId`** (plusieurs zones interdites possibles
+dans une même parcelle). Les points d'une zone sont utilisés dans leur ordre d'enregistrement,
+puis le premier point est répété pour fermer l'anneau. Les zones sont triées par `zone_id`
+croissant ; une zone de moins de 3 points n'est pas exportée.
 
 ```json
 {
@@ -105,13 +107,17 @@ interdite par parcelle (tous les points `interdit` sont regroupés).
     "type": "zone_interdite",
     "name": "Zone interdite",
     "surface_m2": 11.0,
+    "zone_id": 1,
     "source": "rtk-mower"
   }
 }
 ```
 
-`surface_m2` est une estimation planaire en mètres carrés (`calculateArea()`), suffisante pour
-de petites parcelles.
+- `zone_id` : identifiant de la zone interdite (1, 2, …).
+- `name` : `Zone interdite` pour la zone 1, `Zone interdite #N` au-delà (compatibilité avec
+  les exports mono-zone existants).
+- `surface_m2` : estimation planaire en mètres carrés (`calculateArea()`), suffisante pour
+  de petites parcelles.
 
 ## 4. Obstacles
 
@@ -151,7 +157,8 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 3. Toujours fermer les anneaux de polygones.
 4. Conserver l'ordre des features (domaine en premier, zones par `zone_id` croissant).
 5. Conserver `source: 'rtk-mower'` sur toutes les features.
-6. Conserver `zone_id` sur chaque Feature `zone` et ne pas fusionner les zones.
+6. Conserver `zone_id` sur chaque Feature `zone` et `zone_interdite`, et ne pas fusionner les
+   zones.
 7. Aucune Feature `base` : la fonction « base du rover » est supprimée de l'application.
 
 ## Liste de contrôle avant livraison

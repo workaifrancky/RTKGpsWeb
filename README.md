@@ -18,6 +18,7 @@ Fonctionnalités principales :
 - **bibliothèque globale d'obstacles** (`rtkGlobalObstacles`) : import par cases à cocher
   lors de la création d'une parcelle, sans doublons (nom + coordonnées) ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
+- **plusieurs zones interdites** distinctes par parcelle (même principe, `zoneId` dédié) ;
 - carte Leaflet (Relief / Satellite), polygones, surfaces et **distances de segments**
   (`leaflet-measure-path`) calculées en direct ;
 - **relevé de parcelle** (onglet RELEVÉ) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
@@ -84,6 +85,7 @@ peut être isolé.
 3. **Enregistrer des points** :
    - onglet **TRACÉS** : barre flottante sur la carte — `TONTE`, `INTERDIT`, `OBSTACLE` ;
    - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans TRACÉS) ;
+   - `＋ Nouvelle zone interdite` (sous la liste TRACÉS) : démarre une nouvelle zone interdite ;
    - `✏️` sur une ligne TRACÉS ou dans la popup carte : renommer un point (nom exporté dans
      `properties.name` pour les obstacles).
 4. **Consulter** la carte (onglet CARTE), le relevé (onglet RELEVÉ) et l'historique. Les

@@ -207,6 +207,9 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
   labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
+- `.points-zone-add` : bouton pleine largeur en pointillés `--color-danger` (« ＋ Nouvelle
+  zone interdite ») sous les groupes de zones interdites de la liste TRACÉS ; survol
+  `--color-danger-pale`.
 - `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.

@@ -222,6 +222,12 @@ header {
   white-space:   nowrap;
 }
 
+.header-project-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  opacity:     0.82;
+}
+
 .header-project-caret {
   flex-shrink: 0;
   font-size:   10px;

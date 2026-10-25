@@ -47,7 +47,7 @@ function computeStats() {
       count:0, distance:0, area:0, avgHdop:null, avgSat:null, bestFix:'None',
       duration:0, tonte:0, interdit:0, obstacle:0,
       linear:0, estimatedSeconds:0, perimeter:0, interditArea:0, obstacleDetail:'—',
-      zonesCount:0,
+      zonesCount:0, interditZonesCount:0,
     };
   }
 
@@ -82,7 +82,16 @@ function computeStats() {
     perimeter += computePolygonPerimeter(zonePts);
   });
 
-  const interditArea = interdit.length >= 3 ? calculateArea(interdit) : 0;
+  // Zones interdites : somme des surfaces par zoneId (jamais de fusion).
+  const interditZones = typeof getInterditZones === 'function' ? getInterditZones() : { 1: interdit };
+  let interditArea = 0;
+  let interditZonesCount = 0;
+  Object.keys(interditZones).map(Number).sort((a,b)=>a-b).forEach(zoneId => {
+    const zonePts = interditZones[zoneId];
+    if (!zonePts || zonePts.length < 3) return;
+    interditZonesCount += 1;
+    interditArea += calculateArea(zonePts);
+  });
 
   // Estimations du relevé : linéaire = surface / largeur utile, temps = linéaire / vitesse.
   const linear = area > 0 ? area / MOWING_EFFECTIVE_WIDTH_M : 0;
@@ -92,7 +101,7 @@ function computeStats() {
     count:pts.length, distance:totalDistance, area, avgHdop, avgSat, bestFix, duration,
     tonte:tonte.length, interdit:interdit.length, obstacle:obstacle.length,
     linear, estimatedSeconds, perimeter, interditArea,
-    obstacleDetail: formatObstacleDetail(obstacle), zonesCount,
+    obstacleDetail: formatObstacleDetail(obstacle), zonesCount, interditZonesCount,
   };
 }
 
@@ -106,7 +115,7 @@ function updateStatsDisplay() {
   setHTML('statZonesCount', s.zonesCount > 0 ? s.zonesCount : '—');
   setHTML('statObstacle',  s.obstacle);
   setHTML('statObstacleDetail', s.obstacleDetail);
-  setHTML('statInterdit',  s.interdit);
+  setHTML('statInterdit',  s.interditZonesCount);
   setHTML('statInterditSurface', s.interditArea>0 ? formatArea(s.interditArea) : '—');
   setHTML('statDuration',  formatDuration(s.duration));
   const meta = getFixMeta(s.bestFix);

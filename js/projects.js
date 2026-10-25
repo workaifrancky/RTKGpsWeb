@@ -217,6 +217,7 @@ function addProject(name, renderAfter = true, importIds = []) {
     name:          name.trim(),
     createdAt:     new Date().toISOString(),
     currentZoneId: 1,       // zone de tonte en cours d'enregistrement
+    currentInterditZoneId: 1, // zone interdite en cours d'enregistrement
     points:        [],
   };
   projects.push(project);
@@ -331,6 +332,14 @@ function removePointFromCurrentProject(pointId) {
   if (!tonteZones.includes(Number(currentProject.currentZoneId))) {
     currentProject.currentZoneId = maxZone;
   }
+
+  const interditZones = currentProject.points
+    .filter(p => p.type === 'interdit')
+    .map(p => Number(p.zoneId) || 1);
+  const maxInterditZone = interditZones.length ? Math.max(...interditZones) : 1;
+  if (!interditZones.includes(Number(currentProject.currentInterditZoneId))) {
+    currentProject.currentInterditZoneId = maxInterditZone;
+  }
   saveProjects();
 }
 
@@ -338,6 +347,7 @@ function clearCurrentProjectPoints() {
   if (!currentProject) return;
   currentProject.points = [];
   currentProject.currentZoneId = 1;
+  currentProject.currentInterditZoneId = 1;
   saveProjects();
 }
 
@@ -388,7 +398,7 @@ function renderProjectList() {
   const label = document.getElementById('currentProjectName');
   const toggle = document.getElementById('btnProjectDrawer');
 
-  if (label) label.textContent = currentProject ? currentProject.name : 'Aucune parcelle';
+  if (label) label.textContent = currentProject ? currentProject.name : 'Aucune';
   if (toggle) {
     toggle.title = currentProject
       ? `Parcelle : ${currentProject.name} — choisir une parcelle`
@@ -442,7 +452,7 @@ function loadProjects() {
   } catch { return []; }
 }
 
-// Migration douce : zoneId (tonte) et currentZoneId obligatoires
+// Migration douce : zoneId (tonte/interdit) et zones courantes obligatoires
 function normalizeProject(project) {
   if (!project || typeof project !== 'object') return project;
   if (!Array.isArray(project.points)) project.points = [];
@@ -452,7 +462,7 @@ function normalizeProject(project) {
   project.points = project.points.filter(p => p && p.type !== 'base');
 
   project.points.forEach(p => {
-    if (p && p.type === 'tonte') {
+    if (p && (p.type === 'tonte' || p.type === 'interdit')) {
       const zid = Number(p.zoneId);
       p.zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
     }
@@ -463,6 +473,13 @@ function normalizeProject(project) {
   const current = Number(project.currentZoneId);
   if (!Number.isInteger(current) || current < 1 || current > maxZone) {
     project.currentZoneId = maxZone;
+  }
+
+  const maxInterditZone = project.points.reduce(
+    (max, p) => (p.type === 'interdit' ? Math.max(max, Number(p.zoneId) || 1) : max), 1);
+  const currentInterdit = Number(project.currentInterditZoneId);
+  if (!Number.isInteger(currentInterdit) || currentInterdit < 1 || currentInterdit > maxInterditZone) {
+    project.currentInterditZoneId = maxInterditZone;
   }
   return project;
 }

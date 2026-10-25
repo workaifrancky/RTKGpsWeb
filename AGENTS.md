@@ -86,7 +86,7 @@ Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet cour
   name: 'Arbre du fond' | null,  // nom personnalisé (facultatif)
   icon: '🟢',
   index: 1,                      // numérotation par type
-  zoneId: 1,                     // zones de tonte uniquement (défaut 1)
+  zoneId: 1,                     // zone de tonte ou zone interdite (défaut 1)
   lat: 44.832223,
   lon: -0.701992,
   alt: 120,
@@ -114,7 +114,7 @@ Résumé : `FeatureCollection` dans cet ordre strict :
 
 1. `domaine` — `Polygon` (convex hull de tous les points du projet)
 2. `zone` (× N) — `Polygon` (une Feature par `zoneId`, si ≥ 3 points `tonte`)
-3. `zone_interdite` — `Polygon` (points `interdit`, si ≥ 3)
+3. `zone_interdite` — `Polygon` (une Feature par zone interdite, si ≥ 3 points `interdit`)
 4. `obstacle` — un `Point` par obstacle (`name`, `categorie`, `rayon`, `index`, fix…)
 
 Aucune Feature `base` n'est produite.
@@ -132,6 +132,11 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
 - **Multi-zones de tonte** : chaque point `tonte` porte un `zoneId` (défaut 1) et le projet
   stocke `currentZoneId`. Utiliser `getZones()` pour grouper et ne jamais fusionner les zones
   à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante.
+- **Multi-zones interdites** : chaque point `interdit` porte aussi un `zoneId` ; le projet
+  stocke `currentInterditZoneId`. `getInterditZones()` groupe par zone, `startNewInterditZone()`
+  (bouton « ＋ Nouvelle zone interdite » de la liste TRACÉS, garde-fou ≥ 3 points) incrémente
+  la zone courante. Carte et export produisent un polygone / une Feature `zone_interdite`
+  **par zone** (`zone_id`), sans fusion.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. Le header contient
@@ -169,8 +174,8 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   `saveProjects()`. Le nom d'un point est stocké dans `point.name` (indépendant de `subtype`)
   et exporté dans `properties.name` pour les obstacles.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
-- **Zones interdites** : un seul Feature regroupant les points `interdit` (pas de notion de
-  zones multiples dans le modèle actuel).
+- **Zones interdites** : une Feature `zone_interdite` **par zone** (`zone_id`), nommée
+  `Zone interdite` pour la zone 1 et `Zone interdite #N` au-delà. Aucune fusion des zones.
 - **Ordre des scripts** : `index.html` charge les JS dans un ordre précis ; une nouvelle
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
   et `map.js`, avant `export.js`).
@@ -388,6 +393,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `createProject()` passe les IDs cochés à `addProject()`, qui importe via
   `importGlobalObstacles()` avant le rendu (nouveaux IDs, `importedFrom`, doublons ignorés).
   Carte, liste, badge de zone et RELEVÉ sont rafraîchis ; le contrat GeoJSON est inchangé.
+- **3.21 — Zones interdites multiples et libellé Parcelle** : chaque point `interdit` porte un
+  `zoneId` et le projet stocke `currentInterditZoneId` (migration par `normalizeProject()`).
+  `recordInterdit()` enregistre dans la zone courante ; `startNewInterditZone()` (bouton
+  « ＋ Nouvelle zone interdite » de la liste TRACÉS, garde-fou ≥ 3 points) incrémente la zone.
+  Carte et export produisent un polygone / une Feature `zone_interdite` **par zone**
+  (`zone_id`, nom `Zone interdite` pour la zone 1 puis `Zone interdite #N`), sans fusion ;
+  `computeStats()` somme les surfaces par zone et `statInterdit` affiche le nombre de zones.
+  Le bouton du header affiche « Parcelle : <nom> » (`.header-project-label`).
 
 ## 9. Langue et communication
 

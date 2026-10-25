@@ -133,20 +133,24 @@ function exportGeoJSON() {
     });
   });
 
-  // 3 ── Zones interdites
-  if (interdit.length >= 3) {
-    const coords = [...interdit.map(p=>[p.lon,p.lat]), [interdit[0].lon, interdit[0].lat]];
+  // 3 ── Zones interdites (une Feature par zoneId)
+  const interditZones = typeof getInterditZones === 'function' ? getInterditZones() : { 1: interdit };
+  Object.keys(interditZones).map(Number).sort((a, b) => a - b).forEach(zoneId => {
+    const zonePts = interditZones[zoneId] || [];
+    if (zonePts.length < 3) return;
+    const coords = [...zonePts.map(p=>[p.lon,p.lat]), [zonePts[0].lon, zonePts[0].lat]];
     features.push({
       type:'Feature',
       geometry:{ type:'Polygon', coordinates:[coords] },
       properties:{
         type:'zone_interdite',
-        name:'Zone interdite',
-        surface_m2:calculateArea(interdit),
+        name: zoneId === 1 ? 'Zone interdite' : `Zone interdite #${zoneId}`,
+        surface_m2:calculateArea(zonePts),
+        zone_id:zoneId,
         source:'rtk-mower',
       },
     });
-  }
+  });
 
   // 4 ── Obstacles isolés (1 Point par obstacle)
   obstacles.forEach(p => {

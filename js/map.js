@@ -219,20 +219,31 @@ function renderMap() {
     });
   });
 
-  // Polygone zone interdite (si ≥3 pts)
-  if (interdit.length >= 3) {
-    const lls = interdit.map(p=>[p.lat,p.lon]);
-    const area = calculateArea(interdit);
-    L.polygon(lls, { color:COLORS.interdit.stroke, weight:2.5, fillColor:COLORS.interdit.fill, fillOpacity:1 })
-      .addTo(layerInterdit)
-      .bindPopup('<b>Zone interdite</b>');
+  // Zones interdites : un polygone distinct par zoneId (comme la tonte)
+  const interditZones = typeof getInterditZones === 'function' ? getInterditZones() : { 1: interdit };
+  Object.keys(interditZones).map(Number).sort((a, b) => a - b).forEach(zoneId => {
+    const zonePts = interditZones[zoneId];
+    if (!zonePts || !zonePts.length) return;
 
-    surfaceParts.push(`Surface interdite : <b>${formatArea(area)}</b>`);
-  }
-  interdit.forEach((p,i) => {
-    L.circleMarker([p.lat,p.lon],{radius:8,fillColor:COLORS.interdit.stroke,color:'white',weight:2,fillOpacity:0.95})
-      .addTo(layerInterdit)
-      .bindPopup(pointPopup(p,i+1));
+    if (zonePts.length >= 3) {
+      const area = calculateArea(zonePts);
+      L.polygon(zonePts.map(p => [p.lat, p.lon]), {
+        color: COLORS.interdit.stroke, weight: 2.5,
+        fillColor: COLORS.interdit.fill, fillOpacity: 1,
+      })
+        .addTo(layerInterdit)
+        .bindPopup(`<b>Zone interdite #${zoneId}</b><br>Surface : ${formatArea(area)}`);
+
+      surfaceParts.push(`Zone interdite ${zoneId} : <b>${formatArea(area)}</b>`);
+    }
+
+    zonePts.forEach(p => {
+      L.circleMarker([p.lat, p.lon], {
+        radius: 8, fillColor: COLORS.interdit.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
+      })
+        .addTo(layerInterdit)
+        .bindPopup(pointPopup(p, p.index));
+    });
   });
 
   // Obstacles isolés
