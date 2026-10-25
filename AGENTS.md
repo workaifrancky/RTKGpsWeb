@@ -194,6 +194,12 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
 - **Modales** : ne plus utiliser `confirm()` / `prompt()` natifs. `customConfirm()` et
   `customPrompt()` (`js/app.js`, `#customModal`) retournent des promesses ; Échap et le clic
   sur le voile annulent, le focus reste dans la modale et un nom vide est refusé sans la fermer.
+- **Navigation basse** : `#bottomNav` (`.tabs-wrapper.bottom-nav`) est **fixe hors de
+  `.app-wrapper`**, avec `z-index: 900` (sous le tiroir 1050, les modales 1100 et les toasts
+  1200). `.screen` réserve `--bottom-nav-height` + `env(safe-area-inset-bottom)` : ne pas
+  retirer ce padding, sinon la capsule et la barre d'export passent dessous. La barre est
+  masquée en plein écran par `body.map-ui-fullscreen .tabs-wrapper` et
+  `body.camera-ui-fullscreen .tabs-wrapper`.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : une Feature `zone_interdite` **par zone** (`zone_id`), nommée
   `Zone interdite` pour la zone 1 et `Zone interdite #N` au-delà. Aucune fusion des zones.
@@ -448,6 +454,15 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `customPrompt`) : tous les `confirm()` / `prompt()` natifs sont remplacés (parcelles, zones,
   points, effacement), validation du nom vide dans la modale, Échap / voile / Annuler, focus
   piégé et restauré.
+
+- **3.25 — Barre de navigation basse** : les quatre onglets quittent le haut et deviennent une
+  barre fixe en bas (`#bottomNav`, `.tabs-wrapper.bottom-nav`) placée hors de `.app-wrapper`.
+  Quatre boutons de largeur égale, icône + **libellé visible** (12 px, 11 px ≤ 340 px), actif
+  vert avec liseré supérieur `--color-primary-accent` (`aria-current="page"`). `.screen`
+  réserve `--bottom-nav-height` (64 px) + `env(safe-area-inset-bottom)` ; `viewport-fit=cover`
+  activé pour l'iPhone. La barre est sous le tiroir (1040/1050), les modales (1100) et les
+  toasts (1200), et masquée en plein écran carte/caméra. Thème nuit : libellés vert clair,
+  inactifs à `opacity: 0.65` ; badge de mode et bouton « Terminer » rendus lisibles.
 
 ## 9. Langue et communication
 

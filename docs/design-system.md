@@ -97,33 +97,37 @@ Overrides de lisibilité :
   fictive dans le pipeline (bandeau Fix). **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
-### Bandeau d'onglets « pills » (`main.css`, overrides dans `theme.css`)
+### Barre de navigation basse (`main.css`, overrides dans `theme.css`)
 
-Structure : un conteneur `.tabs-wrapper` et, pour chaque onglet, un
+Structure : un conteneur `#bottomNav` avec les classes `.tabs-wrapper.bottom-nav`, placé **hors
+de `.app-wrapper`** (après sa fermeture) et fixé en bas de l'écran. Chaque onglet reste un
 `<button type="button" class="tab-label" data-tab="tab-…">` (TRACÉS, CAMÉRA, RELEVÉ,
-HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la classe `.active`, posée par `showTab()`
-(`js/app.js`) : **aucun radio**, donc aucun défilement automatique du conteneur.
+HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.active` et
+`aria-current="page"`, posés par `showTab()` (`js/app.js`).
 
-- `.tabs-wrapper` : fond `var(--color-bg-muted)`, `padding: 8px 10px`, `gap: 6px`, filet
-  inférieur 2 px `var(--green-dark)`, une seule ligne (`overflow-x: auto`,
-  `scrollbar-width: none`).
-- `.tab-label` : bouton « reset » (`appearance: none`, `font-family: var(--font)`) en pill
-  (`border-radius: 999px`), `min-height: 44px`, padding `10px 16px`, 12 px / 700, fond
-  `var(--color-white)` (blanc en thème jour), texte `var(--green-dark)`, bordure `--border`,
-  ombre `--shadow-sm`, transitions 0,18 s.
-- `.tab-label:hover` : fond `--color-primary-pale-bg`, bordure `--color-primary-accent` ;
-  `:active` : `scale(0.97)`.
-- `.tab-label.active` : fond `var(--green-main)` (`#2e7d32`), texte blanc, ombre
-  `--shadow-md` (la pill active « ressort »).
+- `.tabs-wrapper.bottom-nav` : `position: fixed`, `bottom: 0`, centrée (`left: 50%`,
+  `translateX(-50%)`), largeur 100 % plafonnée à 480 px (comme `.app-wrapper`),
+  `min-height: var(--bottom-nav-height)` (64 px), fond `--color-white`, bordure supérieure
+  `1px solid var(--border)`, ombre `0 -2px 10px rgba(0,0,0,0.05)`, `z-index: 900`.
+  `padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px))` pour l'iPhone
+  (`viewport-fit=cover` activé dans `index.html`).
+- `.screen` réserve `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px))` en
+  `padding-bottom` : la carte, la capsule, la barre d'export et le contenu des autres onglets
+  restent au-dessus de la barre.
+- `.bottom-nav .tab-label` : quatre boutons de largeur égale (`flex: 1 1 0`), en colonne
+  (icône 20 px au-dessus du libellé), `min-height: 52px`, libellés **visibles** à toutes les
+  largeurs (12 px, 11 px ≤ 340 px), couleur inactive `--text3`, fond transparent, sans bordure
+  ni ombre.
+- `.bottom-nav .tab-label.active` : texte/icône `--green-dark` et liseré supérieur de 34 × 3 px
+  `--color-primary-accent` (`::after`) ; survol sur `--color-primary-pale-bg`.
 - `.tab-label:focus-visible` : contour 3 px `--color-primary-accent`.
-- Thème nuit : pills inactives = fond `--color-white` (`#1a1d27`) + texte
-  `--color-primary-accent` (`#4ade80`) ; pill active = fond `--color-primary-accent` + texte
-  `--green-dark` (contraste 8,55:1). Filet inférieur `--color-primary-light`.
-- ≤ 360 px : `gap: 5px`, `padding: 7px 8px`, labels en `9px 12px` / 11 px.
-- `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` pour que la barre ne
-  revienne jamais à gauche au clic.
-- Le bandeau est masqué en plein écran caméra
+- Thème nuit : surface `--color-white` (sombre), libellés `--color-primary-accent` avec
+  `opacity: 0.65` pour les inactifs (1 pour l'actif), liseré actif `--color-primary-accent`.
+- `showTab()` pose `.active` et `aria-current="page"` ; la barre est masquée en plein écran
+  carte (`body.map-ui-fullscreen .tabs-wrapper`) et caméra
   (`body.camera-ui-fullscreen .tabs-wrapper`).
+- Hiérarchie : barre basse 900 < voile du tiroir 1040 < tiroir 1050 < modales 1100 < toasts
+  1200. Le tiroir et les modales recouvrent donc la barre.
 
 ### Modales (`main.css`)
 
@@ -174,8 +178,8 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
 | ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, capsule 64 px. |
-| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). Onglets en **icônes seules** (`.tab-text` masqué, `title` + `aria-label`), sans débordement. Capsule 48 px (gap 8, bas 14 px). Badge/POINTS à 12 px, hint masqué. |
-| ≤ 360 px | Logo 13 px, capsule 44 px (gap 6), onglets en padding réduit. Parcelle sur sa propre ligne si nécessaire (320 px). |
+| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), capsule 48 px (gap 8, bas 14 px). Badge/POINTS à 12 px, hint masqué. |
+| ≤ 360 px | Logo 13 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), capsule 44 px (gap 6). Parcelle sur sa propre ligne si nécessaire (320 px). |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
 320/360/390 px. Les libellés **dans** les cercles de la capsule restent à 8–9 px (contrainte

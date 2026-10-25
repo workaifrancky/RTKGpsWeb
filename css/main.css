@@ -36,6 +36,9 @@
   /* Croix de visée fixe de la carte (même vert que les tracés) */
   --color-crosshair: #16a34a;
 
+  /* Hauteur de la barre de navigation basse (hors safe-area iPhone) */
+  --bottom-nav-height: 64px;
+
   /* Couleurs fix GPS (spécifiques RTK Mower) → tokens */
   --color-rtk:    var(--color-primary-light);
   --color-float:  var(--color-warning);
@@ -144,6 +147,7 @@ body {
   height:         100dvh;
   max-width:      480px;
   margin:         0 auto;
+  padding-top:    env(safe-area-inset-top, 0px);
   position:       relative;
   overflow:       hidden;
 }
@@ -438,6 +442,9 @@ header {
   display:          none;
   flex:             1 1 auto;
   min-height:       0;      /* autorise le défilement interne dans le flex */
+  /* Réserve la barre de navigation basse (et la safe-area iPhone) pour que
+     le contenu, la capsule et la barre d'export restent accessibles. */
+  padding-bottom:   calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   overflow-y:       auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -741,4 +748,105 @@ header {
   .tabs-wrapper { gap: 4px; padding: 6px; }
   .tab-label { padding: 8px 12px; }
   .tab-icon { font-size: 17px; }
+}
+/* ─── NAVIGATION BASSE (barre fixe) ────────────────────────── */
+/* Le bandeau d'onglets est sorti de .app-wrapper et fixé en bas. Les boutons
+   occupent toute la largeur à parts égales, avec icône + libellé. L'état actif
+   est signalé par un liseré vert en haut. `.screen` réserve la hauteur de la
+   barre (--bottom-nav-height) pour que rien ne passe dessous. */
+.tabs-wrapper.bottom-nav {
+  position:        fixed;
+  bottom:          0;
+  left:            50%;
+  transform:       translateX(-50%);
+  width:           100%;
+  max-width:       480px;
+  min-height:      var(--bottom-nav-height);
+  display:         flex;
+  align-items:     stretch;
+  justify-content: space-around;
+  gap:             0;
+  padding:         5px 6px calc(5px + env(safe-area-inset-bottom, 0px));
+  background:      var(--color-white);
+  border-top:      1px solid var(--border);
+  border-bottom:   none;
+  box-shadow:      0 -2px 10px rgba(0, 0, 0, 0.05);
+  overflow:        visible;
+  z-index:         900;   /* sous le tiroir (1040/1050), les modales (1100) et les toasts (1200) */
+  box-sizing:      border-box;
+}
+
+.tabs-wrapper.bottom-nav .tab-label {
+  position:       relative;
+  flex:           1 1 0;
+  min-width:      0;
+  flex-direction: column;
+  gap:            2px;
+  min-height:     52px;
+  padding:        5px 4px;
+  border:         none;
+  border-radius:  var(--radius-md);
+  background:     transparent;
+  color:          var(--text3);
+  box-shadow:     none;
+  font-size:      12px;
+  font-weight:    700;
+  letter-spacing: 0;
+  line-height:    1.1;
+  overflow:       hidden;
+}
+
+.tabs-wrapper.bottom-nav .tab-label:hover {
+  background:   var(--color-primary-pale-bg);
+  border-color: transparent;
+  color:        var(--green-dark);
+}
+
+.tabs-wrapper.bottom-nav .tab-label.active {
+  background:   transparent;
+  border-color: transparent;
+  box-shadow:   none;
+  color:        var(--green-dark);
+}
+
+.tabs-wrapper.bottom-nav .tab-label.active:hover {
+  background: var(--color-primary-pale-bg);
+  color:      var(--green-dark);
+}
+
+.tabs-wrapper.bottom-nav .tab-label::after { content: none; }
+
+.tabs-wrapper.bottom-nav .tab-label.active::after {
+  content:       "";
+  position:      absolute;
+  top:           0;
+  left:          50%;
+  width:         34px;
+  height:        3px;
+  transform:     translateX(-50%);
+  border-radius: 0 0 3px 3px;
+  background:    var(--color-primary-accent);
+}
+
+.tabs-wrapper.bottom-nav .tab-icon {
+  font-size:   20px;
+  line-height: 1;
+}
+
+.tabs-wrapper.bottom-nav .tab-text {
+  display:       block;      /* libellés visibles même ≤ 480 px */
+  max-width:     100%;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+@media (max-width: 340px) {
+  .tabs-wrapper.bottom-nav .tab-label {
+    padding-left:  3px;
+    padding-right: 3px;
+    font-size:     11px;
+  }
+
+  .tabs-wrapper.bottom-nav .tab-icon { font-size: 18px; }
 }

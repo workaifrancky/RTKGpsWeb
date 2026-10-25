@@ -2,7 +2,7 @@
 <html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -63,12 +63,7 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLETS                                                 -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <div class="tabs-wrapper">
-    <button type="button" class="tab-label active" data-tab="tab-points" title="TRACÉS" aria-label="TRACÉS" onclick="showTab('tab-points')"><span class="tab-icon" aria-hidden="true">📍</span><span class="tab-text">TRACÉS</span></button>
-    <button type="button" class="tab-label" data-tab="tab-camera" title="CAMÉRA" aria-label="CAMÉRA" onclick="showTab('tab-camera')"><span class="tab-icon" aria-hidden="true">📷</span><span class="tab-text">CAMÉRA</span></button>
-    <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ" aria-label="RELEVÉ" onclick="showTab('tab-stats')"><span class="tab-icon" aria-hidden="true">📊</span><span class="tab-text">RELEVÉ</span></button>
-    <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE" aria-label="HISTORIQUE" onclick="showTab('tab-history')"><span class="tab-icon" aria-hidden="true">🕐</span><span class="tab-text">HISTORIQUE</span></button>
-  </div>
+  <!-- Barre de navigation déplacée en bas du body (voir #bottom-nav). -->
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ONGLET 1 : POINTS                                       -->
@@ -298,6 +293,16 @@
   </aside>
 
 </div><!-- fin .app-wrapper -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- NAVIGATION BASSE                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="bottomNav" class="tabs-wrapper bottom-nav" role="navigation" aria-label="Navigation principale">
+  <button type="button" class="tab-label active" data-tab="tab-points" title="TRACÉS" aria-label="TRACÉS" aria-current="page" onclick="showTab('tab-points')"><span class="tab-icon" aria-hidden="true">📍</span><span class="tab-text">TRACÉS</span></button>
+  <button type="button" class="tab-label" data-tab="tab-camera" title="CAMÉRA" aria-label="CAMÉRA" onclick="showTab('tab-camera')"><span class="tab-icon" aria-hidden="true">📷</span><span class="tab-text">CAMÉRA</span></button>
+  <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ" aria-label="RELEVÉ" onclick="showTab('tab-stats')"><span class="tab-icon" aria-hidden="true">📊</span><span class="tab-text">RELEVÉ</span></button>
+  <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE" aria-label="HISTORIQUE" onclick="showTab('tab-history')"><span class="tab-icon" aria-hidden="true">🕐</span><span class="tab-text">HISTORIQUE</span></button>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL OBSTACLE                                              -->

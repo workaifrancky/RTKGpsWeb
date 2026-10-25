@@ -35,6 +35,49 @@
   color:        var(--green-dark);
   border-color: var(--color-primary-accent);
 }
+
+/* Barre de navigation basse : surface sombre, libellés lisibles, actif vert
+   clair et sans fond plein (le liseré supérieur reste --color-primary-accent). */
+[data-theme="dark"] .tabs-wrapper.bottom-nav {
+  background:   var(--color-white);
+  border-top-color: var(--border);
+  box-shadow:   0 -2px 10px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .tabs-wrapper.bottom-nav .tab-label,
+[data-theme="dark"] .tabs-wrapper.bottom-nav .tab-label:hover {
+  background:   transparent;
+  border-color: transparent;
+  box-shadow:   none;
+  color:        var(--color-primary-accent);
+  opacity:      0.65;
+}
+
+[data-theme="dark"] .tabs-wrapper.bottom-nav .tab-label:hover {
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .tabs-wrapper.bottom-nav .tab-label.active,
+[data-theme="dark"] .tabs-wrapper.bottom-nav .tab-label.active:hover {
+  background:   transparent;
+  border-color: transparent;
+  box-shadow:   none;
+  color:        var(--color-primary-accent);
+  opacity:      1;
+}
+
+/* Lisibilité en thème nuit des contrôles du bandeau de mode. */
+[data-theme="dark"] .map-mode-badge {
+  background:   transparent;
+  border:       1px solid var(--color-warning-strong);
+  color:        var(--color-warning-strong);
+}
+
+[data-theme="dark"] #tab-points.mode-creation .map-mode-toggle {
+  background:   var(--color-primary-accent);
+  border-color: var(--color-primary-accent);
+  color:        var(--green-dark);
+}
 [data-theme="dark"] .floating-toolbar {
   background:   var(--color-white);
   border-color: var(--border2);
@@ -194,7 +237,7 @@
 }
 
 #tab-camera {
-  padding-bottom: 0;
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
 }
 
 #tab-camera.active {
@@ -246,6 +289,7 @@ body.camera-ui-fullscreen #tab-camera {
   left:       0;
   right:      0;
   bottom:     0;
+  padding-bottom: 0;
   z-index:    450;
   background: #000;
 }

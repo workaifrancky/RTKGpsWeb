@@ -53,10 +53,13 @@ brique doit être insérée **après ses dépendances**.
 - Quatre onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CAMÉRA, RELEVÉ,
   HISTORIQUE. Les onglets GPS / DONNÉES et CARTE ont été supprimés (doublons avec TRACÉS) ;
   le `data-tab` de TRACÉS reste `tab-points`.
-- `showTab(tabId)` (`js/app.js`) active l'écran correspondant et pose `.active` sur le bouton
-  portant le même `data-tab`. Aucun radio : le navigateur ne défile plus tout seul.
-- `showTab()` mémorise puis restaure `scrollLeft` de `.tabs-wrapper` : la barre d'onglets ne
-  revient jamais à gauche lors d'un clic.
+- La navigation est une **barre fixe en bas** (`#bottomNav`, `.tabs-wrapper.bottom-nav`),
+  placée hors de `.app-wrapper`, avec icône + libellé et quatre boutons de largeur égale.
+  `.screen` réserve sa hauteur (+ safe-area iPhone) pour que la carte et la capsule restent
+  au-dessus.
+- `showTab(tabId)` (`js/app.js`) active l'écran correspondant, pose `.active` et
+  `aria-current="page"` sur le bouton portant le même `data-tab`. Aucun radio.
+- La barre est masquée en plein écran carte et caméra.
 - Le bandeau `#projectBar` a été supprimé : le header contient `#btnProjectDrawer` (nom de la
   parcelle courante) qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
   tiroir liste les parcelles (`#projectListContainer`), permet de changer, renommer,

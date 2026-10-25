@@ -52,17 +52,20 @@ function showTab(tabId) {
   const screen = document.getElementById(tabId);
   if (!screen) return;
 
-  // Mémorise le défilement horizontal des onglets : le navigateur ne doit jamais
-  // ramener la barre à gauche lors d'un changement d'onglet.
+  // Mémorise le défilement horizontal de la barre de navigation (la barre est
+  // désormais fixe en bas ; la valeur reste à 0, mais l'appel est sans risque).
   const tabsWrapper = document.querySelector('.tabs-wrapper');
   const tabsScrollLeft = tabsWrapper ? tabsWrapper.scrollLeft : 0;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   screen.classList.add('active');
 
-  // Onglets = boutons : l'état actif est géré en JS (plus de radios).
+  // Navigation basse = boutons : l'état actif est géré en JS.
   document.querySelectorAll('.tabs-wrapper .tab-label').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tabId);
+    const isActive = btn.dataset.tab === tabId;
+    btn.classList.toggle('active', isActive);
+    if (isActive) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
   });
 
   if (tabsWrapper) tabsWrapper.scrollLeft = tabsScrollLeft;
