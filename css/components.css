@@ -180,7 +180,7 @@
   z-index:        1;
   max-width:      90%;
   color:          inherit;
-  font-size:      10px;
+  font-size:      11px;
   font-weight:    800;
   letter-spacing: 0.2px;
   line-height:    1.05;
@@ -376,6 +376,7 @@
   display:     flex;
   align-items: center;
   gap:         8px;
+  min-height:  44px;
   padding:     7px 8px;
   background:  var(--color-white);
   border-radius: var(--radius-sm);
@@ -538,7 +539,7 @@
   background:     var(--color-primary-pale);
   color:          var(--color-primary-deep);
   border:         1px solid var(--color-primary-light);
-  font-size:      10px;
+  font-size:      12px;
   font-weight:    800;
   letter-spacing: 0.4px;
   white-space:    nowrap;
@@ -673,8 +674,8 @@
   background:    none;
   border:        1px solid var(--border);
   color:         var(--text4);
-  width:         30px;
-  height:        30px;
+  width:         44px;
+  height:        44px;
   border-radius: 50%;
   cursor:        pointer;
   font-size:     14px;
@@ -709,8 +710,8 @@
   background:    none;
   border:        1px solid var(--border);
   color:         var(--text4);
-  width:         30px;
-  height:        30px;
+  width:         44px;
+  height:        44px;
   border-radius: 50%;
   cursor:        pointer;
   font-size:     13px;
@@ -1022,6 +1023,8 @@
 }
 
 .drawer-close {
+  min-width:      44px;
+  min-height:     44px;
   background:     transparent;
   color:          inherit;
   border:         none;
@@ -1093,8 +1096,8 @@
 }
 
 .drawer-project-actions button {
-  width:         32px;
-  height:        32px;
+  width:         44px;
+  height:        44px;
   padding:       0;
   background:    transparent;
   border:        1px solid var(--border);
@@ -1152,10 +1155,47 @@
   .obstacle-option-icon     { font-size: 20px; }
 }
 
-/* Écrans très étroits : les quatre boutons doivent rester dans la capsule. */
-@media (max-width: 340px) {
-  .floating-toolbar       { gap: 4px; padding-left: 8px; padding-right: 8px; bottom: 12px; }
-  .terrain-btn-circle     { width: 52px; height: 52px; }
-  .terrain-btn-circle svg { width: 24px; height: 24px; }
-  .terrain-btn-text       { font-size: 8px; }
+/* ─── RESPONSIVE MOBILE (≤ 480 px) ───────────────────────────── */
+/* Capsule plus compacte et cibles tactiles de 44 px minimum. */
+@media (max-width: 480px) {
+  .floating-toolbar {
+    gap:        8px;
+    padding:    6px 10px;
+    bottom:     14px;
+    max-width:  calc(100% - 12px);
+  }
+
+  .terrain-btn-circle {
+    width:  48px;
+    height: 48px;
+  }
+
+  .terrain-btn-circle svg { width: 22px; height: 22px; }
+  .terrain-btn-text       { font-size: 9px; letter-spacing: 0; }
+  .terrain-btn-sub        { font-size: 7px; }
+
+  .drawer-project-actions button { width: 44px; height: 44px; }
+  .drawer-close                  { min-width: 44px; min-height: 44px; }
+  .drawer-new                    { min-height: 44px; font-size: 14px; }
+  .import-obstacle-item          { min-height: 44px; }
+  .import-obstacles-toggle       { min-height: 44px; font-size: 12px; }
+
+  /* Textes lisibles (components.css charge après main.css). */
+  .zone-badge,
+  .point-coords,
+  .point-meta,
+  .point-time,
+  .point-date,
+  .data-label,
+  .data-sub { font-size: 12px; }
+
+  .import-obstacle-name    { font-size: 13px; }
+  .import-obstacle-coords  { font-size: 12px; }
+  .import-obstacles-title  { font-size: 12px; }
+}
+
+@media (max-width: 360px) {
+  .floating-toolbar   { gap: 6px; padding: 6px 8px; bottom: 14px; }
+  .terrain-btn-circle { width: 44px; height: 44px; }
+  .terrain-btn-text   { font-size: 8px; }
 }

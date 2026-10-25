@@ -120,6 +120,9 @@ html {
   overflow-x:   hidden;
 }
 
+/* Cible tactile minimale (Apple/Google) pour tous les boutons. */
+button { min-height: 44px; }
+
 body {
   background:   var(--color-bg-subtle);
   color:        var(--text);
@@ -236,6 +239,10 @@ header {
 
 /* ─── BOUTON BLE HEADER ─────────────────────────────────────── */
 #btnBle {
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  gap:            6px;
   background:     white;
   color:          var(--color-primary);
   border:         none;
@@ -378,6 +385,7 @@ header {
   display:               flex;
   align-items:           center;
   justify-content:       center;
+  gap:                   5px;
   min-height:            44px;
   padding:               10px 16px;
   border:                1px solid var(--border);
@@ -599,4 +607,108 @@ header {
     animation-duration:  0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ─── RESPONSIVE MOBILE (≤ 480 px) ─────────────────────────── */
+/* Header compact sur une ligne : logo, thème, BLE (icône) et parcelle.
+   Les wrappers .header-top / .header-actions disparaissent (display:contents)
+   pour que leurs enfants deviennent des items du header. */
+@media (max-width: 480px) {
+  header {
+    flex-direction: row;
+    flex-wrap:      wrap;
+    align-items:    center;
+    gap:            6px;
+    padding:        8px 10px;
+  }
+
+  .header-top,
+  .header-actions { display: contents; }
+
+  .logo {
+    flex:           0 0 auto;
+    font-size:      14px;
+    letter-spacing: 0.3px;
+    white-space:    nowrap;
+  }
+
+  .logo-sub { display: none; }
+
+  #btnTheme,
+  #btnBle {
+    min-width:  44px;
+    min-height: 44px;
+    padding:    0 10px;
+  }
+
+  .ble-label { display: none; }
+  .ble-icon  { font-size: 17px; line-height: 1; }
+
+  #btnProjectDrawer {
+    flex:       1 1 120px;
+    width:      auto;
+    min-width:  0;
+    min-height: 44px;
+    padding:    6px 10px;
+    font-size:  12px;
+  }
+
+  /* Le titre du bouton porte « Parcelle : <nom> » (voir renderProjectList). */
+  .header-project-label { display: none; }
+
+  /* Onglets : icônes seules, 44 px de haut, jamais de débordement. */
+  .tabs-wrapper {
+    justify-content: center;
+    gap:             6px;
+    padding:         6px 8px;
+  }
+
+  .tab-label {
+    padding:    8px 14px;
+    min-height: 44px;
+    font-size:  12px;
+  }
+
+  .tab-text { display: none; }
+  .tab-icon { font-size: 18px; line-height: 1; }
+
+  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
+  .map-mode-hint    { display: none; }
+  .map-panel-toggle { min-height: 44px; font-size: 12px; padding: 6px 12px; }
+
+  /* Cibles tactiles : 44 px minimum pour tous les boutons. */
+  button { min-height: 44px; }
+
+  .btn-edit,
+  .btn-del,
+  .drawer-project-actions button,
+  .drawer-close,
+  .map-gps-btn,
+  .map-float-btn {
+    width:  44px;
+    height: 44px;
+  }
+
+  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
+  .map-mode-hint    { display: none; }
+  .map-panel-toggle { min-height: 44px; font-size: 12px; padding: 6px 12px; }
+
+  .zone-badge,
+  .point-coords,
+  .point-meta,
+  .point-time,
+  .point-date,
+  .data-label,
+  .data-sub { font-size: 12px; }
+
+  .import-obstacle-name   { font-size: 13px; }
+  .import-obstacle-coords { font-size: 12px; }
+  .import-obstacles-title { font-size: 12px; }
+}
+
+@media (max-width: 360px) {
+  .logo { font-size: 13px; }
+  .tabs-wrapper { gap: 4px; padding: 6px; }
+  .tab-label { padding: 8px 12px; }
+  .tab-icon { font-size: 17px; }
 }

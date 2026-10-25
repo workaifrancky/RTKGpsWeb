@@ -88,13 +88,19 @@ function setBleStatus(status) {
   const dot=document.getElementById('fixDot');
   const statusText=document.getElementById('statusText');
   const states = {
-    disconnected:{ btn:'⬡ CONNECTER',  dot:'none',   text:'Non connecté',            btnCls:'off' },
-    scanning:    { btn:'⏳ Scan...',    dot:'none',   text:'Recherche RTK_Mower...',  btnCls:'off' },
-    connecting:  { btn:'⏳ Connexion...', dot:'none', text:'Connexion en cours...',   btnCls:'off' },
-    connected:   { btn:'✓ CONNECTÉ',   dot:'',       text:'Connecté à RTK_Mower',    btnCls:'' },
+    disconnected:{ icon:'⬡', label:'CONNECTER BLE', dot:'none', text:'Non connecté',            btnCls:'off' },
+    scanning:    { icon:'⏳', label:'Scan...',       dot:'none', text:'Recherche RTK_Mower...',  btnCls:'off' },
+    connecting:  { icon:'⏳', label:'Connexion...',  dot:'none', text:'Connexion en cours...',   btnCls:'off' },
+    connected:   { icon:'✓',  label:'CONNECTÉ',     dot:'',     text:'Connecté à RTK_Mower',    btnCls:'' },
   };
   const s = states[status] || states.disconnected;
-  if (btn) { btn.textContent=s.btn; btn.className=s.btnCls; }
+  if (btn) {
+    // Icône et libellé séparés : sur mobile seul « ⬡ » reste visible.
+    btn.innerHTML = `<span class="ble-icon" aria-hidden="true">${s.icon}</span><span class="ble-label">${s.label}</span>`;
+    btn.className = s.btnCls;
+    btn.title = s.label;
+    btn.setAttribute('aria-label', s.label);
+  }
   if (statusText) statusText.textContent=s.text;
 }
 

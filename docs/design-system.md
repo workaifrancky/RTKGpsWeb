@@ -163,16 +163,30 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
 - `.import-obstacles-empty` : message « Aucun obstacle enregistré pour le moment. ».
 - `.modal-box` reçoit `max-height: 90dvh` + `overflow-y: auto` pour les longues listes.
 
+### Breakpoints responsive
+
+| Plage | Comportement |
+|---|---|
+| Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
+| ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, capsule 64 px. |
+| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). Onglets en **icônes seules** (`.tab-text` masqué, `title` + `aria-label`), sans débordement. Capsule 48 px (gap 8, bas 14 px). Badge/POINTS à 12 px, hint masqué. |
+| ≤ 360 px | Logo 13 px, capsule 44 px (gap 6), onglets en padding réduit. Parcelle sur sa propre ligne si nécessaire (320 px). |
+
+Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
+320/360/390 px. Les libellés **dans** les cercles de la capsule restent à 8–9 px (contrainte
+des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
+
 ### Modes et plein écran carte
 
 - `#btnTracesMode` (`.map-mode-toggle`, `map.css`) : pastille flottante en bas de la carte.
   Mode lecture : « ✏️ Modifier » (vert, `bottom: 20px`). Mode création : « ✓ Terminer »
-  (surface `--color-white`, `bottom: 116px`, au-dessus de la capsule).
+  (surface `--color-white`, `bottom: 116px`, `78px` ≤ 480 px, au-dessus de la capsule).
 - `.floating-toolbar` : `display: none` par défaut ; `#tab-points.mode-creation .floating-toolbar`
   l'affiche. En lecture, la cible `#map-crosshair` est masquée.
-- `.map-floating-controls` : colonne de trois boutons 36 px sous le zoom Leaflet (gauche) —
-  Relief, Satellite, Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`).
-  `.map-float-btn.active` = fond `--color-primary`, texte blanc.
+- `.map-floating-controls` : colonne de trois boutons **44 px** à `top: 108px` (sous le zoom
+  Leaflet, lui aussi à 44 px) — Relief, Satellite, Plein écran (`#btnBaseRelief`,
+  `#btnBaseSatellite`, `#btnMapFullscreen`). `.map-float-btn.active` = fond
+  `--color-primary`, texte blanc.
 - `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et `.points-panel` ;
   `#tab-points` passe en `position: fixed; inset: 0; width: 100vw; height: 100dvh;
   z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent visibles ; le bouton
@@ -196,7 +210,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
   - **désactivé** : `opacity: 0.35` + `saturate(0.7)` (classe `.disabled`, gérée par
     `updateTerrainButtons()`).
 - `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle
-  (10 px / 800, 9 px sous 360 px), en `currentColor` — donc blanc, ou
+  (11 px / 800, 9 px ≤ 480 px, 8 px ≤ 360 px), en `currentColor` — donc blanc, ou
   `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`
   et sans `text-shadow`.
 - `.terrain-btn-circle svg` : icône **SVG outline** du bouton « Nouvelle zone »
@@ -210,9 +224,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par la
   nouvelle zone `--color-teal`.
 - Thème nuit : les boutons plats gardent les mêmes tokens ; seule la capsule change de
   surface (`--color-white` sombre + bordure `--border2`). Plus aucun override d'ombre.
-- Responsive : 56 px sous 360 px de large, icône 26 px, texte 9 px ; sous 340 px, cercles
-  52 px, icône 24 px, texte 8 px, `gap: 4px`, padding latéral 8 px et `bottom: 12px` pour
-  que les quatre boutons restent dans la capsule.
+- Responsive : 48 px ≤ 480 px (icône 22 px, texte 9 px, `gap: 8px`, padding `6px 10px`,
+  `bottom: 14px`) ; 44 px ≤ 360 px (texte 8 px, `gap: 6px`, padding `6px 8px`). Les quatre
+  boutons restent dans la capsule à 320 px.
 
 ### Cartes et listes
 

@@ -21,6 +21,8 @@ Fonctionnalités principales :
 - **plusieurs zones interdites** distinctes par parcelle (même principe, `zoneId` dédié) ;
 - carte Leaflet (Relief / Satellite), polygones, surfaces et **distances de segments**
   (`leaflet-measure-path`) calculées en direct, **plein écran** et modes lecture / création ;
+- interface **responsive** (320 → desktop) : header compact, onglets icônes sur mobile,
+  cibles tactiles ≥ 44 px ;
 - **relevé de parcelle** (onglet RELEVÉ) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
 - caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
 - export **GeoJSON** (format principal, contrat Mower Planner), **CSV** et **GPX** via le menu

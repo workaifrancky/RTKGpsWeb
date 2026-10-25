@@ -25,8 +25,10 @@
     <div class="header-top">
       <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
       <div class="header-actions">
-        <button id="btnTheme" onclick="toggleTheme()" title="Thème">🌙</button>
-        <button id="btnBle" class="off" onclick="toggleBle()">⬡ CONNECTER BLE</button>
+        <button type="button" id="btnTheme" onclick="toggleTheme()" title="Thème" aria-label="Changer de thème">🌙</button>
+        <button id="btnBle" class="off" onclick="toggleBle()" title="Connecter le module BLE">
+          <span class="ble-icon" aria-hidden="true">⬡</span><span class="ble-label">CONNECTER BLE</span>
+        </button>
       </div>
     </div>
     <button type="button" id="btnProjectDrawer" onclick="toggleProjectDrawer()"
@@ -62,10 +64,10 @@
   <!-- ONGLETS                                                 -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div class="tabs-wrapper">
-    <button type="button" class="tab-label active" data-tab="tab-points" onclick="showTab('tab-points')">📍 TRACÉS</button>
-    <button type="button" class="tab-label" data-tab="tab-camera" onclick="showTab('tab-camera')">📷 CAMÉRA</button>
-    <button type="button" class="tab-label" data-tab="tab-stats" onclick="showTab('tab-stats')">📊 RELEVÉ</button>
-    <button type="button" class="tab-label" data-tab="tab-history" onclick="showTab('tab-history')">🕐 HISTORIQUE</button>
+    <button type="button" class="tab-label active" data-tab="tab-points" title="TRACÉS" aria-label="TRACÉS" onclick="showTab('tab-points')"><span class="tab-icon" aria-hidden="true">📍</span><span class="tab-text">TRACÉS</span></button>
+    <button type="button" class="tab-label" data-tab="tab-camera" title="CAMÉRA" aria-label="CAMÉRA" onclick="showTab('tab-camera')"><span class="tab-icon" aria-hidden="true">📷</span><span class="tab-text">CAMÉRA</span></button>
+    <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ" aria-label="RELEVÉ" onclick="showTab('tab-stats')"><span class="tab-icon" aria-hidden="true">📊</span><span class="tab-text">RELEVÉ</span></button>
+    <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE" aria-label="HISTORIQUE" onclick="showTab('tab-history')"><span class="tab-icon" aria-hidden="true">🕐</span><span class="tab-text">HISTORIQUE</span></button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -112,17 +114,17 @@
       <!-- Barre d'enregistrement flottante sur la carte (capsule) -->
       <div class="floating-toolbar" role="toolbar" aria-label="Enregistrer un point">
         <div class="terrain-btn" onclick="recordTonte()">
-          <div class="terrain-btn-circle tonte" id="btnTonte">
+          <div class="terrain-btn-circle tonte" id="btnTonte" title="Enregistrer un point de tonte">
             <span class="terrain-btn-text">TONTE</span>
           </div>
         </div>
         <div class="terrain-btn" onclick="recordInterdit()">
-          <div class="terrain-btn-circle interdit" id="btnInterdit">
+          <div class="terrain-btn-circle interdit" id="btnInterdit" title="Enregistrer un point interdit">
             <span class="terrain-btn-text">INTERDIT</span>
           </div>
         </div>
         <div class="terrain-btn" onclick="openObstacleMenu()">
-          <div class="terrain-btn-circle obstacle" id="btnObstacle">
+          <div class="terrain-btn-circle obstacle" id="btnObstacle" title="Enregistrer un obstacle">
             <span class="terrain-btn-text">OBSTACLE</span>
           </div>
         </div>
@@ -144,7 +146,7 @@
         <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span id="zoneBadge" class="zone-badge" title="Zone de tonte en cours">Zone #1</span>
-          <span id="pointCount" style="font-size:11px;color:var(--text3);font-weight:700">0 point(s)</span>
+          <span id="pointCount" style="font-size:12px;color:var(--text3);font-weight:700">0 point(s)</span>
         </div>
       </div>
       <div id="pointsList"></div>

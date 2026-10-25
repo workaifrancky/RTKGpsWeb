@@ -426,6 +426,13 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `renameZone()` / `deleteZone()` (noms dans `project.zoneNames`). `toggleMapFullscreen()`
   ajoute `body.map-ui-fullscreen` (header, onglets, tiroir et panneau masqués). Le header
   affiche « Parcelle : <nom> » via `.header-project-label`.
+- **3.23 — Audit responsive mobile** : header compact ≤480 px (logo 14 px sans « v2 », thème,
+  BLE en icône seule via `.ble-icon` / `.ble-label`, parcelle sur la même ligne grâce à
+  `display: contents` sur `.header-top` / `.header-actions`), onglets en icônes seules
+  (`.tab-icon` / `.tab-text`, `title` + `aria-label`) sans débordement, capsule 48 px (44 px
+  ≤360) avec gaps réduits. Cibles tactiles ≥44 px partout (`button { min-height: 44px }`, zoom
+  Leaflet et contrôles flottants 44 px, actions de liste/tiroir 44 px) et textes de contrôle
+  portés à 12 px. Breakpoints documentés dans `docs/design-system.md`.
 
 ## 9. Langue et communication
 

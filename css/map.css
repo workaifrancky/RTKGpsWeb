@@ -34,7 +34,7 @@
 /* Contrôles flottants : fond de carte + plein écran (sous le zoom Leaflet) */
 .map-floating-controls {
   position:       absolute;
-  top:            96px;
+  top:            108px;
   left:           10px;
   display:        flex;
   flex-direction: column;
@@ -43,8 +43,8 @@
 }
 
 .map-float-btn {
-  width:           36px;
-  height:          36px;
+  width:           44px;
+  height:          44px;
   padding:         0;
   background:      var(--color-white);
   border:          1px solid var(--border);
@@ -76,6 +76,7 @@
   bottom:         20px;
   transform:      translateX(-50%);
   z-index:        1001;
+  min-height:     44px;
   padding:        10px 18px;
   border:         none;
   border-radius:  999px;
@@ -152,7 +153,7 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   border-radius:  999px;
   background:     var(--color-warning-pale);
   color:          var(--color-warning-text);
-  font-size:      10px;
+  font-size:      12px;
   font-weight:    800;
   letter-spacing: 0.5px;
   white-space:    nowrap;
@@ -164,7 +165,7 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
 }
 
 .map-mode-hint {
-  font-size:      9px;
+  font-size:      12px;
   font-weight:    700;
   letter-spacing: 0.3px;
   color:          var(--text3);
@@ -178,13 +179,14 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   display:         inline-flex;
   align-items:     center;
   gap:             3px;
+  min-height:      44px;
   padding:         4px 10px;
   border:          1px solid var(--border);
   border-radius:   999px;
   background:      var(--color-white);
   color:           var(--color-primary-deep);
   font-family:     var(--font);
-  font-size:       10px;
+  font-size:       12px;
   font-weight:     800;
   letter-spacing:  0.3px;
   white-space:     nowrap;
@@ -212,8 +214,8 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
 }
 
 .map-gps-btn {
-  width:           34px;
-  height:          34px;
+  width:           44px;
+  height:          44px;
   padding:         0;
   border:          1px solid var(--border);
   background:      var(--color-white);
@@ -348,9 +350,9 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   color:         var(--text) !important;
   border:        1px solid var(--border) !important;
   font-size:     18px !important;
-  width:         36px !important;
-  height:        36px !important;
-  line-height:   34px !important;
+  width:         44px !important;
+  height:        44px !important;
+  line-height:   42px !important;
 }
 
 .leaflet-control-zoom a:hover { background: var(--green-light) !important; }
@@ -359,6 +361,32 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   background: rgba(255,255,255,0.85) !important;
   font-size:  9px !important;
   color:      #666 !important;
+}
+
+/* ─── RESPONSIVE MOBILE (≤ 480 px) ─────────────────────────── */
+@media (max-width: 480px) {
+  /* Zoom Leaflet et contrôles flottants à taille tactile (44 px). */
+  .leaflet-control-zoom a {
+    width:       44px !important;
+    height:      44px !important;
+    line-height: 42px !important;
+  }
+
+  .map-floating-controls { top: 108px; }
+
+  .map-mode-toggle {
+    min-height: 44px;
+    font-size:  13px;
+    padding:    10px 18px;
+  }
+
+  #tab-points.mode-creation .map-mode-toggle { bottom: 78px; }
+  #tab-points.mode-creation .map-gps-control { margin-bottom: 78px; }
+
+  /* Textes du bandeau de mode lisibles (map.css charge après main.css). */
+  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
+  .map-mode-hint    { display: none; }
+  .map-panel-toggle { font-size: 12px; }
 }
 
 /* Distances de segments des zones de tonte (leaflet-measure-path).
