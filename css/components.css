@@ -134,7 +134,7 @@
   max-width:       calc(100% - 16px);
   background:      var(--color-white);
   border:          1px solid var(--border);
-  border-radius:   999px;
+  border-radius:   40px;
   box-shadow:      var(--shadow-lg);
   z-index:         1000;
 }
@@ -149,8 +149,8 @@
   -webkit-user-select: none;
 }
 
-/* Boutons ronds « premium » : relief (double ombre interne), reflet vitré
-   (::before) et enfoncement au clic. Les couleurs restent des tokens. */
+/* Boutons ronds plats : fond plein par type, sans dégradé, sans ombre
+   interne et sans reflet. Une ombre très légère les détache de la capsule. */
 .terrain-btn-circle {
   position:         relative;
   width:            64px;
@@ -160,23 +160,14 @@
   align-items:      center;
   justify-content:  center;
   color:            white;                    /* couleur héritée par stroke SVG */
-  border:           2px solid rgba(255,255,255,0.35);
-  background-image: linear-gradient(180deg,
-                      rgba(255,255,255,0.34) 0%,
-                      rgba(255,255,255,0.10) 42%,
-                      rgba(0,0,0,0.16) 100%);
-  box-shadow:
-    inset 0 2px 1px rgba(255,255,255,0.45),
-    inset 0 -5px 8px rgba(0,0,0,0.22),
-    0 6px 14px rgba(0,0,0,0.30),
-    0 1px 0 rgba(255,255,255,0.12);
-  transition:       transform 0.14s ease, box-shadow 0.18s ease,
-                    border-color 0.18s ease, filter 0.18s ease;
+  border:           none;
+  box-shadow:       var(--shadow-sm);
+  transition:       transform 0.14s ease, filter 0.14s ease;
   -webkit-tap-highlight-color: transparent;
   will-change:      transform;
 }
 
-/* Libellé à l'intérieur du cercle (TONTE / INTERDIT / OBSTACLE / BASE).
+/* Libellé à l'intérieur du cercle (TONTE / INTERDIT / OBSTACLE / ZONE).
    La couleur suit `color` du bouton : blanc, ou --color-warning-text pour
    l'obstacle sur fond ambre. */
 .terrain-btn-text {
@@ -189,7 +180,6 @@
   letter-spacing: 0.2px;
   line-height:    1.05;
   text-align:     center;
-  text-shadow:    0 1px 1px rgba(0,0,0,0.35);
   pointer-events: none;                       /* le texte ne capte pas le clic */
 }
 
@@ -205,25 +195,7 @@
   stroke-width:   1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter:         drop-shadow(0 1px 1px rgba(0,0,0,0.35));
   pointer-events: none;                       /* l'icône ne capte pas le clic */
-}
-
-/* Reflet vitré : décoratif uniquement, ne bloque jamais le clic. */
-.terrain-btn-circle::before {
-  content:        '';
-  position:       absolute;
-  z-index:        0;
-  top:            4px;
-  left:           12%;
-  width:          76%;
-  height:         44%;
-  border-radius:  50%;
-  background:     linear-gradient(180deg, rgba(255,255,255,0.55),
-                                            rgba(255,255,255,0));
-  opacity:        0.7;
-  pointer-events: none;
-  transition:     opacity 0.18s ease;
 }
 
 .terrain-btn-circle.tonte    { background-color: var(--color-primary-light); }
@@ -232,44 +204,29 @@
                                color:            var(--color-warning-text); }
 .terrain-btn-circle.new-zone { background-color: var(--color-teal); }
 
-/* Souris uniquement : léger soulèvement + halo. */
+/* Souris uniquement : simple variation de luminosité, aucun relief. */
 @media (hover: hover) and (pointer: fine) {
   .terrain-btn-circle:not(.disabled):hover {
-    transform:    translateY(-2px) scale(1.06);
-    border-color: rgba(255,255,255,0.75);
-    box-shadow:
-      inset 0 2px 1px rgba(255,255,255,0.55),
-      inset 0 -5px 8px rgba(0,0,0,0.20),
-      0 10px 22px rgba(0,0,0,0.38);
+    filter: brightness(0.95);
   }
-
-  .terrain-btn-circle:not(.disabled):hover::before { opacity: 0.9; }
 }
 
-/* Clic / appui : enfoncement (relief inversé). */
+/* Clic / appui : léger rétrécissement, sans ombre interne. */
 .terrain-btn:active .terrain-btn-circle:not(.disabled),
 .terrain-btn-circle:not(.disabled):active {
-  transform:  translateY(1px) scale(0.94);
-  box-shadow:
-    inset 0 3px 8px rgba(0,0,0,0.35),
-    inset 0 -1px 1px rgba(255,255,255,0.20),
-    0 2px 6px rgba(0,0,0,0.28);
+  transform: scale(0.95);
 }
 
 .terrain-btn-circle.disabled {
   opacity: 0.35;
   cursor:  not-allowed;
   filter:  saturate(0.7);
-  box-shadow:
-    inset 0 2px 1px rgba(255,255,255,0.30),
-    inset 0 -4px 6px rgba(0,0,0,0.18),
-    0 3px 8px rgba(0,0,0,0.20);
 }
 
 .terrain-btn-circle.disabled:hover,
 .terrain-btn-circle.disabled:active {
-  transform:    none;
-  border-color: rgba(255,255,255,0.35);
+  transform: none;
+  filter:    saturate(0.7);
 }
 
 /* Bouton « Nouvelle zone » : le « + » et le libellé ZONE tiennent dans le

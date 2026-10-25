@@ -54,42 +54,6 @@
   color:        var(--color-primary-accent);
 }
 
-/* Boutons terrain : sur fond sombre, le reflet blanc est atténué et l'ombre
-   noire renforcée pour conserver le relief sans halo « sale ». */
-[data-theme="dark"] .terrain-btn-circle {
-  border-color: rgba(255,255,255,0.22);
-  box-shadow:
-    inset 0 2px 1px rgba(255,255,255,0.20),
-    inset 0 -5px 8px rgba(0,0,0,0.45),
-    0 6px 14px rgba(0,0,0,0.55);
-}
-
-[data-theme="dark"] .terrain-btn-circle::before { opacity: 0.45; }
-
-@media (hover: hover) and (pointer: fine) {
-  [data-theme="dark"] .terrain-btn-circle:not(.disabled):hover {
-    box-shadow:
-      inset 0 2px 1px rgba(255,255,255,0.28),
-      inset 0 -5px 8px rgba(0,0,0,0.40),
-      0 10px 22px rgba(0,0,0,0.60);
-  }
-}
-
-[data-theme="dark"] .terrain-btn:active .terrain-btn-circle:not(.disabled),
-[data-theme="dark"] .terrain-btn-circle:not(.disabled):active {
-  box-shadow:
-    inset 0 3px 8px rgba(0,0,0,0.55),
-    inset 0 -1px 1px rgba(255,255,255,0.12),
-    0 2px 6px rgba(0,0,0,0.45);
-}
-
-[data-theme="dark"] .terrain-btn-circle.disabled {
-  box-shadow:
-    inset 0 2px 1px rgba(255,255,255,0.14),
-    inset 0 -4px 6px rgba(0,0,0,0.40),
-    0 3px 8px rgba(0,0,0,0.40);
-}
-
 [data-theme="dark"] .data-card,
 [data-theme="dark"] .card-full,
 [data-theme="dark"] .point-item,

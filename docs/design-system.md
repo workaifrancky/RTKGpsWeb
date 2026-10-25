@@ -138,31 +138,29 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
   `bottom: 20px`, `left: 50%`, `translateX(-50%)`), fond `--color-white`, bordure
   `--border`, rayon 999 px, `--shadow-lg`, `z-index: 1000`. Hors du conteneur `#map`,
   elle ne capte donc aucun geste Leaflet.
-- `.terrain-btn-circle` : 64 px, `border-radius: 50%`, bouton « premium » :
-  - **relief** : `box-shadow` double interne (filet clair en haut, ombre en bas) + ombre
-    portée externe ;
-  - **reflet** : `::before` (ellipse dégradée blanche, `opacity: 0.7`) en `pointer-events:
-    none` et `z-index: 0`, l'icône étant en `z-index: 1` ;
-  - **dégradé** : `background-image: linear-gradient(180deg, …)` sur la couleur de base
-    (`background-color` par variante, pour ne pas écraser le dégradé) ;
+- `.terrain-btn-circle` : 64 px, `border-radius: 50%`, **style plat** — fond plein par
+  variante (`background-color`), `border: none`, ombre externe légère `--shadow-sm`.
+  Aucun dégradé (`background-image`), aucune ombre `inset`, aucun pseudo-élément `::before`.
   - **survol** (souris uniquement, `@media (hover: hover) and (pointer: fine)`) :
-    `translateY(-2px) scale(1.06)` + halo ;
-  - **clic** : `translateY(1px) scale(0.94)` + ombres internes inversées (enfoncement).
+    `filter: brightness(0.95)` ;
+  - **clic** : `transform: scale(0.95)` ;
+  - **désactivé** : `opacity: 0.35` + `saturate(0.7)` (classe `.disabled`, gérée par
+    `updateTerrainButtons()`).
 - `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle
   (10 px / 800, 9 px sous 360 px), en `currentColor` — donc blanc, ou
-  `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`.
-  Ces trois boutons n'ont pas de libellé sous le cercle.
+  `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`
+  et sans `text-shadow`.
 - `.terrain-btn-circle svg` : icône **SVG outline** du bouton « Nouvelle zone »
-  (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 24 px pour ce bouton),
-  complétée par `.terrain-btn-sub` (« ZONE », 8 px / 800) **à l'intérieur** du cercle, sous
-  le « + » : la capsule reste basse et les quatre cercles sont alignés.
+  (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 24 px pour ce bouton,
+  sans `drop-shadow`), complétée par `.terrain-btn-sub` (« ZONE », 8 px / 800) **à
+  l'intérieur** du cercle, sous le « + » : la capsule reste basse et les quatre cercles
+  sont alignés.
 - Alignement : `.floating-toolbar` en `align-items: center`, `gap: clamp(8px, 3vw, 14px)`
   et padding `8px clamp(10px, 3vw, 16px)`.
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
   nouvelle zone `--color-teal`.
-- Classe `.disabled` : opacité 0.35, `saturate(0.7)` (gérée par `updateTerrainButtons()`).
-- Thème nuit : capsule sur `--color-white` (surface sombre) + bordure `--border2` ; reflet
-  atténué (`opacity: 0.45`), ombre noire renforcée, bordure des cercles à 0.22.
+- Thème nuit : les boutons plats gardent les mêmes tokens ; seule la capsule change de
+  surface (`--color-white` sombre + bordure `--border2`). Plus aucun override d'ombre.
 - Responsive : 56 px sous 360 px de large, icône 26 px, texte 9 px ; sous 340 px, cercles
   52 px, icône 24 px, texte 8 px, `gap: 4px`, padding latéral 8 px et `bottom: 12px` pour
   que les quatre boutons restent dans la capsule.

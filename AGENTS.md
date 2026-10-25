@@ -337,6 +337,12 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `syncTerrainBarVisibility()`, `padding-bottom: 190px`) est remplacée par `.floating-toolbar`,
   capsule `absolute` dans `#map-points` ; « Nouvelle zone » affiche son libellé
   `.terrain-btn-sub` dans le cercle.
+- **3.18 — Boutons de la capsule sans effet glossy** : `.terrain-btn-circle` passe en style
+  plat — plus de `background-image` (dégradé), plus d'ombres `inset`, plus de `::before`
+  (reflet), plus de `text-shadow` ni de `drop-shadow` sur l'icône. Seule une ombre externe
+  `--shadow-sm` détache le bouton de la capsule ; survol `brightness(0.95)`, clic
+  `scale(0.95)`, état désactivé `opacity: 0.35` + `saturate(0.7)`. Les overrides nuit
+  correspondants sont supprimés de `theme.css` et la capsule passe à `border-radius: 40px`.
 
 ## 9. Langue et communication
 
