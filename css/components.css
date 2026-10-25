@@ -317,6 +317,104 @@
 
 .form-input::placeholder { color: var(--text4); }
 
+/* ─── IMPORT D'OBSTACLES (modale parcelle) ─────────────────── */
+.import-obstacles {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+}
+
+.import-obstacles-head {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             8px;
+}
+
+.import-obstacles-title {
+  font-size:      10px;
+  font-weight:    800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color:          var(--text3);
+}
+
+.import-obstacles-toggle {
+  padding:       2px 6px;
+  background:    transparent;
+  border:        none;
+  border-radius: var(--radius-sm);
+  color:         var(--color-primary);
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   800;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.import-obstacles-toggle:hover { background: var(--color-primary-pale); }
+.import-obstacles-toggle:disabled { opacity: 0.4; cursor: default; }
+
+.import-obstacles-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+  max-height:     190px;
+  overflow-y:     auto;
+  padding:        4px;
+  background:     var(--color-bg-muted);
+  border:         1px solid var(--border);
+  border-radius:  var(--radius-md);
+}
+
+.import-obstacle-item {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  padding:     7px 8px;
+  background:  var(--color-white);
+  border-radius: var(--radius-sm);
+  cursor:      pointer;
+}
+
+.import-obstacle-item:hover { background: var(--color-primary-pale); }
+
+.import-obstacle-item input {
+  width:        16px;
+  height:       16px;
+  flex-shrink:  0;
+  accent-color: var(--color-primary);
+}
+
+.import-obstacle-icon { font-size: 15px; flex-shrink: 0; }
+
+.import-obstacle-name {
+  flex:          1 1 auto;
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+  font-size:     12px;
+  font-weight:   700;
+  color:         var(--text);
+}
+
+.import-obstacle-coords {
+  font-size:            9px;
+  font-weight:          700;
+  color:                var(--text3);
+  font-variant-numeric: tabular-nums;
+  white-space:          nowrap;
+}
+
+.import-obstacles-empty {
+  padding:     10px;
+  text-align:  center;
+  font-size:   11px;
+  font-weight: 700;
+  color:       var(--text3);
+}
+
 /* ─── BOUTONS STANDARDS (design Mower Planner) ─────────────── */
 .action-button {
   border:         none;

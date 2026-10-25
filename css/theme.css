@@ -77,6 +77,15 @@
   color: var(--color-primary-accent);
 }
 
+/* Bouton « Tout cocher » de l'import d'obstacles (modale parcelle) */
+[data-theme="dark"] .import-obstacles-toggle {
+  color: var(--color-primary-accent);
+}
+
+[data-theme="dark"] .import-obstacles-toggle:hover {
+  background: var(--color-bg-muted);
+}
+
 [data-theme="dark"] .alert-bar.alert-warning {
   background:   #1c1000;
   color:        #fbbf24;

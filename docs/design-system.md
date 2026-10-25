@@ -150,6 +150,19 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
 - Accessibilité : `role="dialog"`, `aria-modal="true"`, `aria-expanded` sur le bouton du
   header, focalisation du bouton de fermeture à l'ouverture, fermeture à Échap / clic voile.
 
+### Import d'obstacles (modale parcelle)
+
+- `.import-obstacles` : bloc sous le champ nom, titre `.import-obstacles-title` (10 px / 800,
+  majuscules, `--text3`) et bouton `.import-obstacles-toggle` (« Tout cocher » / « Tout
+  décocher », vert `--color-primary`, accent en nuit).
+- `.import-obstacles-list` : liste scrollable (`max-height: 190px`) sur `--color-bg-muted`,
+  bordure `--border`, rayon `--radius-md`.
+- `.import-obstacle-item` : ligne cochable (`label` + `input[type=checkbox]`), icône, nom
+  ellipsé et coordonnées à 5 décimales (`font-variant-numeric: tabular-nums`) ; fond
+  `--color-white`, survol `--color-primary-pale`.
+- `.import-obstacles-empty` : message « Aucun obstacle enregistré pour le moment. ».
+- `.modal-box` reçoit `max-height: 90dvh` + `overflow-y: auto` pour les longues listes.
+
 ### Barre d'enregistrement flottante (capsule)
 
 - `.floating-toolbar` : capsule posée sur la carte TRACÉS (`position: absolute`,

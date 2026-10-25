@@ -15,6 +15,8 @@ Fonctionnalités principales :
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit` et `obstacle` ;
+- **bibliothèque globale d'obstacles** (`rtkGlobalObstacles`) : import par cases à cocher
+  lors de la création d'une parcelle, sans doublons (nom + coordonnées) ;
 - **plusieurs zones de tonte** distinctes par parcelle (identifiant `zoneId`) ;
 - carte Leaflet (Relief / Satellite), polygones, surfaces et **distances de segments**
   (`leaflet-measure-path`) calculées en direct ;

@@ -25,7 +25,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | Fichier | Responsabilité |
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
-| `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
+| `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
 | `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), renommage (`renamePoint()`), liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
@@ -66,10 +66,12 @@ brique doit être insérée **après ses dépendances**.
 
 - `APP` (`js/app.js`) : `theme`, `bleConnected`, `hasGpsData`, `currentTab`, `lastUpdate`.
 - `lastGpsData` (`js/ui.js`) : dernière trame GPS valide ou rejetée.
-- Globals projet (`js/projects.js`) : `projects`, `currentProject`.
+- Globals projet (`js/projects.js`) : `projects`, `currentProject`, `globalObstacles`.
 - `localStorage` :
   - `rtkProjects` : tableau de projets sérialisés ;
   - `rtkCurrentProject` : identifiant du projet courant ;
+  - `rtkGlobalObstacles` : bibliothèque d'obstacles réutilisables (`{ id, name, subtype,
+    icon, lat, lon, alt, rayon, createdAt, projectId }`) ;
   - `rtkTheme` : `light` ou `dark` ;
   - `rtkMapBaseLayer` : `relief` ou `satellite` ;
   - `rtkSelectedNtripStation` : station NTRIP sélectionnée.

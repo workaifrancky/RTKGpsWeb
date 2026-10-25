@@ -150,6 +150,8 @@ function selectObstacleType(type, icon) {
 // ─── MODAL NOUVEAU PROJET ────────────────────────────────────
 function openNewProjectModal() {
   const modal = document.getElementById('projectModal');
+  if (typeof renderGlobalObstaclePicker === 'function') renderGlobalObstaclePicker();
+  if (typeof resetGlobalObstaclePicker === 'function') resetGlobalObstaclePicker();
   if (modal) modal.classList.add('show');
   const input = document.getElementById('projectNameInput');
   if (input) { input.value = ''; setTimeout(() => input.focus(), 200); }
@@ -164,9 +166,17 @@ function createProject() {
   const input = document.getElementById('projectNameInput');
   const name  = input ? input.value.trim() : '';
   if (!name) { showToast('Entrez un nom de parcelle', 'error'); return; }
-  if (typeof addProject === 'function') addProject(name);
+
+  const importIds = typeof getSelectedGlobalObstacleIds === 'function'
+    ? getSelectedGlobalObstacleIds()
+    : [];
+
+  if (typeof addProject === 'function') addProject(name, true, importIds);
   closeProjectModal();
-  showToast(`Parcelle "${name}" créée`, 'tonte');
+  if (typeof resetGlobalObstaclePicker === 'function') resetGlobalObstaclePicker();
+  showToast(importIds.length
+    ? `Parcelle "${name}" créée — ${importIds.length} obstacle(s) importé(s)`
+    : `Parcelle "${name}" créée`, 'tonte');
 }
 
 // ─── UTILITAIRES ─────────────────────────────────────────────

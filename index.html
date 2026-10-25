@@ -370,6 +370,14 @@
       <input type="text" id="projectNameInput" class="form-input"
         placeholder="Ex: Jardin Nord, Prairie Sud..."
         onkeydown="if(event.key==='Enter')createProject()">
+      <div class="import-obstacles">
+        <div class="import-obstacles-head">
+          <span class="import-obstacles-title">Importer des obstacles existants</span>
+          <button type="button" id="btnToggleAllObstacles" class="import-obstacles-toggle"
+            onclick="toggleAllGlobalObstacles()">Tout cocher</button>
+        </div>
+        <div id="globalObstacleList" class="import-obstacles-list"></div>
+      </div>
       <button class="action-button" onclick="createProject()">✓ Créer la parcelle</button>
       <button class="btn-secondary" onclick="closeProjectModal()">Annuler</button>
     </div>

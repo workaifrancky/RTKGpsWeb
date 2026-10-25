@@ -128,6 +128,8 @@ function recordObstacle(subtype, icon) {
   }
   const pt = buildPoint('obstacle', subtype, icon || '🟡', pos);
   savePoint(pt);
+  // Ajoute aussi l'obstacle à la bibliothèque globale (réutilisable).
+  if (typeof addGlobalObstacle === 'function') addGlobalObstacle(pt);
   showToast(`${icon} ${subtype} #${pt.index} enregistré${pos.source === 'manual' ? ' (manuel)' : ''}`, 'obstacle');
 }
 

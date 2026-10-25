@@ -40,7 +40,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 | UI | Vanilla JS, CSS pur (pas de framework, pas de Tailwind) |
 | Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
 | Bluetooth | Web Bluetooth API |
-| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkTheme`, …) |
+| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
 | Serveur | `serve-http.cjs` (Node, sans dépendance) + `start-public.ps1` (localtunnel) |
 
@@ -141,6 +141,16 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
   `switchProject(id)`, `renameProject(id)` et `deleteProject(id)` ; `saveProjects()` rafraîchit
   la liste **et** le libellé du header. Fermeture au clic sur l'overlay, avec Échap et au
   changement d'onglet.
+- **Base globale des obstacles** : `rtkGlobalObstacles` (tableau `{ id, name, subtype, icon,
+  lat, lon, alt, rayon, createdAt, projectId }`) est chargée au démarrage dans
+  `globalObstacles` (`js/projects.js`) et **amorcée depuis les parcelles** si la clé est
+  absente. `recordObstacle()` ajoute chaque nouvel obstacle via `addGlobalObstacle()`
+  (dédoublonnage par nom + coordonnées). La modale `#projectModal` liste la base
+  (`renderGlobalObstaclePicker()`, bouton « Tout cocher ») ; `createProject()` transmet les IDs
+  cochés à `addProject(name, true, ids)`, qui importe via `importGlobalObstacles()` **avant**
+  le premier rendu. L'import crée de nouveaux IDs, conserve coordonnées/nom/sous-type/icône et
+  ignore les doublons de la parcelle cible. Les obstacles importés restent des features
+  `obstacle` au GeoJSON.
 - **Suppression de parcelle** : `deleteProject(projectId)` (`js/projects.js`) — centralisée,
   elle refuse de supprimer la dernière parcelle et rafraîchit carte, liste, statistiques,
   tiroir et historique. `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
@@ -369,6 +379,15 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `#btnDeleteProject` disparaissent. Le doublon historique `deleteProject()` de `js/history.js`
   est supprimé : la suppression est centralisée dans `js/projects.js`. Z-index revus : voile
   1040, tiroir 1050, modales 1100, toasts 1200.
+- **3.20-bis — Base globale des obstacles et import à la création** : nouvelle clé
+  `rtkGlobalObstacles` (bibliothèque `{ id, name, subtype, icon, lat, lon, alt, rayon,
+  createdAt, projectId }`), chargée dans `globalObstacles` et **amorcée depuis les parcelles**
+  au premier lancement. `recordObstacle()` alimente la base via `addGlobalObstacle()`
+  (dédoublonnage nom + coordonnées). La modale `#projectModal` gagne un sélecteur
+  (`#globalObstacleList`, `.import-obstacle-check`, bouton « Tout cocher ») ;
+  `createProject()` passe les IDs cochés à `addProject()`, qui importe via
+  `importGlobalObstacles()` avant le rendu (nouveaux IDs, `importedFrom`, doublons ignorés).
+  Carte, liste, badge de zone et RELEVÉ sont rafraîchis ; le contrat GeoJSON est inchangé.
 
 ## 9. Langue et communication
 

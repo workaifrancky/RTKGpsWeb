@@ -5,10 +5,12 @@
 
 const PROJECT_KEY    = 'rtkProjects';
 const CURRENT_KEY    = 'rtkCurrentProject';
+const GLOBAL_OBSTACLES_KEY = 'rtkGlobalObstacles';
 
 // ─── ÉTAT ────────────────────────────────────────────────────
-let projects       = [];
-let currentProject = null;
+let projects        = [];
+let currentProject  = null;
+let globalObstacles = [];   // bibliothèque d'obstacles réutilisables
 
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentProject = projects[0];
     saveCurrentProject();
   }
+  // Charge (et amorce au premier lancement) la base globale des obstacles.
+  globalObstacles = loadGlobalObstacles();
   // Persiste la migration éventuelle (purge des anciens points `base`)
   // et rafraîchit le tiroir + le nom de la parcelle dans le header.
   saveProjects();
@@ -39,8 +43,175 @@ function escapeHtml(value) {
   }[ch]));
 }
 
+// ─── BASE GLOBALE DES OBSTACLES ──────────────────────────────
+// Bibliothèque réutilisable d'une parcelle à l'autre (localStorage).
+// Un obstacle y est identifié par son nom (ou sous-type) + ses coordonnées.
+function sameObstacle(a, b) {
+  if (!a || !b) return false;
+  const nameA = String(a.name || a.subtype || '').trim().toLowerCase();
+  const nameB = String(b.name || b.subtype || '').trim().toLowerCase();
+  return nameA === nameB
+    && Math.abs(Number(a.lat) - Number(b.lat)) < 1e-9
+    && Math.abs(Number(a.lon) - Number(b.lon)) < 1e-9;
+}
+
+function buildGlobalObstacleEntry(point, projectId) {
+  return {
+    id:        'obs_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    name:      point.name || null,
+    subtype:   point.subtype || 'Autre',
+    icon:      point.icon || '🟡',
+    lat:       Number(point.lat),
+    lon:       Number(point.lon),
+    alt:       point.alt ?? null,
+    rayon:     1.0,
+    createdAt: new Date().toISOString(),
+    projectId: projectId || null,
+  };
+}
+
+// Lit la base ; au premier lancement (clé absente), l'amorce avec les obstacles
+// déjà présents dans les parcelles (dédoublonnés par nom + coordonnées).
+function loadGlobalObstacles() {
+  const raw = localStorage.getItem(GLOBAL_OBSTACLES_KEY);
+  if (raw === null) {
+    const seeded = [];
+    projects.forEach(project => {
+      (project.points || []).forEach(p => {
+        if (!p || p.type !== 'obstacle') return;
+        if (seeded.some(o => sameObstacle(o, p))) return;
+        seeded.push(buildGlobalObstacleEntry(p, project.id));
+      });
+    });
+    localStorage.setItem(GLOBAL_OBSTACLES_KEY, JSON.stringify(seeded));
+    return seeded;
+  }
+  try {
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return [];
+    return list.filter(o => o && Number.isFinite(Number(o.lat)) && Number.isFinite(Number(o.lon)));
+  } catch { return []; }
+}
+
+function saveGlobalObstacles() {
+  localStorage.setItem(GLOBAL_OBSTACLES_KEY, JSON.stringify(globalObstacles));
+}
+
+// Ajoute un obstacle enregistré à la base globale (mise à jour si doublon).
+function addGlobalObstacle(point) {
+  if (!point || point.type !== 'obstacle') return null;
+  const entry = buildGlobalObstacleEntry(point, currentProject ? currentProject.id : null);
+  const existing = globalObstacles.find(o => sameObstacle(o, entry));
+  if (existing) {
+    existing.name      = existing.name || entry.name;
+    existing.subtype   = entry.subtype;
+    existing.icon      = entry.icon;
+    existing.lat       = entry.lat;
+    existing.lon       = entry.lon;
+    existing.alt       = entry.alt;
+    existing.projectId = entry.projectId;
+    saveGlobalObstacles();
+    return existing;
+  }
+  globalObstacles.push(entry);
+  saveGlobalObstacles();
+  return entry;
+}
+
+// ─── IMPORT DANS UNE PARCELLE ────────────────────────────────
+// Copie les obstacles sélectionnés (nouveaux IDs, attributs conservés) en
+// ignorant ceux déjà présents (même nom + coordonnées).
+function importGlobalObstacles(project, ids, persist = true) {
+  if (!project || !Array.isArray(project.points)) return 0;
+  const wanted = new Set(Array.isArray(ids) ? ids : []);
+  let imported = 0;
+
+  globalObstacles.forEach(entry => {
+    if (!wanted.has(entry.id)) return;
+    if (project.points.some(p => p && p.type === 'obstacle' && sameObstacle(p, entry))) return;
+    project.points.push({
+      id:           Date.now() + imported,
+      type:         'obstacle',
+      subtype:      entry.subtype || 'Autre',
+      name:         entry.name || null,
+      icon:         entry.icon || '🟡',
+      index:        0,
+      lat:          Number(entry.lat),
+      lon:          Number(entry.lon),
+      alt:          entry.alt ?? null,
+      relX:         null,
+      relY:         null,
+      fix:          'Manuel',
+      fixScore:     0,
+      satellites:   null,
+      hdop:         null,
+      timestamp:    new Date().toISOString(),
+      importedFrom: entry.id,
+    });
+    imported++;
+  });
+
+  if (imported) {
+    let idx = 1;
+    project.points.filter(p => p.type === 'obstacle').forEach(p => { p.index = idx++; });
+    if (persist) saveProjects();
+  }
+  return imported;
+}
+
+// ─── SÉLECTEUR D'OBSTACLES (modale parcelle) ─────────────────
+function renderGlobalObstaclePicker() {
+  const container = document.getElementById('globalObstacleList');
+  const toggle    = document.getElementById('btnToggleAllObstacles');
+  if (!container) return;
+
+  if (!globalObstacles.length) {
+    container.innerHTML = '<div class="import-obstacles-empty">Aucun obstacle enregistré pour le moment.</div>';
+  } else {
+    container.innerHTML = globalObstacles.map(o => {
+      const name   = escapeHtml(o.name || o.subtype || 'Obstacle');
+      const coords = `${Number(o.lat).toFixed(5)}, ${Number(o.lon).toFixed(5)}`;
+      return `
+        <label class="import-obstacle-item">
+          <input type="checkbox" class="import-obstacle-check" value="${escapeHtml(o.id)}">
+          <span class="import-obstacle-icon" aria-hidden="true">${escapeHtml(o.icon || '🟡')}</span>
+          <span class="import-obstacle-name">${name}</span>
+          <span class="import-obstacle-coords">${coords}</span>
+        </label>`;
+    }).join('');
+  }
+
+  if (toggle) {
+    toggle.disabled = globalObstacles.length === 0;
+    toggle.textContent = 'Tout cocher';
+  }
+}
+
+function getSelectedGlobalObstacleIds() {
+  return Array.from(document.querySelectorAll('.import-obstacle-check:checked'))
+    .map(input => input.value);
+}
+
+function toggleAllGlobalObstacles() {
+  const checks = Array.from(document.querySelectorAll('.import-obstacle-check'));
+  if (!checks.length) return;
+  const allChecked = checks.every(c => c.checked);
+  checks.forEach(c => { c.checked = !allChecked; });
+  const toggle = document.getElementById('btnToggleAllObstacles');
+  if (toggle) toggle.textContent = allChecked ? 'Tout cocher' : 'Tout décocher';
+}
+
+function resetGlobalObstaclePicker() {
+  document.querySelectorAll('.import-obstacle-check').forEach(c => { c.checked = false; });
+  const toggle = document.getElementById('btnToggleAllObstacles');
+  if (toggle) {
+    toggle.textContent = 'Tout cocher';
+    toggle.disabled = globalObstacles.length === 0;
+  }
+}
+
 // ─── AJOUT D'UN PROJET ───────────────────────────────────────
-function addProject(name, renderAfter = true) {
+function addProject(name, renderAfter = true, importIds = []) {
   const project = {
     id:            'proj_' + Date.now(),
     name:          name.trim(),
@@ -51,6 +222,10 @@ function addProject(name, renderAfter = true) {
   projects.push(project);
   currentProject = project;
   saveCurrentProject();
+  // Import éventuel des obstacles sélectionnés avant le premier rendu.
+  if (Array.isArray(importIds) && importIds.length) {
+    importGlobalObstacles(project, importIds, false);
+  }
   saveProjects();           // persiste + rafraîchit tiroir et libellé du header
   if (renderAfter) {
     if (typeof updateZoneBadge    === 'function') updateZoneBadge();
