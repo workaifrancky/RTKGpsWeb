@@ -63,7 +63,7 @@ function showTab(tabId) {
   if (tabsWrapper) tabsWrapper.scrollLeft = tabsScrollLeft;
 
   APP.currentTab = tabId;
-  syncTerrainBarVisibility(tabId);
+  if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
 
   // Une seule instance de carte, déplacée dans l'onglet actif.
@@ -87,16 +87,6 @@ function showTab(tabId) {
   if (tabId === 'tab-stats') {
     if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
   }
-}
-
-function syncTerrainBarVisibility(tabId) {
-  const terrainBar = document.querySelector('.terrain-bar');
-  if (!terrainBar) return;
-
-  // Only show point recording actions in the Points tab.
-  const show = tabId === 'tab-points';
-  terrainBar.classList.toggle('show', show);
-  terrainBar.setAttribute('aria-hidden', show ? 'false' : 'true');
 }
 
 // ─── BLE SUPPORT ─────────────────────────────────────────────

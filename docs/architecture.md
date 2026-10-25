@@ -90,7 +90,12 @@ brique doit être insérée **après ses dépendances**.
   les tuiles manquantes.
 - Couches dédiées : `layerTonte`, `layerInterdit`, `layerObstacle`.
 - `#map-crosshair` : cible de visée fixe (overlay HTML hors panes Leaflet) centrée sur
-  `.map-wrapper`, `pointer-events: none` ; elle ne suit pas le panoramique.
+  `.map-wrapper`, `pointer-events: none` ; elle ne suit pas le panoramique. Elle n'est
+  visible que sur l'onglet TRACÉS : `syncCrosshairVisibility()` (`js/map.js`), appelée par
+  `showTab()`, pose `.is-hidden` sur CARTE (consultation seule).
+- Position live : `liveMarker` / `livePolyline` sont supprimés à la déconnexion BLE par
+  `clearLiveGpsPosition()` (`js/map.js`, appelée depuis `onDisconnected()`), pour qu'aucun
+  point GPS périmé ne reste affiché en mode manuel.
 - Les points `tonte` sont groupés par `zoneId` : un polygone coloré (palette `ZONE_PALETTE`)
   et un médaillon `ZN` par zone de ≥ 3 points.
 - La base est toujours affichée au-dessus des autres couches (`zIndexOffset: 1000`).

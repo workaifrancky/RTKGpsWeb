@@ -77,12 +77,44 @@
     <div id="map-points" class="map-wrapper">
       <div class="map-mode-bar">
         <span id="recordModeBadge" class="map-mode-badge">✋ MODE MANUEL</span>
-        <span class="map-mode-hint">Cible = centre de la carte</span>
+        <span class="map-mode-hint">Cible : centre</span>
+        <button type="button" class="map-panel-toggle" id="btnPointsPanel"
+          onclick="scrollToPointsPanel()" title="Afficher les points enregistrés">POINTS ▾</button>
       </div>
       <div id="map-points-slot"></div>
+
+      <!-- Barre d'enregistrement flottante sur la carte (capsule) -->
+      <div class="floating-toolbar" role="toolbar" aria-label="Enregistrer un point">
+        <div class="terrain-btn" onclick="recordTonte()">
+          <div class="terrain-btn-circle tonte" id="btnTonte">
+            <span class="terrain-btn-text">TONTE</span>
+          </div>
+        </div>
+        <div class="terrain-btn" onclick="recordInterdit()">
+          <div class="terrain-btn-circle interdit" id="btnInterdit">
+            <span class="terrain-btn-text">INTERDIT</span>
+          </div>
+        </div>
+        <div class="terrain-btn" onclick="openObstacleMenu()">
+          <div class="terrain-btn-circle obstacle" id="btnObstacle">
+            <span class="terrain-btn-text">OBSTACLE</span>
+          </div>
+        </div>
+        <div class="terrain-btn" onclick="startNewZone()">
+          <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="8.5"/>
+              <path d="M12 8v8"/>
+              <path d="M8 12h8"/>
+            </svg>
+            <span class="terrain-btn-sub">ZONE</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div style="padding:12px 12px 0">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+
+    <div class="points-panel">
+      <div class="points-panel-head">
         <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span id="zoneBadge" class="zone-badge" title="Zone de tonte en cours">Zone #1</span>
@@ -264,40 +296,6 @@
   </div>
 
 </div><!-- fin .app-wrapper -->
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- BARRE TERRAIN FIXE EN BAS                                   -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="terrain-bar">
-  <div class="terrain-bar-title">ENREGISTRER UN POINT</div>
-  <div class="terrain-btns">
-    <div class="terrain-btn" onclick="recordTonte()">
-      <div class="terrain-btn-circle tonte" id="btnTonte">
-        <span class="terrain-btn-text">TONTE</span>
-      </div>
-    </div>
-    <div class="terrain-btn" onclick="recordInterdit()">
-      <div class="terrain-btn-circle interdit" id="btnInterdit">
-        <span class="terrain-btn-text">INTERDIT</span>
-      </div>
-    </div>
-    <div class="terrain-btn" onclick="openObstacleMenu()">
-      <div class="terrain-btn-circle obstacle" id="btnObstacle">
-        <span class="terrain-btn-text">OBSTACLE</span>
-      </div>
-    </div>
-    <div class="terrain-btn" onclick="startNewZone()">
-      <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="12" r="8.5"/>
-          <path d="M12 8v8"/>
-          <path d="M8 12h8"/>
-        </svg>
-      </div>
-      <div class="terrain-btn-label">NOUVELLE<br>ZONE</div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL OBSTACLE                                              -->

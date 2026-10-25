@@ -318,6 +318,25 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`top/left: 50%`, `translate(-50%, -50%)`), `z-index: 1000`, `pointer-events: none`, et ne
   bouge pas lors du panoramique. Couleur centralisée par `--color-crosshair` (`#16a34a`) dans
   `main.css`, appliquée en `stroke`/`fill`.
+- **3.16 — Non-régression export/manuel et GPS périmé** : campagne de tests hors navigateur
+  (banc Node chargeant les vrais JS avec des stubs `document`/`localStorage`) couvrant le mode
+  manuel, le contrat GeoJSON, la priorité GPS, la persistance et la migration. Correction
+  associée : `getGpsPositionForMap()` (`js/map.js`) renvoie `null` tant que `APP.bleConnected`
+  est faux, car `onDisconnected()` (`js/ble.js`) ne purge pas `lastGpsData` / `lastMapPosition`.
+  Sans ce garde-fou, `mountMapForTab()` recentrait la carte sur une position GPS périmée au
+  retour sur TRACÉS (`followGps` vaut `true` par défaut) et déplaçait la cible du mode manuel.
+- **3.17 — Nettoyage CARTE/TRACÉS : capsule flottante et carte plein écran** : la cible
+  `#map-crosshair` n'est visible que sur TRACÉS (`.is-hidden` posée par
+  `syncCrosshairVisibility()` appelée par `showTab()`). L'icône 📍 de l'état vide de la liste
+  (rendue comme une épingle rouge, prise pour un marqueur POI) est supprimée et le texte renvoie
+  à la barre flottante. La position live (`liveMarker`, `livePolyline`) est effacée à la
+  déconnexion BLE par `clearLiveGpsPosition()` (`onDisconnected()`). `.app-wrapper` passe en
+  `height: 100dvh; overflow: hidden` et chaque `.screen` défile en interne ; TRACÉS affiche la
+  carte sur toute la hauteur visible (`#map-points { height: 100% }`), la liste et l'export
+  restant accessibles en dessous. La barre terrain fixe (`.terrain-bar`,
+  `syncTerrainBarVisibility()`, `padding-bottom: 190px`) est remplacée par `.floating-toolbar`,
+  capsule `absolute` dans `#map-points` ; « Nouvelle zone » affiche son libellé
+  `.terrain-btn-sub` dans le cercle.
 
 ## 9. Langue et communication
 

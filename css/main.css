@@ -132,14 +132,17 @@ body {
 }
 
 /* ─── LAYOUT PRINCIPAL ──────────────────────────────────────── */
+/* Hauteur figée sur la fenêtre : chaque écran défile en interne, ce qui
+   permet à la carte TRACÉS de mesurer exactement la zone visible. */
 .app-wrapper {
   display:        flex;
   flex-direction: column;
-  min-height:     100vh;
-  min-height:     100dvh;
+  height:         100vh;
+  height:         100dvh;
   max-width:      480px;
   margin:         0 auto;
   position:       relative;
+  overflow:       hidden;
 }
 
 /* ─── HEADER ────────────────────────────────────────────────── */
@@ -453,14 +456,34 @@ header {
 
 /* ─── ÉCRANS ─────────────────────────────────────────────────── */
 .screen {
-  display:         none;
-  flex:            1;
-  /* Espace pour la barre terrain fixe en bas (hauteur réelle ~150 px) :
-     garantit que la barre d'export reste entièrement accessible. */
-  padding-bottom:  190px;
+  display:          none;
+  flex:             1 1 auto;
+  min-height:       0;      /* autorise le défilement interne dans le flex */
+  overflow-y:       auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .screen.active { display: block; }
+
+/* TRACÉS : carte plein écran (100 % de la zone visible) + panneau qui défile
+   dessous. La barre d'enregistrement flotte sur la carte. */
+#tab-points.active {
+  display:        flex;
+  flex-direction: column;
+}
+
+.points-panel {
+  flex:     0 0 auto;
+  padding:  12px 12px 16px;
+}
+
+.points-panel-head {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   12px;
+}
 
 /* ─── TITRES DE SECTION ─────────────────────────────────────── */
 .section-title {

@@ -80,7 +80,7 @@ peut être isolé.
    sous les onglets, sur tous les écrans.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** :
-   - onglet **TRACÉS** ou barre terrain en bas : `TONTE`, `INTERDIT`, `OBSTACLE` ;
+   - onglet **TRACÉS** : barre flottante sur la carte — `TONTE`, `INTERDIT`, `OBSTACLE` ;
    - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans TRACÉS) ;
    - `✏️` sur une ligne TRACÉS ou dans la popup carte : renommer un point (nom exporté dans
      `properties.name` pour les obstacles).
@@ -94,11 +94,11 @@ peut être isolé.
 
 ```text
 RTKGpsWeb/
-├── index.html              # Application mono-page : header, onglets, modales, barre terrain
+├── index.html              # Application mono-page : header, onglets, modales, barre flottante
 ├── css/
 │   ├── design-tokens.css   # Tokens du design system (couleurs, rayons, ombres, espacements)
 │   ├── main.css            # Reset, layout, header, onglets, toasts, modales, thème nuit
-│   ├── components.css      # Cartes, boutons, listes de points, barre terrain, simulation
+│   ├── components.css      # Cartes, boutons, listes de points, barre flottante
 │   ├── map.css             # Styles Leaflet (popups, contrôles, overlay de surface)
 │   └── theme.css           # Overrides du mode nuit + écran caméra
 ├── js/

@@ -17,7 +17,7 @@ avant tous les autres styles.
 |---|---|
 | `design-tokens.css` | Tokens de base (couleurs, rayons, ombres, espacements) |
 | `main.css` | Reset, layout, header, onglets, toasts, modales, thème nuit, alias |
-| `components.css` | Cartes, boutons, listes de points, barre terrain, mode simulation |
+| `components.css` | Cartes, boutons, listes de points, barre d'enregistrement flottante |
 | `map.css` | Styles Leaflet (popups, zoom, attribution, overlay) |
 | `theme.css` | Overrides du mode nuit et styles de l'écran caméra |
 
@@ -132,8 +132,12 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
 - `.modal-title` : 18 px, 700, `--color-primary-deep`.
 - `.modal-handle` : poignée grise centrée.
 
-### Barre terrain
+### Barre d'enregistrement flottante (capsule)
 
+- `.floating-toolbar` : capsule posée sur la carte TRACÉS (`position: absolute`,
+  `bottom: 20px`, `left: 50%`, `translateX(-50%)`), fond `--color-white`, bordure
+  `--border`, rayon 999 px, `--shadow-lg`, `z-index: 1000`. Hors du conteneur `#map`,
+  elle ne capte donc aucun geste Leaflet.
 - `.terrain-btn-circle` : 64 px, `border-radius: 50%`, bouton « premium » :
   - **relief** : `box-shadow` double interne (filet clair en haut, ombre en bas) + ombre
     portée externe ;
@@ -147,19 +151,21 @@ HISTORIQUE). L'état actif est porté par la classe `.active`, posée par `showT
 - `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle
   (10 px / 800, 9 px sous 360 px), en `currentColor` — donc blanc, ou
   `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`.
-  Ces trois boutons n'ont plus de libellé sous le cercle.
-- `.terrain-btn-circle svg` : icône **SVG outline** conservée pour « Nouvelle zone »
-  (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 26 px sous 360 px).
-  Ce bouton garde son libellé `.terrain-btn-label` **sous** le cercle.
-- Alignement : `.terrain-btns` est en `align-items: flex-start` ; les quatre cercles partagent
-  la même ligne haute et le libellé de « Nouvelle zone » ne décale pas les autres boutons.
+  Ces trois boutons n'ont pas de libellé sous le cercle.
+- `.terrain-btn-circle svg` : icône **SVG outline** du bouton « Nouvelle zone »
+  (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 24 px pour ce bouton),
+  complétée par `.terrain-btn-sub` (« ZONE », 8 px / 800) **à l'intérieur** du cercle, sous
+  le « + » : la capsule reste basse et les quatre cercles sont alignés.
+- Alignement : `.floating-toolbar` en `align-items: center`, `gap: clamp(8px, 3vw, 14px)`
+  et padding `8px clamp(10px, 3vw, 16px)`.
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
   nouvelle zone `--color-teal`.
 - Classe `.disabled` : opacité 0.35, `saturate(0.7)` (gérée par `updateTerrainButtons()`).
-- Thème nuit : reflet atténué (`opacity: 0.45`), ombre noire renforcée, bordure à 0.22.
+- Thème nuit : capsule sur `--color-white` (surface sombre) + bordure `--border2` ; reflet
+  atténué (`opacity: 0.45`), ombre noire renforcée, bordure des cercles à 0.22.
 - Responsive : 56 px sous 360 px de large, icône 26 px, texte 9 px ; sous 340 px, cercles
-  52 px, icône 24 px, texte 8 px, `gap: 4px` et padding latéral 8 px pour que les quatre
-  boutons restent dans la barre.
+  52 px, icône 24 px, texte 8 px, `gap: 4px`, padding latéral 8 px et `bottom: 12px` pour
+  que les quatre boutons restent dans la capsule.
 
 ### Cartes et listes
 

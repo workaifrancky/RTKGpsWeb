@@ -118,48 +118,25 @@
   color:       var(--text);
 }
 
-/* ─── BARRE TERRAIN FLOTTANTE ───────────────────────────────── */
-/* Les boutons flottent au-dessus du contenu : aucun fond de barre. */
-.terrain-bar {
-  display:     none;
-  position:    fixed;
-  bottom:      20px;
-  left:        50%;
-  transform:   translateX(-50%);
-  width:       auto;
-  max-width:   calc(100vw - 24px);
-  background:  transparent;
-  border:      none;
-  padding:     0;
-  box-shadow:  none;
-  z-index:     1000;
-}
-
-.terrain-bar.show {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            8px;
-}
-
-.terrain-bar-title {
-  background:     rgba(17,24,39,0.72);
-  color:          rgba(255,255,255,0.92);
-  font-size:      9px;
-  font-weight:    700;
-  letter-spacing: 2px;
-  text-align:     center;
-  padding:        5px 12px;
-  border-radius:  999px;
-}
-
-.terrain-btns {
+/* ─── BARRE D'ENREGISTREMENT FLOTTANTE (CAPSULE) ────────────── */
+/* Capsule posée sur la carte TRACÉS : les quatre boutons ronds restent
+   alignés sur une seule ligne, au-dessus des contrôles Leaflet. */
+.floating-toolbar {
+  position:        absolute;
+  left:            50%;
+  bottom:          20px;
+  transform:       translateX(-50%);
   display:         flex;
+  align-items:     center;
   justify-content: center;
-  /* Les cercles sont alignés sur la même ligne haute : le bouton « Nouvelle
-     zone » conserve son libellé sous le cercle sans décaler les autres. */
-  align-items:     flex-start;
-  gap:             12px;
+  gap:             clamp(8px, 3vw, 14px);
+  padding:         8px clamp(10px, 3vw, 16px);
+  max-width:       calc(100% - 16px);
+  background:      var(--color-white);
+  border:          1px solid var(--border);
+  border-radius:   999px;
+  box-shadow:      var(--shadow-lg);
+  z-index:         1000;
 }
 
 .terrain-btn {
@@ -295,16 +272,27 @@
   border-color: rgba(255,255,255,0.35);
 }
 
-.terrain-btn-label {
-  background:     rgba(17,24,39,0.72);
-  color:          white;
-  font-size:      9px;
+/* Bouton « Nouvelle zone » : le « + » et le libellé ZONE tiennent dans le
+   cercle, pour rester aligné avec les trois autres boutons de la capsule. */
+.terrain-btn-circle.new-zone {
+  flex-direction: column;
+  gap:            1px;
+}
+
+.terrain-btn-circle.new-zone svg {
+  width:  24px;
+  height: 24px;
+}
+
+.terrain-btn-sub {
+  position:       relative;
+  z-index:        1;
+  color:          inherit;
+  font-size:      8px;
   font-weight:    800;
   letter-spacing: 0.5px;
-  text-align:     center;
-  line-height:    1.3;
-  padding:        2px 8px;
-  border-radius:  999px;
+  line-height:    1;
+  pointer-events: none;
 }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
@@ -945,16 +933,15 @@
   .terrain-btn-circle       { width: 56px; height: 56px; }
   .terrain-btn-circle svg   { width: 26px; height: 26px; }
   .terrain-btn-text         { font-size: 9px; }
-  .terrain-btn-label        { font-size: 8px; }
+  .terrain-btn-sub          { font-size: 7px; }
   .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
   .obstacle-option          { padding: 10px 4px; }
   .obstacle-option-icon     { font-size: 20px; }
 }
 
-/* Écrans très étroits : les cinq boutons doivent rester dans la barre. */
+/* Écrans très étroits : les quatre boutons doivent rester dans la capsule. */
 @media (max-width: 340px) {
-  .terrain-bar            { padding-left: 8px; padding-right: 8px; }
-  .terrain-btns           { gap: 4px; }
+  .floating-toolbar       { gap: 4px; padding-left: 8px; padding-right: 8px; bottom: 12px; }
   .terrain-btn-circle     { width: 52px; height: 52px; }
   .terrain-btn-circle svg { width: 24px; height: 24px; }
   .terrain-btn-text       { font-size: 8px; }

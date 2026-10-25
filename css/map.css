@@ -11,11 +11,51 @@
   z-index:     1;
 }
 
-/* Carte de l'onglet TRACÉS : plus compacte, au-dessus de la liste */
-#tab-points #map {
-  height:     40vh;
-  min-height: 220px;
+/* Carte de l'onglet TRACÉS : plein écran, la liste des points défile dessous */
+#tab-points #map-points {
+  flex:           0 0 auto;
+  height:         100%;      /* hauteur visible de l'onglet */
+  min-height:     320px;
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
 }
+
+#tab-points #map-points-slot {
+  flex:       1 1 auto;
+  min-height: 0;
+}
+
+#tab-points #map {
+  height:     100%;
+  min-height: 0;
+}
+
+/* Carte de l'onglet CARTE : remplit l'espace restant (contrôles et légende
+   restent visibles), sans dépendre d'une hauteur en pixels. */
+#tab-map.active {
+  display:        flex;
+  flex-direction: column;
+  overflow-y:     auto;
+}
+
+#tab-map .map-controls { flex: 0 0 auto; }
+
+#tab-map .map-wrapper {
+  flex:       1 1 auto;
+  min-height: 240px;
+}
+
+#tab-map #map-carte-slot {
+  height: 100%;
+}
+
+#tab-map #map {
+  height: 100%;
+}
+
+#surfaceResult,
+#tab-map .map-legend { flex: 0 0 auto; }
 
 /* Enveloppe de la carte : support de la cible fixe centrée */
 .map-wrapper {
@@ -24,6 +64,7 @@
 
 /* Bandeau de mode de tracé (GPS / Manuel) au-dessus de la carte TRACÉS */
 .map-mode-bar {
+  flex:            0 0 auto;
   display:         flex;
   align-items:     center;
   justify-content: space-between;
@@ -57,6 +98,37 @@
   letter-spacing: 0.3px;
   color:          var(--text3);
   text-align:     right;
+  margin-left:    auto;
+}
+
+/* Accès rapide à la liste des points : sans lui, la carte plein écran
+   capte la molette (zoom) et le glissement (panoramique). */
+.map-panel-toggle {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             3px;
+  padding:         4px 10px;
+  border:          1px solid var(--border);
+  border-radius:   999px;
+  background:      var(--color-white);
+  color:           var(--color-primary-deep);
+  font-family:     var(--font);
+  font-size:       10px;
+  font-weight:     800;
+  letter-spacing:  0.3px;
+  white-space:     nowrap;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.map-panel-toggle:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale);
+}
+
+@media (max-width: 360px) {
+  .map-mode-hint { display: none; }
 }
 
 /* Contrôles GPS de la carte (recentrer / suivi) */
@@ -97,6 +169,12 @@
   border-color: var(--color-primary);
 }
 
+/* Sur TRACÉS, la capsule flottante occupe le bas de la carte : les contrôles
+   GPS (recentrer / suivi) remontent pour ne pas passer dessous. */
+#tab-points .map-gps-control {
+  margin-bottom: 104px;
+}
+
 /* Cible de visée fixe au centre de la carte (ne bouge pas avec le panoramique) */
 #map-crosshair {
   position:       absolute;
@@ -114,6 +192,11 @@
 
 #map-crosshair .map-crosshair-dot {
   fill: var(--color-crosshair);
+}
+
+/* La cible de visée n'a de sens que pour le tracé : masquée sur CARTE. */
+#map-crosshair.is-hidden {
+  display: none;
 }
 
 /* Popup Leaflet — thème clair */

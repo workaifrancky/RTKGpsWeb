@@ -36,7 +36,23 @@
   color:        var(--green-dark);
   border-color: var(--color-primary-accent);
 }
-[data-theme="dark"] .terrain-bar   { background: #14532d; border-color: #052e16; }
+[data-theme="dark"] .floating-toolbar {
+  background:   var(--color-white);
+  border-color: var(--border2);
+}
+
+/* Bouton « POINTS » du bandeau de mode (carte TRACÉS) */
+[data-theme="dark"] .map-panel-toggle {
+  background:   var(--color-white);
+  border-color: var(--border2);
+  color:        var(--color-primary-accent);
+}
+
+[data-theme="dark"] .map-panel-toggle:hover {
+  background:   var(--color-bg-muted);
+  border-color: var(--color-primary-accent);
+  color:        var(--color-primary-accent);
+}
 
 /* Boutons terrain : sur fond sombre, le reflet blanc est atténué et l'ombre
    noire renforcée pour conserver le relief sans halo « sale ». */
@@ -238,7 +254,7 @@ body.camera-ui-fullscreen #projectBar,
 body.camera-ui-fullscreen #alertBar,
 body.camera-ui-fullscreen .fix-ntrip,
 body.camera-ui-fullscreen .tabs-wrapper,
-body.camera-ui-fullscreen .terrain-bar {
+body.camera-ui-fullscreen .floating-toolbar {
   display: none !important;
 }
 

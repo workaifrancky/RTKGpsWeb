@@ -220,6 +220,18 @@ function clearAllPoints() {
   showToast('Points effacés', 'info');
 }
 
+// ─── ACCÈS À LA LISTE DEPUIS LA CARTE PLEIN ÉCRAN ───────────
+// La carte occupe toute la hauteur : molette = zoom Leaflet et glissement =
+// panoramique. Ce bouton amène la liste (et la barre d'export) à l'écran.
+function scrollToPointsPanel() {
+  const screen = document.getElementById('tab-points');
+  const panel = document.querySelector('.points-panel');
+  if (!screen || !panel) return;
+
+  const delta = panel.getBoundingClientRect().top - screen.getBoundingClientRect().top;
+  screen.scrollTo({ top: screen.scrollTop + delta - 8, behavior: 'smooth' });
+}
+
 // ─── RENDU LISTE ─────────────────────────────────────────────
 function renderPointsList() {
   const container = document.getElementById('pointsList');
@@ -231,9 +243,8 @@ function renderPointsList() {
   if (pts.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">📍</div>
         Aucun point enregistré.<br>
-        Utilisez les boutons en bas de page<br>pour enregistrer des points.
+        Utilisez la barre flottante sur la carte<br>pour enregistrer des points.
       </div>`;
     return;
   }

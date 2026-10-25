@@ -287,6 +287,19 @@ function addPointToMap(pt) {
 }
 
 // Position live
+// Efface le marqueur de position live et sa trace : appelé à la déconnexion
+// BLE pour qu'aucun point GPS périmé ne reste affiché en mode manuel.
+function clearLiveGpsPosition() {
+  if (map) {
+    if (liveMarker) map.removeLayer(liveMarker);
+    if (livePolyline) map.removeLayer(livePolyline);
+  }
+  liveMarker = null;
+  livePolyline = null;
+  liveTrail = [];
+  lastMapPosition = null;
+}
+
 function updateLivePosition(data) {
   if (!map || !data.lat || !data.lon) return;
   const pos=[data.lat,data.lon];
@@ -316,7 +329,21 @@ function getTargetCoords() {
   return { lat: center.lat, lon: center.lng };
 }
 
+// La cible de visée ne sert qu'au tracé manuel : elle est masquée sur CARTE
+// (consultation) et visible uniquement sur TRACÉS.
+function syncCrosshairVisibility(tabId) {
+  const crosshair = document.getElementById('map-crosshair');
+  if (!crosshair) return;
+
+  const visible = tabId === 'tab-points';
+  crosshair.classList.toggle('is-hidden', !visible);
+  crosshair.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
+
 function getGpsPositionForMap() {
+  // En mode manuel (BLE déconnecté), la dernière position reçue est périmée :
+  // elle ne doit ni recentrer la carte ni déplacer la cible de tracé.
+  if (typeof APP === 'undefined' || !APP.bleConnected) return null;
   if (lastMapPosition) return lastMapPosition;
   if (typeof lastGpsData !== 'undefined' && lastGpsData
       && Number.isFinite(lastGpsData.lat) && Number.isFinite(lastGpsData.lon)) {
@@ -413,6 +440,7 @@ function mountMapForTab(tabId) {
 
     if (tabId === 'tab-points') {
       renderMap();
+      syncCrosshairVisibility(tabId);
       updateRecordModeBadge();
       if (followGps && getGpsPositionForMap()) centerMapOnGps();
     }

@@ -67,6 +67,7 @@ function onConnected() {
 
 function onDisconnected() {
   APP.bleConnected = false; bleServer=null; bleChar=null;
+  if (typeof clearLiveGpsPosition === 'function') clearLiveGpsPosition();
   setBleStatus('disconnected');
   updateTerrainButtons();
 }
