@@ -53,6 +53,9 @@
       <select id="ntripSelect" onchange="selectNtripStation(this.value)" style="font-size:11px; padding:2px 4px; background:transparent; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:4px; max-width:120px;">
       </select>
     </div>
+    <span id="saveIndicator" class="save-indicator" title="Sauvegardé localement" aria-live="polite">
+      <span class="save-icon" aria-hidden="true">💾</span><span class="save-label">Sauvegardé</span>
+    </span>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -102,6 +105,12 @@
           <button type="button" id="btnMapFullscreen" class="map-float-btn"
             onclick="toggleMapFullscreen()" title="Plein écran carte" aria-pressed="false">⛶</button>
         </div>
+
+        <div class="map-lock-control">
+          <button type="button" id="btnLock" class="map-float-btn map-lock-btn"
+            onclick="toggleScreenLock()" title="Verrouiller l'écran"
+            aria-label="Verrouiller l'écran" aria-pressed="false">🔒</button>
+        </div>
       </div>
 
       <!-- Bascule Lecture / Création -->
@@ -148,7 +157,13 @@
       </div>
       <div id="pointsList"></div>
       <div class="actions-bar actions-bar-export">
-        <button class="action-button export-primary" onclick="exportGeoJSON()">⬇ Exporter GeoJSON</button>
+        <div class="export-primary-group">
+          <button class="action-button export-primary" onclick="exportGeoJSON()" title="Exporter en GeoJSON">⬇ GeoJSON</button>
+          <button type="button" class="action-button export-share" onclick="shareGeoJSON()"
+            title="Partager le GeoJSON" aria-label="Partager le GeoJSON">
+            <span aria-hidden="true">📤</span><span class="export-share-label">Partager</span>
+          </button>
+        </div>
         <div class="export-menu">
           <button id="btnExportMenu" class="export-menu-toggle" onclick="toggleExportMenu(event)"
             title="Autres formats d'export (CSV, GPX)"
@@ -303,6 +318,24 @@
   <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ" aria-label="RELEVÉ" onclick="showTab('tab-stats')"><span class="tab-icon" aria-hidden="true">📊</span><span class="tab-text">RELEVÉ</span></button>
   <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE" aria-label="HISTORIQUE" onclick="showTab('tab-history')"><span class="tab-icon" aria-hidden="true">🕐</span><span class="tab-text">HISTORIQUE</span></button>
 </div>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- VERROUILLAGE ÉCRAN                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div id="lockOverlay" class="lock-overlay" aria-hidden="true"
+       role="dialog" aria-modal="true" aria-label="Écran verrouillé">
+    <div class="lock-banner" role="status" aria-live="polite">
+      <div class="lock-icon" aria-hidden="true">🔒</div>
+      <div class="lock-title">Écran verrouillé</div>
+      <div class="lock-message">Glissez pour déverrouiller</div>
+    </div>
+    <div id="lockSwipe" class="lock-swipe" role="button" tabindex="0"
+      aria-label="Glisser horizontalement vers la droite pour déverrouiller l'écran">
+      <span class="lock-swipe-text" aria-hidden="true">Glissez horizontalement</span>
+      <span id="lockSwipeKnob" class="lock-swipe-knob" aria-hidden="true">🔓</span>
+    </div>
+  </div>
+
+
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL OBSTACLE                                              -->

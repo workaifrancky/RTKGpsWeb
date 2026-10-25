@@ -330,6 +330,44 @@ header {
   font-weight: 600;
 }
 
+/* Indicateur discret de sauvegarde locale (barre Fix) */
+.save-indicator {
+  display:     inline-flex;
+  align-items: center;
+  gap:         4px;
+  margin-left: 6px;
+  font-size:   10px;
+  font-weight: 700;
+  color:       rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.save-icon {
+  font-size:   13px;
+  line-height: 1;
+}
+
+.save-label { display: none; }
+
+.save-indicator.flash {
+  animation: saveFlash 0.9s ease;
+}
+
+@keyframes saveFlash {
+  0%, 100% { opacity: 0.65; }
+  30%      { opacity: 1; color: var(--color-primary-accent-text); }
+}
+
+@media (min-width: 481px) {
+  .save-label { display: inline; }
+}
+
+@media (max-width: 360px) {
+  #saveIndicator { margin-left: 2px; }
+  .save-icon     { font-size: 12px; }
+}
+
 /* NTRIP intégré au bandeau Fix (à droite) */
 .fix-ntrip {
   display:     flex;

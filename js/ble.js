@@ -108,7 +108,8 @@ function updateTerrainButtons() {
   const connected   = APP.bleConnected;
   const manualReady = typeof getTargetCoords === 'function'
     && !!document.getElementById('map-points-slot');
-  const enabled = connected || manualReady;
+  const locked      = document.body?.classList.contains('locked') || false;
+  const enabled     = (connected || manualReady) && !locked;
 
   ['btnTonte','btnInterdit','btnObstacle'].forEach(id => {
     const circle = document.getElementById(id);

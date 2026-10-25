@@ -80,11 +80,27 @@ function calculateConvexHull(points) {
   return hull;
 }
 
-function exportGeoJSON() {
+function getExportMetadata(points, project) {
+  // Première capture = timestamp le plus ancien (et non la date d'export).
+  const first = points.reduce((min, p) => {
+    const time = p && p.timestamp ? Date.parse(p.timestamp) : NaN;
+    if (!Number.isFinite(time)) return min;
+    return !min || time < min.time ? { time, iso: p.timestamp } : min;
+  }, null);
+
+  return {
+    date_creation: first?.iso || project?.createdAt || new Date().toISOString(),
+    version_app: (typeof APP !== 'undefined' && APP.version) ? APP.version : '2.0.0',
+    source: 'rtk-mower',
+  };
+}
+
+function buildGeoJSON() {
   const pts = getPoints();
-  if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
+  if (pts.length===0) return null;
   const proj = getCurrentProjectData();
   const projectName = proj?.name || 'export';
+  const metadata = getExportMetadata(pts, proj);
 
   const tonte    = pts.filter(p => p.type === 'tonte');
   const interdit = pts.filter(p => p.type === 'interdit');
@@ -102,7 +118,7 @@ function exportGeoJSON() {
         type:'domaine',
         name:projectName,
         created_at:proj?.createdAt || null,
-        source:'rtk-mower',
+        ...metadata,
       },
     });
   }
@@ -128,7 +144,7 @@ function exportGeoJSON() {
         name:`${projectName} - Zone ${zoneId}`,
         surface_m2:calculateArea(zonePts),
         zone_id:zoneId,
-        source:'rtk-mower',
+        ...metadata,
       },
     });
   });
@@ -147,7 +163,7 @@ function exportGeoJSON() {
         name: zoneId === 1 ? 'Zone interdite' : `Zone interdite #${zoneId}`,
         surface_m2:calculateArea(zonePts),
         zone_id:zoneId,
-        source:'rtk-mower',
+        ...metadata,
       },
     });
   });
@@ -167,14 +183,69 @@ function exportGeoJSON() {
         satellites:p.satellites,
         hdop:p.hdop,
         timestamp:p.timestamp,
-        source:'rtk-mower',
+        ...metadata,
       },
     });
   });
 
   const geojson = { type:'FeatureCollection', features };
-  downloadFile(JSON.stringify(geojson,null,2), `RTK_${projectName}_${dateTag()}.geojson`, 'application/json');
-  showToast(`✅ GeoJSON exporté — ${features.length} feature(s)`,'info');
+  return {
+    geojson,
+    filename: `RTK_${projectName}_${dateTag()}.geojson`,
+    projectName,
+  };
+}
+
+function exportGeoJSON() {
+  const payload = buildGeoJSON();
+  if (!payload) { showToast('Aucun point à exporter','error'); return; }
+
+  downloadFile(
+    JSON.stringify(payload.geojson, null, 2),
+    payload.filename,
+    'application/json',
+  );
+  showToast(`✅ GeoJSON exporté — ${payload.geojson.features.length} feature(s)`,'info');
+}
+
+async function shareGeoJSON() {
+  const payload = buildGeoJSON();
+  if (!payload) { showToast('Aucun point à partager','error'); return; }
+
+  if (typeof navigator === 'undefined'
+      || typeof navigator.share !== 'function'
+      || typeof File !== 'function') {
+    showToast('Partage non supporté sur ce navigateur','error');
+    return;
+  }
+
+  const file = new File(
+    [JSON.stringify(payload.geojson, null, 2)],
+    payload.filename,
+    { type: 'application/geo+json' },
+  );
+
+  let filesSupported = true;
+  if (typeof navigator.canShare === 'function') {
+    try { filesSupported = navigator.canShare({ files: [file] }); }
+    catch { filesSupported = false; }
+  }
+  if (!filesSupported) {
+    showToast('Partage non supporté sur ce navigateur','error');
+    return;
+  }
+
+  try {
+    await navigator.share({
+      title: `GeoJSON — ${payload.projectName}`,
+      text:  `Export RTK Mower — ${payload.projectName}`,
+      files: [file],
+    });
+    showToast('✅ GeoJSON partagé','info');
+  } catch (error) {
+    if (error && error.name === 'AbortError') return;   // partage annulé
+    showToast('Partage indisponible sur ce navigateur','error');
+  }
 }
 
 // ─── MENU D'EXPORT SECONDAIRE (CSV / GPX) ───────────────────

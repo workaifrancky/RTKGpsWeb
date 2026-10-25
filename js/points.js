@@ -53,6 +53,10 @@ function getPointPosition() {
 
 // En mode lecture, aucun point ne peut être ajouté (carte consultable).
 function canRecordPoints() {
+  if (document.body?.classList.contains('locked')) {
+    showToast('Écran verrouillé — glissez pour déverrouiller', 'info');
+    return false;
+  }
   if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
     showToast('Mode lecture — ✏️ Modifier pour tracer', 'info');
     return false;

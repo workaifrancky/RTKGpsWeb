@@ -11,6 +11,19 @@ deux applications.
 - JSON indenté sur 2 espaces, encodage UTF-8.
 - Chaque propriété contient `source: 'rtk-mower'`.
 
+## Métadonnées communes à toutes les features
+
+En plus des champs propres à chaque type, chaque `properties` porte :
+
+| Champ | Valeur |
+|---|---|
+| `date_creation` | timestamp ISO 8601 de la **première capture** (point le plus ancien du projet), avec repli sur `project.createdAt` puis la date d'export. |
+| `version_app` | version de l'application (`APP.version`, actuellement `"2.0.0"`). |
+| `source` | `"rtk-mower"`. |
+
+`created_at` reste spécifique à la Feature `domaine` (date de création de la parcelle). Les
+applications consommatrices doivent ignorer les propriétés qu'elles ne connaissent pas.
+
 ## Ordre des features
 
 | # | `properties.type` | Géométrie | Condition |
@@ -44,6 +57,8 @@ Polygone fermé : la première coordonnée est répétée à la fin.
     "type": "domaine",
     "name": "Jardin Nord",
     "created_at": "2026-10-01T08:00:00.000Z",
+    "date_creation": "2026-10-23T10:00:00.000Z",
+    "version_app": "2.0.0",
     "source": "rtk-mower"
   }
 }
@@ -77,6 +92,8 @@ le premier point est répété pour fermer l'anneau. Les zones sont triées par 
     "name": "Jardin Nord - Zone 1",
     "surface_m2": 352.4,
     "zone_id": 1,
+    "date_creation": "2026-10-23T10:00:00.000Z",
+    "version_app": "2.0.0",
     "source": "rtk-mower"
   }
 }
@@ -112,6 +129,8 @@ croissant ; une zone de moins de 3 points n'est pas exportée.
     "name": "Zone interdite",
     "surface_m2": 11.0,
     "zone_id": 1,
+    "date_creation": "2026-10-23T10:00:00.000Z",
+    "version_app": "2.0.0",
     "source": "rtk-mower"
   }
 }
@@ -144,6 +163,8 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
     "satellites": 20,
     "hdop": 0.6,
     "timestamp": "2026-10-23T10:00:10.000Z",
+    "date_creation": "2026-10-23T10:00:00.000Z",
+    "version_app": "2.0.0",
     "source": "rtk-mower"
   }
 }
@@ -160,7 +181,7 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 2. Ne jamais inverser les coordonnées : toujours `[lon, lat]`.
 3. Toujours fermer les anneaux de polygones.
 4. Conserver l'ordre des features (domaine en premier, zones par `zone_id` croissant).
-5. Conserver `source: 'rtk-mower'` sur toutes les features.
+5. Conserver `source: 'rtk-mower'`, `date_creation` et `version_app` sur toutes les features.
 6. Conserver `zone_id` sur chaque Feature `zone` et `zone_interdite`, et ne pas fusionner les
    zones.
 7. Aucune Feature `base` : la fonction « base du rover » est supprimée de l'application.
@@ -174,4 +195,6 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 - [ ] Les polygones sont fermés et en `[lon, lat]`.
 - [ ] Les `surface_m2` sont numériques et > 0.
 - [ ] Chaque obstacle possède un `properties.name` (nom personnalisé ou catégorie).
+- [ ] Toutes les features portent `date_creation`, `version_app` et `source: 'rtk-mower'`.
+- [ ] `date_creation` correspond au timestamp de la première capture (pas à la date d'export).
 - [ ] Aucune Feature `base` n'est présente.

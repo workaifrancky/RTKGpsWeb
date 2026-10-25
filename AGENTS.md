@@ -121,7 +121,8 @@ Aucune Feature `base` n'est produite.
 
 Nom du fichier : `RTK_<projet>_<YYYY-MM-DD>.geojson`.
 
-Toutes les propriétés incluent `source: 'rtk-mower'`.
+Toutes les propriétés incluent `source: 'rtk-mower'`, `date_creation` (première capture ISO) et
+`version_app` (`APP.version`, actuellement `2.0.0`).
 
 ## 7. Points de vigilance
 
@@ -163,6 +164,17 @@ Toutes les propriétés incluent `source: 'rtk-mower'`.
 - **Export** : GeoJSON est le format principal (bouton `.export-primary`). CSV et GPX sont
   dans le menu `#exportMenu`, piloté par `toggleExportMenu()` / `closeExportMenu()`
   (`js/export.js`) ; le menu se ferme au clic extérieur, avec Échap et au changement d'onglet.
+  Le bouton `📤` (`shareGeoJSON()`) partage le **même GeoJSON** via `navigator.share({ files })`
+  (fallback toast sur desktop). `buildGeoJSON()` centralise la construction et les métadonnées
+  `date_creation` / `version_app` / `source` ajoutées à **toutes** les features.
+- **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
+  par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
+  `setMapInteractionEnabled(false)` coupe les gestes Leaflet, `canRecordPoints()` et
+  `updateTerrainButtons()` bloquent l'enregistrement. Le voile est en `z-index: 3000`.
+- **Sauvegarde locale** : `saveProjects()` écrit via `persistProjectStorage()` ; l'indicateur
+  `#saveIndicator` clignote (`flashSaveIndicator()`). `autosaveInterval` réécrit toutes les
+  30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
+  `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
   dans `<head>`, JS après `leaflet.js`). Les polygones de tonte passent
   `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
@@ -463,6 +475,12 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   activé pour l'iPhone. La barre est sous le tiroir (1040/1050), les modales (1100) et les
   toasts (1200), et masquée en plein écran carte/caméra. Thème nuit : libellés vert clair,
   inactifs à `opacity: 0.65` ; badge de mode et bouton « Terminer » rendus lisibles.
+- **3.26 — Fonctions pro terrain** : verrouillage anti-fausse manip (`body.locked`,
+  `#lockOverlay`, bouton flottant `#btnLock`, glissement `.lock-swipe`, gestes Leaflet coupés,
+  enregistrement bloqué), partage natif du GeoJSON (`shareGeoJSON()` + `buildGeoJSON()`,
+  fallback toast), métadonnées `date_creation` / `version_app` / `source` sur toutes les
+  features et sauvegarde locale renforcée (autosave 30 s, `pagehide`/`visibilitychange`,
+  indicateur `💾` qui clignote). Le contrat GeoJSON reste inchangé (ajout de propriétés).
 
 ## 9. Langue et communication
 

@@ -45,6 +45,16 @@
   z-index:        1000;
 }
 
+/* Verrouillage d'écran : bouton flottant à droite, hors du rail gauche. */
+.map-lock-control {
+  position: absolute;
+  top:      110px;
+  right:    10px;
+  z-index:  1000;
+}
+
+.map-lock-btn { font-size: 18px; }
+
 .map-float-btn {
   width:           44px;
   height:          44px;

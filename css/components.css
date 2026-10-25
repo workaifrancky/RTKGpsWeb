@@ -744,6 +744,49 @@
   gap:                   8px;
 }
 
+/* Groupe Exporter + Partager : deux actions collées, sans casser la grille. */
+.export-primary-group {
+  display:   flex;
+  min-width: 0;
+}
+
+.export-primary-group .export-primary {
+  flex:            1 1 auto;
+  min-width:       0;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+  border-radius:   var(--radius-lg) 0 0 var(--radius-lg);
+}
+
+.export-share {
+  flex:            0 0 44px;
+  min-width:       44px;
+  border-radius:   0 var(--radius-lg) var(--radius-lg) 0;
+  background:      var(--color-primary-deep);
+  color:           white;
+  padding:         0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             5px;
+  font-size:       12px;
+  font-weight:     800;
+  white-space:     nowrap;
+  box-shadow:      var(--shadow-sm);
+}
+
+.export-share:hover { background: var(--color-primary); }
+
+.export-share-label { display: none; }
+
+@media (min-width: 481px) {
+  .export-share {
+    flex:    0 0 auto;
+    padding: 0 12px;
+  }
+  .export-share-label { display: inline; }
+}
+
 .export-primary {
   min-width:      0;
   border:         none;
@@ -1198,4 +1241,114 @@
   .floating-toolbar   { gap: 6px; padding: 6px 8px; bottom: 14px; }
   .terrain-btn-circle { width: 44px; height: 44px; }
   .terrain-btn-text   { font-size: 8px; }
+}
+
+/* ─── VERROUILLAGE ÉCRAN (anti-fausse manip) ───────────────── */
+/* Voile plein écran au-dessus de tout (nav 900, tiroir 1050, modales 1100,
+   toasts 1200) : seul le geste de glissement permet de sortir. */
+.lock-overlay {
+  position:        fixed;
+  inset:           0;
+  z-index:         3000;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             26px;
+  padding:         24px;
+  padding-bottom:  calc(24px + env(safe-area-inset-bottom, 0px));
+  background:      rgba(5, 18, 10, 0.84);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity:         0;
+  visibility:      hidden;
+  pointer-events:  none;
+  transition:      opacity 0.2s ease, visibility 0.2s ease;
+  touch-action:    none;
+}
+
+body.locked .lock-overlay {
+  opacity:        1;
+  visibility:     visible;
+  pointer-events: auto;
+}
+
+.lock-banner {
+  text-align: center;
+  color:      white;
+}
+
+.lock-icon {
+  font-size:     52px;
+  line-height:   1;
+  margin-bottom: 10px;
+}
+
+.lock-title {
+  font-size:      22px;
+  font-weight:    800;
+  letter-spacing: 0.3px;
+}
+
+.lock-message {
+  margin-top: 6px;
+  font-size:  14px;
+  color:      rgba(255, 255, 255, 0.82);
+}
+
+.lock-swipe {
+  position:        relative;
+  width:           min(320px, 82vw);
+  height:          60px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  border:          1px solid rgba(255, 255, 255, 0.4);
+  border-radius:   999px;
+  background:      rgba(255, 255, 255, 0.14);
+  touch-action:    none;
+  user-select:     none;
+  cursor:          grab;
+}
+
+.lock-swipe:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 3px;
+}
+
+.lock-swipe.dragging { cursor: grabbing; }
+
+.lock-swipe-text {
+  padding:        0 58px;
+  font-size:      12px;
+  font-weight:    600;
+  color:          rgba(255, 255, 255, 0.78);
+  text-align:     center;
+  pointer-events: none;
+}
+
+.lock-swipe-knob {
+  position:        absolute;
+  top:             5px;
+  left:            5px;
+  width:           50px;
+  height:          48px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border-radius:   999px;
+  background:      #fff;
+  color:           var(--green-dark);
+  font-size:       22px;
+  box-shadow:      0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events:  none;
+  transition:      transform 0.1s ease, background-color 0.1s ease;
+  will-change:     transform;
+}
+
+.lock-swipe.dragging .lock-swipe-knob { transition: none; }
+
+.lock-swipe.armed .lock-swipe-knob {
+  background: var(--color-primary-accent);
 }

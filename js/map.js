@@ -92,6 +92,26 @@ function initMap() {
   syncMapBaseLayerButtons();
 
   renderMap();
+
+  // Si la carte est créée alors que l'écran est verrouillé (reprise de session),
+  // on applique tout de suite l'état des gestes.
+  if (document.body.classList.contains('locked')) setMapInteractionEnabled(false);
+}
+
+// Active/désactive tous les gestes Leaflet (verrouillage d'écran).
+function setMapInteractionEnabled(enabled) {
+  if (!map) return;
+
+  [map.dragging, map.touchZoom, map.doubleClickZoom, map.scrollWheelZoom,
+   map.boxZoom, map.keyboard, map.tap].forEach(handler => {
+    if (!handler) return;
+    try {
+      enabled ? handler.enable() : handler.disable();
+    } catch { /* handler absent */ }
+  });
+
+  const container = map.getContainer();
+  if (container) container.classList.toggle('map-locked', !enabled);
 }
 
 function setMapBaseLayer(layerId) {

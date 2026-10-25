@@ -60,6 +60,11 @@ brique doit être insérée **après ses dépendances**.
 - `showTab(tabId)` (`js/app.js`) active l'écran correspondant, pose `.active` et
   `aria-current="page"` sur le bouton portant le même `data-tab`. Aucun radio.
 - La barre est masquée en plein écran carte et caméra.
+- Verrouillage : `#btnLock` sur la carte, voile `#lockOverlay` (`body.locked`) et glissement
+  horizontal ; `setMapInteractionEnabled()` coupe les gestes Leaflet et l'enregistrement.
+- Partages et exports : `buildGeoJSON()` est la source unique (export fichier ou
+  `navigator.share({ files })`) ; les propriétés portent `date_creation`, `version_app` et
+  `source`.
 - Le bandeau `#projectBar` a été supprimé : le header contient `#btnProjectDrawer` (nom de la
   parcelle courante) qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
   tiroir liste les parcelles (`#projectListContainer`), permet de changer, renommer,

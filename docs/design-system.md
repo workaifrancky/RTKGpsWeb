@@ -82,9 +82,14 @@ Overrides de lisibilité :
 - `.action-button-danger` : fond `--color-danger`, hover `#b71c1c`.
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
-- `.actions-bar-export` : grille `minmax(0, 1fr) auto auto` (GeoJSON principal / menu / Effacer).
+- `.actions-bar-export` : grille `minmax(0, 1fr) auto auto` (groupe GeoJSON/Partager / menu / Effacer).
+- `.export-primary-group` : groupe flex `Exporter` + `Partager` (bords arrondis uniquement à
+  l'extérieur), sans élargir la grille.
 - `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
   hover `--color-primary-deep`.
+- `.export-share` : bouton 44 px collé à droite de l'export, fond `--color-primary-deep` ;
+  icône `📤` seule sur mobile, libellé « Partager » visible à partir de 481 px. Ouvre le partage
+  natif du GeoJSON (`navigator.share({ files })`), sinon toast « Partage non supporté ».
 - `.export-menu-toggle` : bouton `⋮` 46 × 44 px, fond `--color-white`, bordure `--border`.
 - `.export-menu-list` : panneau flottant au-dessus du bouton (fond `--color-white`,
   `--shadow-lg`, `z-index: 40`), ouvert par `.show` ; items `.export-menu-item`
@@ -96,6 +101,26 @@ Overrides de lisibilité :
 - `.action-button-simulation-gps` : variante teal (`--color-teal`), injecte une trame GPS
   fictive dans le pipeline (bandeau Fix). **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
+
+### Indicateur de sauvegarde et verrouillage
+
+- `#saveIndicator` (`.save-indicator`) : indicateur discret dans la barre Fix, icône `💾` sur
+  mobile et texte « Sauvegardé » à partir de 481 px. `flashSaveIndicator()` relance
+  l'animation `saveFlash` (0,9 s) à chaque écriture locale et met le `title` à l'heure de
+  sauvegarde. L'écriture réelle est centralisée par `persistProjectStorage()` /
+  `flushProjectStorage()`.
+- `#lockOverlay` (`.lock-overlay`) : voile plein écran `z-index: 3000` (au-dessus de la barre
+  basse, du tiroir, des modales et des toasts), fond sombre + `backdrop-filter`. Affiché par
+  `body.locked`.
+- `.lock-banner` : icône 52 px, titre 22 px / 800 et message « Glissez pour déverrouiller ».
+- `.lock-swipe` : piste de 60 px (`min(320px, 82vw)`) ; `.lock-swipe-knob` (50 × 48 px) suit
+  le doigt, passe en `--color-primary-accent` au-delà de 72 % du parcours. Le relâchement
+  déclenche `setScreenLock(false)` ; un glissement court revient à zéro. Entrée / Espace
+  déverrouillent au clavier (piste focusable).
+- `#btnLock` : bouton flottant 44 px à droite de la carte (`top: 110px`, `right: 10px`),
+  `aria-pressed` synchronisé, icône 🔒 / 🔓. Pendant le verrouillage, les gestes Leaflet sont
+  désactivés (`setMapInteractionEnabled`) et les boutons d'enregistrement sont bloqués par
+  `canRecordPoints()` + `updateTerrainButtons()`.
 
 ### Barre de navigation basse (`main.css`, overrides dans `theme.css`)
 

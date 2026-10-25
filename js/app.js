@@ -18,9 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
   initTheme();
   initCustomModal();
+  initScreenLock();
   initNavigation();
   checkBleSupport();
   initProjectUI();
+  initAutosave();
   console.log('App prête ✅');
 });
 
@@ -367,6 +369,171 @@ function customPrompt(message, defaultValue = '', options = {}) {
     confirmText: options.confirmText || 'Valider',
     cancelText:  options.cancelText || 'Annuler',
   }).then(result => (typeof result === 'string' ? result : null));
+}
+
+// ─── VERROUILLAGE D'ÉCRAN (anti-fausse manip) ────────────────
+// Le voile #lockOverlay couvre tout ; le déverrouillage se fait par un
+// glissement horizontal du curseur (ou Entrée / Espace au clavier).
+function initScreenLock() {
+  // On repart toujours déverrouillé après un rechargement.
+  if (document.body) document.body.classList.remove('locked');
+  const overlay = document.getElementById('lockOverlay');
+  if (overlay) overlay.setAttribute('aria-hidden', 'true');
+
+  const track = document.getElementById('lockSwipe');
+  const knob  = document.getElementById('lockSwipeKnob');
+  if (!track || !knob) return;
+
+  let startX = null;
+  let maxX   = 0;
+
+  const reset = () => {
+    startX = null;
+    track.classList.remove('dragging', 'armed');
+    knob.style.transform = 'translateX(0)';
+  };
+
+  const onDown = event => {
+    if (!document.body.classList.contains('locked')) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    startX = event.clientX;
+    maxX = Math.max(0, track.clientWidth - knob.offsetWidth - 10);
+    track.classList.add('dragging');
+    try { track.setPointerCapture(event.pointerId); } catch { /* non supporté */ }
+    event.preventDefault();
+  };
+
+  const onMove = event => {
+    if (startX === null) return;
+    const dx = Math.max(0, Math.min(event.clientX - startX, maxX));
+    knob.style.transform = `translateX(${dx}px)`;
+    track.classList.toggle('armed', maxX > 0 && dx >= maxX * 0.72);
+  };
+
+  const onUp = event => {
+    if (startX === null) return;
+    const dx = Math.max(0, Math.min(event.clientX - startX, maxX));
+    const unlock = maxX > 0 && dx >= maxX * 0.72;
+    reset();
+    try { track.releasePointerCapture(event.pointerId); } catch { /* ignoré */ }
+    if (unlock) setScreenLock(false);
+  };
+
+  track.addEventListener('pointerdown', onDown);
+  track.addEventListener('pointermove', onMove);
+  track.addEventListener('pointerup', onUp);
+  track.addEventListener('pointercancel', reset);
+  track.addEventListener('keydown', event => {
+    if ((event.key === 'Enter' || event.key === ' ') && document.body.classList.contains('locked')) {
+      event.preventDefault();
+      setScreenLock(false);
+    }
+  });
+
+  // Piège de focus : le seul élément interactif du voile est la piste.
+  const overlayEl = document.getElementById('lockOverlay');
+  if (overlayEl) {
+    overlayEl.addEventListener('keydown', event => {
+      if (event.key === 'Tab' && document.body.classList.contains('locked')) {
+        event.preventDefault();
+        track.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  setScreenLock(false, { silent: true });
+}
+
+function resetLockSwipe() {
+  const track = document.getElementById('lockSwipe');
+  const knob  = document.getElementById('lockSwipeKnob');
+  if (track) track.classList.remove('dragging', 'armed');
+  if (knob)  knob.style.transform = 'translateX(0)';
+}
+
+function toggleScreenLock() {
+  setScreenLock(!document.body.classList.contains('locked'));
+}
+
+function setScreenLock(locked, options = {}) {
+  const isLocked = !!locked;
+
+  document.body.classList.toggle('locked', isLocked);
+  const overlay = document.getElementById('lockOverlay');
+  if (overlay) overlay.setAttribute('aria-hidden', isLocked ? 'false' : 'true');
+
+  if (isLocked) {
+    if (typeof closeExportMenu === 'function') closeExportMenu();
+    if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
+  }
+
+  const btn = document.getElementById('btnLock');
+  if (btn) {
+    btn.textContent = isLocked ? '🔓' : '🔒';
+    btn.title = isLocked ? "Déverrouiller l'écran" : "Verrouiller l'écran";
+    btn.setAttribute('aria-label', btn.title);
+    btn.setAttribute('aria-pressed', isLocked ? 'true' : 'false');
+  }
+
+  if (typeof setMapInteractionEnabled === 'function') setMapInteractionEnabled(!isLocked);
+  if (typeof updateTerrainButtons === 'function') updateTerrainButtons();
+
+  if (!isLocked) resetLockSwipe();
+
+  if (!options.silent) {
+    showToast(isLocked ? '🔒 Écran verrouillé' : '🔓 Écran déverrouillé', 'info', 1600);
+
+    if (isLocked) {
+      const track = document.getElementById('lockSwipe');
+      if (track) setTimeout(() => track.focus({ preventScroll: true }), 60);
+    } else {
+      if (btn) setTimeout(() => btn.focus({ preventScroll: true }), 60);
+    }
+  }
+}
+
+// ─── SAUVEGARDE LOCALE AUTOMATIQUE ───────────────────────────
+let autosaveInterval = null;
+let saveIndicatorTimeout = null;
+
+function flashSaveIndicator() {
+  const el = document.getElementById('saveIndicator');
+  if (!el) return;
+
+  const time = new Date().toLocaleTimeString('fr-FR');
+  el.title = `Sauvegardé localement à ${time}`;
+  el.setAttribute('aria-label', el.title);
+
+  el.classList.remove('flash');
+  void el.offsetWidth;             // relance l'animation
+  el.classList.add('flash');
+
+  clearTimeout(saveIndicatorTimeout);
+  saveIndicatorTimeout = setTimeout(() => el.classList.remove('flash'), 1000);
+}
+
+function initAutosave() {
+  // Le banc Node ne fournit pas window.addEventListener : on n'installe pas
+  // l'autosauvegarde hors navigateur.
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+  if (autosaveInterval) clearInterval(autosaveInterval);
+
+  // Filet de sécurité : même sans modification, on réécrit le stockage.
+  autosaveInterval = setInterval(() => {
+    if (typeof flushProjectStorage === 'function') flushProjectStorage();
+  }, 30000);
+
+  // Dernière chance avant fermeture / mise en arrière-plan.
+  const flush = () => {
+    if (typeof flushProjectStorage === 'function') flushProjectStorage();
+  };
+  if (document.addEventListener) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush();
+    });
+  }
+  window.addEventListener('pagehide', flush);
+  window.addEventListener('beforeunload', flush);
 }
 
 // ─── UTILITAIRES ─────────────────────────────────────────────

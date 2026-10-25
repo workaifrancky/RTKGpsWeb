@@ -453,9 +453,36 @@ function initProjectUI() {
 }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────
+// Écriture locale sans rendu : utilisée par l'autosauvegarde (30 s) et les
+// événements de fermeture, pour ne pas reconstruire la liste à chaque tick.
+let storageWarningShown = false;
+
+function persistProjectStorage() {
+  try {
+    localStorage.setItem(PROJECT_KEY, JSON.stringify(projects));
+    if (currentProject) localStorage.setItem(CURRENT_KEY, currentProject.id);
+    storageWarningShown = false;
+    return true;
+  } catch (error) {
+    console.warn('Sauvegarde locale impossible', error);
+    if (!storageWarningShown && typeof showToast === 'function') {
+      showToast('Sauvegarde locale impossible — stockage plein ?', 'error', 4000);
+      storageWarningShown = true;
+    }
+    return false;
+  }
+}
+
+function flushProjectStorage() {
+  const ok = persistProjectStorage();
+  if (ok && typeof flashSaveIndicator === 'function') flashSaveIndicator();
+  return ok;
+}
+
 function saveProjects() {
-  localStorage.setItem(PROJECT_KEY, JSON.stringify(projects));
+  const ok = persistProjectStorage();
   renderProjectList();
+  if (ok && typeof flashSaveIndicator === 'function') flashSaveIndicator();
 }
 
 function loadProjects() {

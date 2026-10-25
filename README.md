@@ -13,6 +13,9 @@ géolocalisés.
 Fonctionnalités principales :
 
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
+- **verrouillage d'écran** anti-fausse manip (glissement horizontal pour déverrouiller) ;
+- **partage natif** du GeoJSON sur mobile (`navigator.share`) ;
+- **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit` et `obstacle` ;
 - **bibliothèque globale d'obstacles** (`rtkGlobalObstacles`) : import par cases à cocher
