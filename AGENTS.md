@@ -144,6 +144,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `recordInterdit()` s'appuie sur `buildPoint()`, qui lit `getCurrentInterditZoneId()`.
   Carte et export produisent un polygone / une Feature `zone_interdite` **par zone**
   (`zone_id`), sans fusion. Le bouton OBSTACLE reste indépendant et n'ouvre pas ce menu.
+- **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
+  `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
+  les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
+  les points suivants repartent dans l'ancienne zone après un rechargement.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. Le header contient
@@ -502,6 +506,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   verrouillé. Le toast de la dernière capture est masqué à l'ouverture pour ne pas recouvrir
   les options. Le bouton OBSTACLE conserve son menu et son flux indépendants. CSS :
   `.zone-choice-grid` / `.zone-choice` (2 × 60 px, icône 26 px, survol vert ou rouge).
+- **3.29 — Correction de la création des zones de tonte et interdites** : le câblage de la
+  modale était correct (`selectNewZone('tonte')` → `startNewZone()`,
+  `selectNewZone('interdit')` → `startNewInterditZone()`), mais une zone nouvellement créée
+  est vide. `normalizeProject()` ramenait `currentZoneId`/`currentInterditZoneId` à
+  `maxZone` au rechargement, et les recalculs après suppression faisaient de même : les
+  points suivants partaient dans l'ancienne zone. La normalisation et les recalculs
+  acceptent désormais `maxZone + 1` (zone vide en cours) tout en recalant les valeurs
+  réellement obsolètes. Tests : zones #2 tonte et interdite avec 3 points, rechargement
+  d'une zone vide, export de 2 Features `zone` et 2 Features `zone_interdite` (`zone_id`
+  1 et 2).
 
 ## 9. Langue et communication
 

@@ -345,12 +345,15 @@ function removePointFromCurrentProject(pointId) {
     let idx = 1;
     currentProject.points.filter(p => p.type === type).forEach(p => p.index = idx++);
   });
-  // Si la zone courante n'a plus de point, revenir à la dernière zone existante
+  // Si la zone courante n'a plus de point, revenir à la dernière zone existante.
+  // Exception : une zone vide qui vient d'être ouverte (maxZone + 1) reste la
+  // zone courante, sinon les points suivants repartiraient dans l'ancienne zone.
   const tonteZones = currentProject.points
     .filter(p => p.type === 'tonte')
     .map(p => Number(p.zoneId) || 1);
   const maxZone = tonteZones.length ? Math.max(...tonteZones) : 1;
-  if (!tonteZones.includes(Number(currentProject.currentZoneId))) {
+  const currentZone = Number(currentProject.currentZoneId);
+  if (!tonteZones.includes(currentZone) && currentZone !== maxZone + 1) {
     currentProject.currentZoneId = maxZone;
   }
 
@@ -358,7 +361,8 @@ function removePointFromCurrentProject(pointId) {
     .filter(p => p.type === 'interdit')
     .map(p => Number(p.zoneId) || 1);
   const maxInterditZone = interditZones.length ? Math.max(...interditZones) : 1;
-  if (!interditZones.includes(Number(currentProject.currentInterditZoneId))) {
+  const currentInterdit = Number(currentProject.currentInterditZoneId);
+  if (!interditZones.includes(currentInterdit) && currentInterdit !== maxInterditZone + 1) {
     currentProject.currentInterditZoneId = maxInterditZone;
   }
   saveProjects();
@@ -519,14 +523,18 @@ function normalizeProject(project) {
   const maxZone = project.points.reduce(
     (max, p) => (p.type === 'tonte' ? Math.max(max, Number(p.zoneId) || 1) : max), 1);
   const current = Number(project.currentZoneId);
-  if (!Number.isInteger(current) || current < 1 || current > maxZone) {
+  // Une zone de tonte peut être ouverte avant son premier point :
+  // currentZoneId = maxZone + 1 est donc un état valide (zone vide en cours).
+  // Au-delà, la valeur est considérée comme obsolète et recalée.
+  if (!Number.isInteger(current) || current < 1 || current > maxZone + 1) {
     project.currentZoneId = maxZone;
   }
 
   const maxInterditZone = project.points.reduce(
     (max, p) => (p.type === 'interdit' ? Math.max(max, Number(p.zoneId) || 1) : max), 1);
   const currentInterdit = Number(project.currentInterditZoneId);
-  if (!Number.isInteger(currentInterdit) || currentInterdit < 1 || currentInterdit > maxInterditZone) {
+  // Même règle pour la zone interdite vide qui vient d'être créée.
+  if (!Number.isInteger(currentInterdit) || currentInterdit < 1 || currentInterdit > maxInterditZone + 1) {
     project.currentInterditZoneId = maxInterditZone;
   }
 

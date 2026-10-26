@@ -184,16 +184,25 @@ async function deleteZone(type, zoneId) {
     currentProject.points.filter(p => p.type === t).forEach(p => { p.index = idx++; });
   });
 
-  // Recalage des zones courantes
+  // Recalage des zones courantes. Une zone vide ouverte (max + 1) est
+  // conservée si elle n'est pas elle-même supprimée.
   const tonteZones = currentProject.points
     .filter(p => p.type === 'tonte').map(p => Number(p.zoneId) || 1);
   const interditZones = currentProject.points
     .filter(p => p.type === 'interdit').map(p => Number(p.zoneId) || 1);
-  if (!tonteZones.includes(Number(currentProject.currentZoneId))) {
-    currentProject.currentZoneId = tonteZones.length ? Math.max(...tonteZones) : 1;
+  const maxTonte = tonteZones.length ? Math.max(...tonteZones) : 1;
+  const maxInterdit = interditZones.length ? Math.max(...interditZones) : 1;
+  const currentTonte = Number(currentProject.currentZoneId);
+  const currentInterdit = Number(currentProject.currentInterditZoneId);
+  const deletingTonteZone = kind === 'tonte' && currentTonte === id;
+  const deletingInterditZone = kind === 'interdit' && currentInterdit === id;
+  if (deletingTonteZone
+      || (!tonteZones.includes(currentTonte) && currentTonte !== maxTonte + 1)) {
+    currentProject.currentZoneId = maxTonte;
   }
-  if (!interditZones.includes(Number(currentProject.currentInterditZoneId))) {
-    currentProject.currentInterditZoneId = interditZones.length ? Math.max(...interditZones) : 1;
+  if (deletingInterditZone
+      || (!interditZones.includes(currentInterdit) && currentInterdit !== maxInterdit + 1)) {
+    currentProject.currentInterditZoneId = maxInterdit;
   }
 
   if (currentProject.zoneNames && currentProject.zoneNames[kind]) {
@@ -276,8 +285,11 @@ function closeZoneMenu() {
 
 function selectNewZone(type) {
   closeZoneMenu();
-  if (type === 'interdit') startNewInterditZone();
-  else startNewZone();
+  if (type === 'interdit') {
+    startNewInterditZone();
+  } else if (type === 'tonte') {
+    startNewZone();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
