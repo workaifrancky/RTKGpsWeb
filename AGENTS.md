@@ -56,7 +56,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 - Indentation 2 espaces, guillemets simples, point-virgule en fin d'instruction.
 - Commentaires et libellés d'interface **en français**.
 - Protéger les appels inter-fichiers optionnels : `if (typeof renderMap === 'function')`.
-- CSS : sections commentées, classes plates (`action-button`, `modal-box`, `terrain-btn-circle`),
+- CSS : sections commentées, classes plates (`action-button`, `modal-box`, `trace-fab-main`),
   variables pour toute couleur/rayon/ombre.
 - Avant livraison : `node --check <fichier>.js` sur chaque JS modifié.
 
@@ -135,15 +135,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Multi-zones de tonte** : chaque point `tonte` porte un `zoneId` (défaut 1) et le projet
   stocke `currentZoneId`. Utiliser `getZones()` pour grouper et ne jamais fusionner les zones
   à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante ; il est appelé
-  par l'option « Nouvelle zone de tonte » du menu `#zoneModal` (`openZoneMenu()` /
-  `selectNewZone()`), ouvert par le bouton « + ZONE » de la capsule.
+  par l'option « Nouvelle zone de tonte » du menu FAB (`#traceFabMenu` /
+  `beginTraceMode('tonte')`).
 - **Multi-zones interdites** : chaque point `interdit` porte aussi un `zoneId` ; le projet
   stocke `currentInterditZoneId`. `getInterditZones()` groupe par zone, `startNewInterditZone()`
-  (option « Nouvelle zone interdite » du menu `#zoneModal` et bouton « ＋ Nouvelle zone
-  interdite » de la liste TRACÉS, garde-fou ≥ 3 points) incrémente la zone courante.
-  `recordInterdit()` s'appuie sur `buildPoint()`, qui lit `getCurrentInterditZoneId()`.
-  Carte et export produisent un polygone / une Feature `zone_interdite` **par zone**
-  (`zone_id`), sans fusion. Le bouton OBSTACLE reste indépendant et n'ouvre pas ce menu.
+  (option « Nouvelle zone interdite » du menu FAB, garde-fou ≥ 3 points) incrémente la zone
+  courante. `recordInterdit()` s'appuie sur `buildPoint()`, qui lit
+  `getCurrentInterditZoneId()`. Carte et export produisent un polygone / une Feature
+  `zone_interdite` **par zone** (`zone_id`), sans fusion. La création d'obstacle passe par
+  l'option « Obstacle » du même menu, mais reste un point ponctuel.
 - **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
   `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
   les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
@@ -183,8 +183,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   voile, avec Échap et au changement d'onglet. `scrollToPointsPanel()` reste un alias.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
-  `setMapInteractionEnabled(false)` coupe les gestes Leaflet, `canRecordPoints()` et
-  `updateTerrainButtons()` bloquent l'enregistrement. Le voile est en `z-index: 3000`.
+  `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
+  l'enregistrement ; le FAB est sous le voile `z-index: 3000`.
 - **Sauvegarde locale** : `saveProjects()` écrit via `persistProjectStorage()` ; l'indicateur
   `#saveIndicator` clignote (`flashSaveIndicator()`). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
@@ -198,19 +198,24 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
   Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
   Effacer sont dans la vue POINTS (`#pointsViewOverlay`).
-- **Modes lecture / création** : `APP.tracesMode` vaut `lecture` au chargement, à l'ouverture
-  d'une parcelle et après suppression ; il passe à `creation` via `createProject()` ou le
-  bouton `#btnTracesMode`. En lecture, `.floating-toolbar` est masquée, la cible est masquée
-  et `canRecordPoints()` bloque tout ajout. `setTracesMode()` / `toggleTracesMode()` /
-  `syncTracesModeUI()` dans `js/map.js`.
-- **Type de tracé verrouillé** : `APP.currentTraceMode` vaut `tonte`, `interdit`, `obstacle`
-  ou `null`. `selectTraceAndRecord(type)` (`js/points.js`) est appelé par les boutons de la
-  capsule : il sélectionne le type via `ensureTraceType()` puis enregistre le point.
-  Changer de type en cours de route demande une confirmation (`customConfirm`) ; un appel
-  direct à `openObstacleMenu()` en mode tonte/interdit est bloqué avec un toast. Un obstacle
-  est ponctuel : son enregistrement remet `currentTraceMode` à `null`. « ✓ Terminer »
-  (`setTracesMode('lecture')`) remet aussi le type à `null`. Le badge `#traceModeBadge` et
-  l'anneau `.trace-active` indiquent le type actif.
+- **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
+  `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
+  Le header (`#btnProjectDrawer`) permet de choisir ou créer une parcelle. Tant qu'aucune
+  parcelle n'est sélectionnée, `#traceFab` et `#btnPointsPanel` restent masqués et la carte
+  est vide.
+- **Modes lecture / création** : `APP.tracesMode` reste un état interne (`lecture` au
+  chargement, `creation` pendant un tracé). Il n'y a plus de bouton `#btnTracesMode` :
+  le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
+  lecture. `setTracesMode()` / `syncTracesModeUI()` restent utilisés par la gestion des
+  parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
+- **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`) est visible dès qu'une
+  parcelle est sélectionnée. Neutre, il ouvre `#traceFabMenu` (tonte / interdit / obstacle) ;
+  `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute
+  un point (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
+  `#traceFabSecondary` (« ✓ ») termine la zone : sous 3 points, `customConfirm()` demande
+  « Zone incomplète (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur
+  « ✓ » rouvre le menu. Après un obstacle, le FAB redevient neutre et le mode est remis à
+  `null`. `#traceModeBadge` indique le type actif.
 - **Toasts de création** : `recordTonte()`, `recordInterdit()` et `recordObstacle()`
   n'affichent plus de toast de succès ; seules les erreurs (position indisponible, mode
   lecture, stockage) et les actions de gestion (suppression, renommage…) en produisent.
@@ -234,7 +239,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Navigation basse** : `#bottomNav` (`.tabs-wrapper.bottom-nav`) est **fixe hors de
   `.app-wrapper`**, avec `z-index: 900` (sous le tiroir 1050, les modales 1100 et les toasts
   1200). `.screen` réserve `--bottom-nav-height` + `env(safe-area-inset-bottom)` : ne pas
-  retirer ce padding, sinon la capsule et la barre d'export passent dessous. La barre est
+  retirer ce padding, sinon le FAB et la vue POINTS passent dessous. La barre est
   masquée en plein écran par `body.map-ui-fullscreen .tabs-wrapper` et
   `body.camera-ui-fullscreen .tabs-wrapper`.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
@@ -539,6 +544,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   ne peut pas être créé au milieu d'une zone. Le badge `#traceModeBadge` et l'anneau
   `.trace-active` rendent le mode visible. Les toasts de création de point sont supprimés
   (les erreurs restent). Le dialogue de type utilise `customConfirm()`.
+- **3.31 — FAB unique et démarrage sans parcelle** : la capsule (`.floating-toolbar`) et la
+  modale `#zoneModal` sont supprimées. `#traceFab` apparaît uniquement si une parcelle est
+  sélectionnée ; neutre, il ouvre un menu vertical (tonte / interdite / obstacle) puis devient
+  le bouton d'ajout coloré (vert / rouge / jaune) avec un bouton secondaire « ✓ ». Le second
+  bouton termine la zone (confirmation sous 3 points) et un appui long sur l'un des deux
+  boutons rouvre le menu. Un obstacle est ponctuel et remet le FAB en neutre. Le projet
+  « Mon jardin » n'est plus créé automatiquement : le premier lancement reste sans parcelle,
+  sans FAB, et la création passe par le header.
 
 ## 9. Langue et communication
 

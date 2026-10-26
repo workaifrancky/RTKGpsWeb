@@ -7,15 +7,19 @@
 [data-theme="dark"] header         { background: #14532d; }
 [data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
 [data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
-/* Menu de choix des zones : les fonds pâles clairs seraient illisibles en nuit. */
-[data-theme="dark"] .zone-choice:hover {
-  background:   var(--color-bg-subtle);
-  border-color: var(--color-primary-accent);
+/* FAB neutre et bouton secondaire lisibles en thème nuit. */
+[data-theme="dark"] .trace-fab-main.neutral {
+  background:   var(--color-bg-muted);
+  border-color: var(--border2);
+  color:        var(--color-primary-accent);
 }
-
-[data-theme="dark"] .zone-choice.interdit:hover {
+[data-theme="dark"] .trace-fab-secondary {
+  background:   var(--color-white);
+  border-color: var(--border2);
+  color:        var(--color-primary-accent);
+}
+[data-theme="dark"] .trace-fab-item:hover {
   background:   var(--color-bg-subtle);
-  border-color: var(--color-danger-strong);
 }
 
 /* Badges de type de tracé lisibles sur fond sombre. */
@@ -95,16 +99,6 @@
   background:   transparent;
   border:       1px solid var(--color-warning-strong);
   color:        var(--color-warning-strong);
-}
-
-[data-theme="dark"] #tab-points.mode-creation .map-mode-toggle {
-  background:   var(--color-primary-accent);
-  border-color: var(--color-primary-accent);
-  color:        var(--green-dark);
-}
-[data-theme="dark"] .floating-toolbar {
-  background:   var(--color-white);
-  border-color: var(--border2);
 }
 
 /* Bouton « POINTS » du bandeau de mode (carte TRACÉS) */
@@ -298,8 +292,7 @@ body.camera-ui-fullscreen #projectDrawer,
 body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
 body.camera-ui-fullscreen .fix-ntrip,
-body.camera-ui-fullscreen .tabs-wrapper,
-body.camera-ui-fullscreen .floating-toolbar {
+body.camera-ui-fullscreen .tabs-wrapper {
   display: none !important;
 }
 

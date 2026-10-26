@@ -400,14 +400,17 @@ function getTargetCoords() {
   return { lat: center.lat, lon: center.lng };
 }
 
-// La cible de visée ne sert qu'au tracé : elle est masquée en lecture et sur
-// les autres onglets.
+// La cible de visée ne sert qu'au tracé actif : elle est masquée sans mode
+// actif et sur les autres onglets.
 function syncCrosshairVisibility(tabId) {
   const crosshair = document.getElementById('map-crosshair');
   if (!crosshair) return;
 
-  const creation = typeof APP === 'undefined' || APP.tracesMode === 'creation';
-  const visible = tabId === 'tab-points' && creation;
+  const tracing = typeof APP !== 'undefined'
+    && !!APP.currentTraceMode
+    && typeof currentProject !== 'undefined'
+    && !!currentProject;
+  const visible = tabId === 'tab-points' && tracing;
   crosshair.classList.toggle('is-hidden', !visible);
   crosshair.setAttribute('aria-hidden', visible ? 'false' : 'true');
 }
@@ -552,10 +555,6 @@ function setTracesMode(mode) {
   syncTracesModeUI();
 }
 
-function toggleTracesMode() {
-  setTracesMode(isTracesCreation() ? 'lecture' : 'creation');
-}
-
 function syncTracesModeUI() {
   const creation = isTracesCreation();
   const screen = document.getElementById('tab-points');
@@ -564,19 +563,9 @@ function syncTracesModeUI() {
     screen.classList.toggle('mode-lecture', !creation);
   }
 
-  const btn = document.getElementById('btnTracesMode');
-  if (btn) {
-    btn.textContent = creation ? '✓ Terminer' : '✏️ Modifier';
-    btn.title = creation
-      ? 'Terminer le tracé (passer en lecture)'
-      : 'Modifier la parcelle (ajouter des points)';
-    btn.setAttribute('aria-pressed', creation ? 'true' : 'false');
-  }
-
   syncCrosshairVisibility(typeof APP !== 'undefined' ? APP.currentTab : 'tab-points');
   if (typeof updateTerrainButtons === 'function') updateTerrainButtons();
   if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
-  // Le bouton « Nouvelle zone interdite » et l'état vide dépendent du mode.
   if (typeof renderPointsList === 'function') renderPointsList();
 }
 
@@ -641,14 +630,8 @@ function updateTraceTypeUI() {
     badge.setAttribute('aria-hidden', info ? 'false' : 'true');
   }
 
-  const buttons = { tonte:'btnTonte', interdit:'btnInterdit', obstacle:'btnObstacle' };
-  Object.entries(buttons).forEach(([kind, id]) => {
-    const circle = document.getElementById(id);
-    if (!circle) return;
-    const active = type === kind;
-    circle.classList.toggle('trace-active', active);
-    circle.setAttribute('aria-pressed', active ? 'true' : 'false');
-  });
+  syncCrosshairVisibility(typeof APP !== 'undefined' ? APP.currentTab : 'tab-points');
+  if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
 }
 
 function centerMapOnPoint(lat, lon) {

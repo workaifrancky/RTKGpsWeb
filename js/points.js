@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Recharge les compteurs depuis le projet courant
   setTimeout(syncCounters, 300);
   renderPointsList();
+  initTraceFab();
   // La carte partagée peut déjà être initialisée : on reflète les points chargés.
   if (typeof renderMap === 'function') renderMap();
 });
@@ -64,28 +65,95 @@ function canRecordPoints() {
   return true;
 }
 
-// ─── VERROUILLAGE DU TYPE DE TRACÉ ───────────────────────────
-// Le type choisi reste actif tant qu'on ne clique pas sur « Terminer ».
-// Changer de type en cours de route demande une confirmation explicite.
+// ─── FAB DE TRACÉ ────────────────────────────────────────────
+// Un seul bouton flottant : neutre il ouvre le menu, coloré il ajoute un
+// point. Le bouton « ✓ » termine la zone (appui long : menu).
 const TRACE_TYPE_LABELS = {
   tonte:    'Zone de tonte',
   interdit: 'Zone interdite',
   obstacle: 'Obstacle',
 };
 
-async function ensureTraceType(type) {
+function syncTraceFabUI() {
+  const fab = document.getElementById('traceFab');
+  if (!fab) return;
+
+  const hasProject = !!currentProject;
+  fab.hidden = !hasProject;
+  const pointsToggle = document.getElementById('btnPointsPanel');
+  if (pointsToggle) pointsToggle.hidden = !hasProject;
+  if (!hasProject) {
+    closeTraceFabMenu();
+    return;
+  }
+
+  const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  const main = document.getElementById('traceFabMain');
+  const secondary = document.getElementById('traceFabSecondary');
+
+  if (main) {
+    main.className = `trace-fab-main ${type || 'neutral'}`;
+    main.title = type
+      ? `Ajouter un point — ${TRACE_TYPE_LABELS[type]}`
+      : 'Choisir un tracé';
+    main.setAttribute('aria-label', main.title);
+  }
+
+  if (secondary) {
+    secondary.hidden = !type;
+    secondary.title = type
+      ? `Terminer ${TRACE_TYPE_LABELS[type]} (appui long : menu)`
+      : 'Terminer le tracé';
+  }
+}
+
+function openTraceFabMenu() {
+  if (!currentProject) return;
+  const menu = document.getElementById('traceFabMenu');
+  const main = document.getElementById('traceFabMain');
+  if (!menu) return;
+
+  // Un toast de gestion (création de parcelle, nouvelle zone…) peut
+  // recouvrir la dernière option du menu.
+  const toast = document.getElementById('toast');
+  if (toast) {
+    clearTimeout(toast._timer);
+    toast.classList.remove('show');
+  }
+
+  menu.classList.add('show');
+  menu.setAttribute('aria-hidden', 'false');
+  if (main) main.setAttribute('aria-expanded', 'true');
+}
+
+function closeTraceFabMenu() {
+  const menu = document.getElementById('traceFabMenu');
+  const main = document.getElementById('traceFabMain');
+  if (menu) {
+    menu.classList.remove('show');
+    menu.setAttribute('aria-hidden', 'true');
+  }
+  if (main) main.setAttribute('aria-expanded', 'false');
+}
+
+function toggleTraceFabMenu() {
+  const menu = document.getElementById('traceFabMenu');
+  if (!menu) return;
+  if (menu.classList.contains('show')) closeTraceFabMenu();
+  else openTraceFabMenu();
+}
+
+async function beginTraceMode(type) {
   if (!currentProject || !TRACE_TYPE_LABELS[type]) return false;
-  if (!canRecordPoints()) return false;
+  closeTraceFabMenu();
 
-  const current = APP.currentTraceMode || null;
-  if (current === type) return true;
-
-  if (current) {
-    const message = `Abandonner le tracé « ${TRACE_TYPE_LABELS[current]} » en cours `
+  const current = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  if (current && current !== type) {
+    const message = `Terminer le tracé « ${TRACE_TYPE_LABELS[current]} » en cours `
       + `et passer à « ${TRACE_TYPE_LABELS[type]} » ?`;
     const ok = typeof customConfirm === 'function'
       ? await customConfirm(message, {
-        title: 'Changer de type de tracé',
+        title: 'Changer de tracé',
         confirmText: 'Changer',
         danger: true,
       })
@@ -93,18 +161,132 @@ async function ensureTraceType(type) {
     if (!ok) return false;
   }
 
+  if (typeof APP !== 'undefined') APP.tracesMode = 'creation';
+
+  // Une zone existante déjà complète est clôturée ; une zone de 0 à 2 points
+  // est reprise pour éviter de perdre un tracé commencé.
+  if (type === 'tonte') {
+    const points = getZones()[getCurrentZoneId()] || [];
+    if (points.length >= 3) startNewZone();
+  } else if (type === 'interdit') {
+    const points = getInterditZones()[getCurrentInterditZoneId()] || [];
+    if (points.length >= 3) startNewInterditZone();
+  }
+
   APP.currentTraceMode = type;
-  if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  syncTracesModeUI();
+  syncTraceFabUI();
   return true;
 }
 
-// Les boutons de la capsule sélectionnent le type puis enregistrent le point
-// (ou ouvrent le menu obstacle). Le type reste verrouillé ensuite.
-async function selectTraceAndRecord(type) {
-  if (!(await ensureTraceType(type))) return;
+function chooseTraceMode(type) {
+  // Appelée depuis le menu : la promesse n'a pas besoin d'être attendue.
+  beginTraceMode(type);
+}
+
+async function finishCurrentTrace() {
+  if (!currentProject || !APP.currentTraceMode) return;
+  closeTraceFabMenu();
+
+  const type = APP.currentTraceMode;
+  let count = 0;
+  if (type === 'tonte') {
+    count = (getZones()[getCurrentZoneId()] || []).length;
+  } else if (type === 'interdit') {
+    count = (getInterditZones()[getCurrentInterditZoneId()] || []).length;
+  }
+
+  // Un obstacle est ponctuel : pas de contrôle des 3 points.
+  if (type !== 'obstacle' && count < 3) {
+    const ok = typeof customConfirm === 'function'
+      ? await customConfirm(
+        `Zone incomplète (${count} point${count === 1 ? '' : 's'}). Terminer quand même ?`,
+        { title: 'Terminer la zone', confirmText: 'Terminer', danger: true },
+      )
+      : true;
+    if (!ok) return;
+  }
+
+  APP.currentTraceMode = null;
+  APP.tracesMode = 'lecture';
+  syncTracesModeUI();
+  syncTraceFabUI();
+}
+
+function onTraceFabMainClick() {
+  if (!currentProject) return;
+  const menu = document.getElementById('traceFabMenu');
+  if (menu && menu.classList.contains('show')) {
+    closeTraceFabMenu();
+    return;
+  }
+
+  const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  if (!type) {
+    openTraceFabMenu();
+    return;
+  }
+  if (type === 'obstacle') {
+    openObstacleMenu();
+    return;
+  }
   if (type === 'tonte') recordTonte();
   else if (type === 'interdit') recordInterdit();
-  else if (type === 'obstacle') openObstacleMenu();
+}
+
+// Appui long (550 ms) sur le FAB ou sur « ✓ » : menu de choix.
+// Clic court : action du bouton principal ou fin du tracé.
+function initTraceFab() {
+  const main = document.getElementById('traceFabMain');
+  const secondary = document.getElementById('traceFabSecondary');
+  if (!main || !secondary) return;
+
+  const bindLongPress = (el, longAction, clickAction) => {
+    let timer = null;
+    let longFired = false;
+
+    const clear = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    el.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      longFired = false;
+      clear();
+      timer = setTimeout(() => {
+        timer = null;
+        longFired = true;
+        longAction();
+      }, 550);
+    });
+
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
+      el.addEventListener(evt, clear);
+    });
+
+    el.addEventListener('click', event => {
+      if (longFired) {
+        longFired = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      clickAction();
+    });
+  };
+
+  bindLongPress(main, openTraceFabMenu, onTraceFabMainClick);
+  bindLongPress(secondary, openTraceFabMenu, finishCurrentTrace);
+
+  document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    if (!event.target.closest('#traceFab')) closeTraceFabMenu();
+  });
+
+  syncTraceFabUI();
 }
 
 // ─── ENREGISTRER — ZONE DE TONTE ─────────────────────────────
@@ -290,54 +472,10 @@ function startNewZone() {
 }
 
 // ─── CHOIX DU TYPE DE NOUVELLE ZONE ─────────────────────────
-// Le bouton « + ZONE » ne concerne que les zones de tonte et interdites ;
-// le bouton OBSTACLE reste indépendant (menu dédié).
-function openZoneMenu() {
-  if (!currentProject) return;
-  if (!canRecordPoints()) return;   // mode lecture / écran verrouillé
-
-  if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
-  if (typeof closeExportMenu === 'function') closeExportMenu();
-
-  const modal = document.getElementById('zoneModal');
-  if (!modal) return;
-
-  // Le toast de la dernière capture masquerait les options du menu.
-  const toast = document.getElementById('toast');
-  if (toast) {
-    clearTimeout(toast._timer);
-    toast.classList.remove('show');
-  }
-
-  modal.classList.add('show');
-  modal.setAttribute('aria-hidden', 'false');
-
-  setTimeout(() => {
-    const first = modal.querySelector('.zone-choice');
-    if (first && modal.classList.contains('show')) first.focus({ preventScroll: true });
-  }, 100);
-}
-
-function closeZoneMenu() {
-  const modal = document.getElementById('zoneModal');
-  if (!modal) return;
-  modal.classList.remove('show');
-  modal.setAttribute('aria-hidden', 'true');
-}
-
-function selectNewZone(type) {
-  closeZoneMenu();
-  if (type === 'interdit') {
-    startNewInterditZone();
-  } else if (type === 'tonte') {
-    startNewZone();
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
-      closeZoneMenu();
+      closeTraceFabMenu();
       closePointsView();
     }
   });
@@ -487,7 +625,7 @@ async function clearAllPoints() {
 function openPointsView() {
   if (!currentProject) return;
 
-  if (typeof closeZoneMenu === 'function') closeZoneMenu();
+  closeTraceFabMenu();
   if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeExportMenu === 'function') closeExportMenu();
@@ -547,13 +685,11 @@ function renderPointsList() {
   updateZoneBadge();
 
   if (pts.length === 0) {
-    const creation = typeof isTracesCreation === 'function' ? isTracesCreation() : true;
     container.innerHTML = `
       <div class="empty-state">
-        Aucun point enregistré.<br>
-        ${creation
-          ? 'Utilisez la barre flottante sur la carte<br>pour enregistrer des points.'
-          : 'Passez en mode création (✏️ Modifier)<br>pour tracer la parcelle.'}
+        ${currentProject
+          ? 'Aucun point enregistré.<br>Touchez le bouton ＋ sur la carte<br>pour commencer un tracé.'
+          : 'Aucune parcelle sélectionnée.<br>Choisissez ou créez une parcelle<br>via le bouton Parcelle.'}
       </div>`;
     return;
   }
@@ -567,18 +703,11 @@ function renderPointsList() {
     .map(zoneId => renderGroup(getZoneDisplayName('interdit', zoneId), interditZones[zoneId], '#dc2626', 'interdit'))
     .join('');
 
-  const creationForAction = typeof isTracesCreation === 'function' ? isTracesCreation() : true;
-  const interditAction = creationForAction && pts.some(p => p.type === 'interdit')
-    ? `<button type="button" class="points-zone-add" onclick="startNewInterditZone()"
-         title="Créer une nouvelle zone interdite">＋ Nouvelle zone interdite</button>`
-    : '';
-
   container.innerHTML =
     Object.keys(zones).map(Number).sort((a, b) => a - b)
       .map(zoneId => renderGroup(getZoneDisplayName('tonte', zoneId), zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
       .join('') +
     interditGroups +
-    interditAction +
     renderGroup('Obstacles isolés', obstacle,'#d97706', 'obstacle');
 }
 

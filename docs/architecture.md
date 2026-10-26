@@ -26,8 +26,8 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), menu de choix `#zoneModal` (`openZoneMenu()`, `selectNewZone()`), verrouillage du type (`ensureTraceType()`, `selectTraceAndRecord()`), vue POINTS (`openPointsView()`, `closePointsView()`), renommage (`renamePoint()`), liste des points |
-| `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), vue POINTS (`openPointsView()`, `closePointsView()`), renommage (`renamePoint()`), liste des points |
+| `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, badge GPS/manuel |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
 | `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones (distances de segments via `leaflet-measure-path`), marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
@@ -55,7 +55,7 @@ brique doit être insérée **après ses dépendances**.
   le `data-tab` de TRACÉS reste `tab-points`.
 - La navigation est une **barre fixe en bas** (`#bottomNav`, `.tabs-wrapper.bottom-nav`),
   placée hors de `.app-wrapper`, avec icône + libellé et quatre boutons de largeur égale.
-  `.screen` réserve sa hauteur (+ safe-area iPhone) pour que la carte et la capsule restent
+  `.screen` réserve sa hauteur (+ safe-area iPhone) pour que la carte et le FAB restent
   au-dessus.
 - `showTab(tabId)` (`js/app.js`) active l'écran correspondant, pose `.active` et
   `aria-current="page"` sur le bouton portant le même `data-tab`. Aucun radio.
@@ -107,13 +107,12 @@ brique doit être insérée **après ses dépendances**.
   visible qu'en **mode création** : `syncCrosshairVisibility()` (`js/map.js`) pose
   `.is-hidden` en lecture et sur les autres onglets.
 - **Modes lecture / création** : `APP.tracesMode` vaut `lecture` au chargement, à l'ouverture
-  d'une parcelle (`switchProject()`) et après suppression ; il passe à `creation` via
-  `createProject()` ou le bouton `#btnTracesMode` (`setTracesMode()` / `toggleTracesMode()`).
-  En lecture, `.floating-toolbar` est masquée et `canRecordPoints()` bloque tout ajout de point.
+  d'une parcelle (`switchProject()`) et après suppression ; `beginTraceMode()` passe à
+  `creation`, `finishCurrentTrace()` revient à `lecture`. Le FAB (`#traceFab`) est visible
+  dès qu'une parcelle est sélectionnée ; `canRecordPoints()` bloque tout ajout hors création.
 - **Plein écran carte** : `toggleMapFullscreen()` ajoute `body.map-ui-fullscreen` (header,
-  onglets, tiroir et panneau des points masqués, `#tab-points` en `position: fixed`) ; la
-  capsule et les contrôles restent visibles. `exitMapFullscreen()` est appelé au changement
-  d'onglet.
+  onglets, tiroir et bouton POINTS masqués, `#tab-points` en `position: fixed`) ; le FAB et
+  les contrôles restent visibles. `exitMapFullscreen()` est appelé au changement d'onglet.
 - **Zones** : les polygones de tonte et interdits ouvrent une popup (`zonePopup()`) avec
   « ✏️ Renommer » (`renameZone()`) et « 🗑 Supprimer » (`deleteZone()`). Les noms personnalisés
   sont stockés dans `project.zoneNames = { tonte: { N: nom }, interdit: { N: nom } }` et

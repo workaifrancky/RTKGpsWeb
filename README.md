@@ -83,23 +83,26 @@ peut être isolé.
 
 1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
    `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
-2. **Choisir une parcelle** : bouton `📍 <nom> ▾` dans le header, qui ouvre le tiroir
-   « Parcelles ». Chaque ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou
-   la supprimer (`🗑`) ; le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
+2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
+   reste masqué. Le bouton `📍 <nom> ▾` dans le header ouvre le tiroir « Parcelles » ; chaque
+   ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou la supprimer (`🗑`).
+   Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
-3. **Enregistrer des points** :
-   - onglet **TRACÉS** : barre flottante sur la carte — `TONTE`, `INTERDIT`, `OBSTACLE` ;
-   - `NOUVELLE ZONE` (➕) : démarre une nouvelle zone de tonte (badge `Zone #N` dans TRACÉS) ;
-   - `＋ Nouvelle zone interdite` (sous la liste TRACÉS) : démarre une nouvelle zone interdite ;
-   - `✏️` sur une ligne TRACÉS ou dans la popup carte : renommer un point (nom exporté dans
-     `properties.name` pour les obstacles).
-4. **Consulter** : TRACÉS s'ouvre en mode **lecture** (carte déplaçable, aucun point ajouté).
-   Bouton `✏️ Modifier` pour repasser en création, `✓ Terminer` pour revenir en lecture ;
+3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
+   en bas à droite de la carte. Il ouvre un menu vertical :
+   - `🟢 Nouvelle zone de tonte` : FAB vert, chaque clic ajoute un point de tonte ;
+   - `🔴 Nouvelle zone interdite` : FAB rouge, chaque clic ajoute un point interdit ;
+   - `🟡 Obstacle` : FAB jaune, un clic ouvre le choix du type d'obstacle et crée un point
+     ponctuel.
+   Le bouton `✓` à gauche du FAB termine la zone (confirmation si elle a moins de 3 points).
+   Un appui long sur le FAB ou sur `✓` rouvre le menu. `✏️` sur une ligne de la vue POINTS ou
+   dans la popup carte permet de renommer un point.
+4. **Consulter** : `POINTS` ouvre la vue dédiée avec la liste, les exports et « Effacer ».
    `⛶` affiche la carte en plein écran. Cliquer sur une zone (tonte ou interdite) permet de la
    renommer ou de la supprimer. Le relevé est dans l'onglet RELEVÉ, l'historique dans
    HISTORIQUE. Les polygones de tonte affichent la longueur de chaque segment.
-5. **Exporter** depuis l'onglet TRACÉS avec `⬇ Exporter GeoJSON` (format principal) ; CSV et
-   GPX sont dans le menu `⋮`. Le GeoJSON suit le contrat décrit dans
+5. **Exporter** depuis la vue POINTS avec `⬇ GeoJSON` (format principal), `⬇ CSV`, `⬇ GPX` et
+   `📤 Partager`. Le GeoJSON suit le contrat décrit dans
    [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet
@@ -116,7 +119,7 @@ RTKGpsWeb/
 ├── js/
 │   ├── app.js              # État global APP, navigation, thème, toasts, alertes, modales
 │   ├── projects.js         # Projets/parcelles + persistance localStorage
-│   ├── points.js           # Enregistrement tonte/interdit/obstacle/base, liste des points
+│   ├── points.js           # FAB de tracé, enregistrement tonte/interdit/obstacle, liste des points
 │   ├── ble.js              # Connexion Web Bluetooth, reconnexion, réception des trames
 │   ├── parser.js           # Parsing des trames GPS ESP32, normalisation du fix, validation
 │   ├── ntrip.js            # Stations NTRIP de référence et sélection persistée

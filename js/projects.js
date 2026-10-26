@@ -16,13 +16,11 @@ let globalObstacles = [];   // bibliothèque d'obstacles réutilisables
 document.addEventListener('DOMContentLoaded', () => {
   projects       = loadProjects();
   currentProject = loadCurrentProject();
-  // Crée un projet par défaut si aucun n'existe
-  if (projects.length === 0) {
-    addProject('Mon jardin', false);
-  }
+  // Aucun projet par défaut : l'utilisateur choisit ou crée une parcelle.
+  // Tant qu'aucune parcelle n'est sélectionnée, le FAB de tracé reste masqué.
   if (!currentProject || !projects.find(p => p.id === currentProject.id)) {
-    currentProject = projects[0];
-    saveCurrentProject();
+    currentProject = projects[0] || null;
+    if (currentProject) saveCurrentProject();
   }
   // Charge (et amorce au premier lancement) la base globale des obstacles.
   globalObstacles = loadGlobalObstacles();
@@ -305,6 +303,7 @@ function renameCurrentProject() {
 function switchProject(projectId) {
   const proj = projects.find(p => p.id === projectId);
   if (!proj) return;
+  if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
   currentProject = proj;
   saveCurrentProject();
   renderProjectList();       // état actif + libellé du header
@@ -419,6 +418,8 @@ function toggleProjectDrawer() {
 
 // ─── RENDU DU TIROIR ET DU LIBELLÉ HEADER ───────────────────
 function renderProjectList() {
+  if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+
   const container = document.getElementById('projectListContainer');
   const label = document.getElementById('currentProjectName');
   const toggle = document.getElementById('btnProjectDrawer');

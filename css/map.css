@@ -82,40 +82,7 @@
   color:        white;
 }
 
-/* Bascule Lecture / Création */
-.map-mode-toggle {
-  position:       absolute;
-  left:           50%;
-  bottom:         20px;
-  transform:      translateX(-50%);
-  z-index:        1001;
-  min-height:     44px;
-  padding:        10px 18px;
-  border:         none;
-  border-radius:  999px;
-  background:     var(--color-primary);
-  color:          white;   /* texte sur fond vert */
-  font-family:    var(--font);
-  font-size:      12px;
-  font-weight:    800;
-  letter-spacing: 0.3px;
-  white-space:    nowrap;
-  cursor:         pointer;
-  box-shadow:     var(--shadow-lg);
-  transition:     var(--transition);
-}
-
-.map-mode-toggle:hover { background: var(--color-primary-deep); }
-
-#tab-points.mode-creation .map-mode-toggle {
-  bottom:       116px;      /* au-dessus de la capsule */
-  background:   var(--color-white);
-  color:        var(--color-primary-deep);
-  border:       1px solid var(--border);
-}
-
 #tab-points.mode-lecture .map-mode-hint { visibility: hidden; }
-#tab-points.mode-lecture #map-crosshair { display: none; }
 
 /* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
 body.map-ui-fullscreen header,
@@ -241,6 +208,8 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   color:        var(--color-primary);
   background:   var(--color-primary-pale);
 }
+
+.map-panel-toggle[hidden] { display: none; }
 
 @media (max-width: 360px) {
   .map-mode-hint { display: none; }
@@ -415,15 +384,6 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   }
 
   .map-floating-controls { top: 110px; }
-
-  .map-mode-toggle {
-    min-height: 44px;
-    font-size:  13px;
-    padding:    10px 18px;
-  }
-
-  #tab-points.mode-creation .map-mode-toggle { bottom: 78px; }
-  #tab-points.mode-creation .map-gps-control { margin-bottom: 78px; }
 
   /* Textes du bandeau de mode lisibles (map.css charge après main.css). */
   .map-mode-badge   { font-size: 12px; padding: 6px 12px; }

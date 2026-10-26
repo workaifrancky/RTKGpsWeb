@@ -118,158 +118,141 @@
   color:       var(--text);
 }
 
-/* ─── BARRE D'ENREGISTREMENT FLOTTANTE (CAPSULE) ────────────── */
-/* Capsule posée sur la carte TRACÉS : les quatre boutons ronds restent
-   alignés sur une seule ligne, au-dessus des contrôles Leaflet. */
-.floating-toolbar {
-  position:        absolute;
-  left:            50%;
-  bottom:          20px;
-  transform:       translateX(-50%);
-  display:         none;      /* visible en mode création uniquement */
+/* ─── FAB DE TRACÉ (bouton flottant) ────────────────────────── */
+.trace-fab {
+  position:    absolute;
+  right:       16px;
+  bottom:      20px;
+  z-index:     1002;
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+}
+
+.trace-fab[hidden] { display: none; }
+
+.trace-fab-main {
+  display:         flex;
   align-items:     center;
   justify-content: center;
-  gap:             clamp(8px, 3vw, 14px);
-  padding:         8px clamp(10px, 3vw, 16px);
-  max-width:       calc(100% - 16px);
+  width:           56px;
+  height:          56px;
+  padding:         0;
+  border:          2px solid var(--border);
+  border-radius:   50%;
+  background:      var(--color-bg-muted);
+  color:           var(--text);
+  font-family:     var(--font);
+  font-size:       30px;
+  font-weight:     800;
+  line-height:     1;
+  box-shadow:      var(--shadow-lg);
+  cursor:          pointer;
+  transition:      transform 0.14s ease, filter 0.14s ease, background-color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action:    manipulation;
+  user-select:     none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.trace-fab-main.neutral:hover { filter: brightness(0.96); }
+.trace-fab-main:active { transform: scale(0.94); }
+
+.trace-fab-main.tonte {
+  background:   var(--color-primary-light);
+  border-color: var(--color-primary-light);
+  color:        white;
+}
+
+.trace-fab-main.interdit {
+  background:   var(--color-danger);
+  border-color: var(--color-danger);
+  color:        white;
+}
+
+.trace-fab-main.obstacle {
+  background:   var(--color-warning);
+  border-color: var(--color-warning);
+  color:        var(--color-warning-text);
+}
+
+.trace-fab-secondary {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           48px;
+  height:          48px;
+  padding:         0;
+  border:          2px solid var(--border);
+  border-radius:   50%;
+  background:      var(--color-white);
+  color:           var(--color-primary-deep);
+  font-family:     var(--font);
+  font-size:       24px;
+  font-weight:     800;
+  line-height:     1;
+  box-shadow:      var(--shadow-md);
+  cursor:          pointer;
+  transition:      transform 0.14s ease, filter 0.14s ease;
+  touch-action:    manipulation;
+  user-select:     none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.trace-fab-secondary[hidden] { display: none; }
+.trace-fab-secondary:hover { filter: brightness(0.96); }
+.trace-fab-secondary:active { transform: scale(0.94); }
+
+.trace-fab-main:focus-visible,
+.trace-fab-secondary:focus-visible,
+.trace-fab-item:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.trace-fab-menu {
+  position:        absolute;
+  right:           0;
+  bottom:          calc(100% + 12px);
+  display:         none;
+  flex-direction:  column;
+  gap:             4px;
+  min-width:       232px;
+  max-width:       calc(100vw - 24px);
+  padding:         6px;
   background:      var(--color-white);
   border:          1px solid var(--border);
-  border-radius:   40px;
-  box-shadow:      var(--shadow-lg);
-  z-index:         1000;
+  border-radius:   var(--radius-lg);
+  box-shadow:      var(--shadow-xl);
+  z-index:         1003;
 }
 
-/* La capsule complète n'apparaît qu'en mode création. */
-#tab-points.mode-creation .floating-toolbar {
-  display: flex;
+.trace-fab-menu.show { display: flex; }
+
+.trace-fab-item {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  width:         100%;
+  min-height:    48px;
+  padding:       10px 12px;
+  border:        none;
+  border-radius: var(--radius-md);
+  background:    transparent;
+  color:         var(--text);
+  font-family:   var(--font);
+  font-size:     13px;
+  font-weight:   700;
+  text-align:    left;
+  cursor:        pointer;
 }
 
-.terrain-btn {
-  display:        flex;
-  flex-direction: column;
-  align-items:    center;
-  gap:            6px;
-  cursor:         pointer;
-  user-select:    none;
-  -webkit-user-select: none;
-}
-
-/* Boutons ronds plats : fond plein par type, sans dégradé, sans ombre
-   interne et sans reflet. Une ombre très légère les détache de la capsule. */
-.terrain-btn-circle {
-  position:         relative;
-  width:            64px;
-  height:           64px;
-  border-radius:    50%;
-  display:          flex;
-  align-items:      center;
-  justify-content:  center;
-  color:            white;                    /* couleur héritée par stroke SVG */
-  border:           none;
-  box-shadow:       var(--shadow-sm);
-  transition:       transform 0.14s ease, filter 0.14s ease;
-  -webkit-tap-highlight-color: transparent;
-  will-change:      transform;
-}
-
-/* Libellé à l'intérieur du cercle (TONTE / INTERDIT / OBSTACLE / ZONE).
-   La couleur suit `color` du bouton : blanc, ou --color-warning-text pour
-   l'obstacle sur fond ambre. */
-.terrain-btn-text {
-  position:       relative;
-  z-index:        1;
-  max-width:      90%;
-  color:          inherit;
-  font-size:      11px;
-  font-weight:    800;
-  letter-spacing: 0.2px;
-  line-height:    1.05;
-  text-align:     center;
-  pointer-events: none;                       /* le texte ne capte pas le clic */
-}
-
-/* Icône SVG outline (bouton « Nouvelle zone ») : hérite de la couleur du
-   bouton via currentColor. */
-.terrain-btn-circle svg {
-  position:       relative;
-  z-index:        1;
-  width:          30px;
-  height:         30px;
-  fill:           none;
-  stroke:         currentColor;
-  stroke-width:   1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  pointer-events: none;                       /* l'icône ne capte pas le clic */
-}
-
-.terrain-btn-circle.tonte    { background-color: var(--color-primary-light); }
-.terrain-btn-circle.interdit { background-color: var(--color-danger); }
-.terrain-btn-circle.obstacle { background-color: var(--color-warning);
-                               color:            var(--color-warning-text); }
-.terrain-btn-circle.new-zone { background-color: var(--color-teal); }
-
-/* Souris uniquement : simple variation de luminosité, aucun relief. */
-@media (hover: hover) and (pointer: fine) {
-  .terrain-btn-circle:not(.disabled):hover {
-    filter: brightness(0.95);
-  }
-}
-
-/* Clic / appui : léger rétrécissement, sans ombre interne. */
-.terrain-btn:active .terrain-btn-circle:not(.disabled),
-.terrain-btn-circle:not(.disabled):active {
-  transform: scale(0.95);
-}
-
-.terrain-btn-circle.disabled {
-  opacity: 0.35;
-  cursor:  not-allowed;
-  filter:  saturate(0.7);
-}
-
-.terrain-btn-circle.disabled:hover,
-.terrain-btn-circle.disabled:active {
-  transform: none;
-  filter:    saturate(0.7);
-}
-
-/* Type de tracé actif : anneau visible autour du bouton concerné. */
-.terrain-btn-circle.trace-active {
-  outline:        3px solid var(--color-primary-accent);
-  outline-offset: 3px;
-}
-
-.terrain-btn-circle.interdit.trace-active {
-  outline-color: var(--color-danger-strong);
-}
-
-.terrain-btn-circle.obstacle.trace-active {
-  outline-color: var(--color-warning-strong);
-}
-
-/* Bouton « Nouvelle zone » : le « + » et le libellé ZONE tiennent dans le
-   cercle, pour rester aligné avec les trois autres boutons de la capsule. */
-.terrain-btn-circle.new-zone {
-  flex-direction: column;
-  gap:            1px;
-}
-
-.terrain-btn-circle.new-zone svg {
-  width:  24px;
-  height: 24px;
-}
-
-.terrain-btn-sub {
-  position:       relative;
-  z-index:        1;
-  color:          inherit;
-  font-size:      8px;
-  font-weight:    800;
-  letter-spacing: 0.5px;
-  line-height:    1;
-  pointer-events: none;
-}
+.trace-fab-item:hover { background: var(--color-primary-pale-bg); }
+.trace-fab-item.interdit:hover { background: var(--color-danger-pale); }
+.trace-fab-item.obstacle:hover { background: var(--color-warning-pale); }
+.trace-fab-item-icon { font-size: 18px; line-height: 1; }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
 .obstacle-grid {
@@ -307,10 +290,6 @@
   color:       var(--text2);
   line-height: 1.2;
 }
-
-/* ─── CHOIX DE ZONE (tonte / interdite) ─────────────────────── */
-#zoneModal { visibility: hidden; }
-#zoneModal.show { visibility: visible; }
 
 /* ─── VUE DÉDIÉE DES POINTS ─────────────────────────────────── */
 #pointsViewOverlay { visibility: hidden; }
@@ -409,74 +388,6 @@
   font-size: 13px;
 }
 
-.zone-choice-grid {
-  display:        flex;
-  flex-direction: column;
-  gap:            8px;
-  margin:         8px 0 14px;
-}
-
-.zone-choice {
-  display:         flex;
-  align-items:     center;
-  gap:             12px;
-  width:           100%;
-  min-height:      60px;
-  padding:         12px 14px;
-  border:          2px solid var(--border);
-  border-radius:   var(--radius-lg);
-  background:      var(--color-bg-muted);
-  color:           var(--text);
-  font-family:     var(--font);
-  text-align:      left;
-  cursor:          pointer;
-  transition:      var(--transition);
-}
-
-.zone-choice:hover {
-  border-color: var(--color-primary);
-  background:   var(--color-primary-pale-bg);
-}
-
-.zone-choice.interdit:hover {
-  border-color: var(--color-danger);
-  background:   var(--color-danger-pale);
-}
-
-.zone-choice:active { transform: scale(0.99); }
-
-.zone-choice:focus-visible {
-  outline:        3px solid var(--color-primary-accent);
-  outline-offset: 2px;
-}
-
-.zone-choice.interdit:focus-visible {
-  outline-color: var(--color-danger-strong);
-}
-
-.zone-choice-icon {
-  flex-shrink: 0;
-  font-size:   26px;
-  line-height: 1;
-}
-
-.zone-choice-text {
-  display:        flex;
-  flex-direction: column;
-  gap:            2px;
-  min-width:      0;
-}
-
-.zone-choice-title {
-  font-size:   14px;
-  font-weight: 800;
-  color:       var(--text);
-}
-
-.zone-choice-sub {
-  font-size: 12px;
-  color:     var(--text3);
-}
 
 /* ─── MODAL NOUVEAU PROJET ──────────────────────────────────── */
 .project-form {
@@ -783,26 +694,6 @@
 }
 
 .point-item:hover { box-shadow: var(--shadow-md); }
-
-/* Création d'une nouvelle zone interdite depuis la liste TRACÉS */
-.points-zone-add {
-  display:         block;
-  width:           calc(100% - 8px);
-  margin:          2px 4px 10px;
-  padding:         8px;
-  background:      transparent;
-  border:          1px dashed var(--color-danger);
-  border-radius:   var(--radius-md);
-  color:           var(--color-danger);
-  font-family:     var(--font);
-  font-size:       11px;
-  font-weight:     800;
-  letter-spacing:  0.2px;
-  cursor:          pointer;
-  transition:      var(--transition);
-}
-
-.points-zone-add:hover { background: var(--color-danger-pale); }
 
 .point-dot {
   width:         14px;
@@ -1373,33 +1264,18 @@
 /* ─── RESPONSIVE MOBILE COMPACT ──────────────────────────────── */
 @media (max-width: 360px) {
   .data-value               { font-size: 19px; }
-  .terrain-btn-circle       { width: 56px; height: 56px; }
-  .terrain-btn-circle svg   { width: 26px; height: 26px; }
-  .terrain-btn-text         { font-size: 9px; }
-  .terrain-btn-sub          { font-size: 7px; }
   .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
   .obstacle-option          { padding: 10px 4px; }
   .obstacle-option-icon     { font-size: 20px; }
+  .trace-fab                { right: 12px; bottom: 14px; }
+  .trace-fab-menu           { min-width: 220px; }
 }
 
 /* ─── RESPONSIVE MOBILE (≤ 480 px) ───────────────────────────── */
-/* Capsule plus compacte et cibles tactiles de 44 px minimum. */
+/* FAB et cibles tactiles de 44 px minimum. */
 @media (max-width: 480px) {
-  .floating-toolbar {
-    gap:        8px;
-    padding:    6px 10px;
-    bottom:     14px;
-    max-width:  calc(100% - 12px);
-  }
-
-  .terrain-btn-circle {
-    width:  48px;
-    height: 48px;
-  }
-
-  .terrain-btn-circle svg { width: 22px; height: 22px; }
-  .terrain-btn-text       { font-size: 9px; letter-spacing: 0; }
-  .terrain-btn-sub        { font-size: 7px; }
+  .trace-fab        { right: 12px; bottom: 14px; }
+  .trace-fab-menu   { min-width: 220px; }
 
   .drawer-project-actions button { width: 44px; height: 44px; }
   .drawer-close                  { min-width: 44px; min-height: 44px; }
@@ -1419,12 +1295,6 @@
   .import-obstacle-name    { font-size: 13px; }
   .import-obstacle-coords  { font-size: 12px; }
   .import-obstacles-title  { font-size: 12px; }
-}
-
-@media (max-width: 360px) {
-  .floating-toolbar   { gap: 6px; padding: 6px 8px; bottom: 14px; }
-  .terrain-btn-circle { width: 44px; height: 44px; }
-  .terrain-btn-text   { font-size: 8px; }
 }
 
 /* ─── VERROUILLAGE ÉCRAN (anti-fausse manip) ───────────────── */

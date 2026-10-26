@@ -78,7 +78,8 @@ function showTab(tabId) {
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
-  if (typeof closeZoneMenu === 'function') closeZoneMenu();
+  if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
+  if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
   if (typeof closePointsView === 'function') closePointsView(false);
 
   // Une seule instance de carte, dans l'onglet TRACÉS.
@@ -158,21 +159,23 @@ function openObstacleMenu() {
     return;
   }
   // Appel direct au menu : on entre dans le type obstacle. Le clic normal
-  // passe d'abord par selectTraceAndRecord(), qui gère la confirmation.
-  if (typeof APP !== 'undefined' && !activeType) {
-    APP.currentTraceMode = 'obstacle';
+  // passe par le FAB, qui gère la sélection et la confirmation.
+  if (typeof APP !== 'undefined') {
+    APP.tracesMode = 'creation';
+    if (!activeType) APP.currentTraceMode = 'obstacle';
     if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   }
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.add('show');
 }
 
-function closeObstacleMenu() {
+function closeObstacleMenu(preserveCreation = false) {
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.remove('show');
   // Fermer le menu sans choisir (ou après le choix) libère le type obstacle.
   if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
     APP.currentTraceMode = null;
+    if (!preserveCreation) APP.tracesMode = 'lecture';
     if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   }
 }
@@ -186,8 +189,13 @@ function selectObstacleType(type, icon) {
     showToast('Terminez le tracé en cours (✓ Terminer) avant d’ajouter un obstacle', 'error');
     return;
   }
-  closeObstacleMenu();
+  closeObstacleMenu(true);
   if (typeof recordObstacle === 'function') recordObstacle(type, icon);
+  // L'obstacle est ponctuel : retour à l'état neutre après sa création.
+  if (typeof APP !== 'undefined' && APP.tracesMode === 'creation' && !APP.currentTraceMode) {
+    APP.tracesMode = 'lecture';
+    if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+  }
 }
 
 // ─── MODAL NOUVEAU PROJET ────────────────────────────────────

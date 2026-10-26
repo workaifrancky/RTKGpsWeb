@@ -114,37 +114,32 @@
         </div>
       </div>
 
-      <!-- Bascule Lecture / Création -->
-      <button type="button" id="btnTracesMode" class="map-mode-toggle"
-        onclick="toggleTracesMode()">✏️ Modifier</button>
+      <!-- FAB unique : menu de tracé + point + terminer -->
+      <div id="traceFab" class="trace-fab" hidden>
+        <div id="traceFabMenu" class="trace-fab-menu" role="menu" aria-hidden="true">
+          <button type="button" class="trace-fab-item tonte" role="menuitem"
+            onclick="chooseTraceMode('tonte')">
+            <span class="trace-fab-item-icon" aria-hidden="true">🟢</span>
+            <span>Nouvelle zone de tonte</span>
+          </button>
+          <button type="button" class="trace-fab-item interdit" role="menuitem"
+            onclick="chooseTraceMode('interdit')">
+            <span class="trace-fab-item-icon" aria-hidden="true">🔴</span>
+            <span>Nouvelle zone interdite</span>
+          </button>
+          <button type="button" class="trace-fab-item obstacle" role="menuitem"
+            onclick="chooseTraceMode('obstacle')">
+            <span class="trace-fab-item-icon" aria-hidden="true">🟡</span>
+            <span>Obstacle</span>
+          </button>
+        </div>
 
-      <!-- Barre d'enregistrement flottante sur la carte (capsule) -->
-      <div class="floating-toolbar" role="toolbar" aria-label="Enregistrer un point">
-        <div class="terrain-btn" onclick="selectTraceAndRecord('tonte')">
-          <div class="terrain-btn-circle tonte" id="btnTonte" title="Tracer une zone de tonte">
-            <span class="terrain-btn-text">TONTE</span>
-          </div>
-        </div>
-        <div class="terrain-btn" onclick="selectTraceAndRecord('interdit')">
-          <div class="terrain-btn-circle interdit" id="btnInterdit" title="Tracer une zone interdite">
-            <span class="terrain-btn-text">INTERDIT</span>
-          </div>
-        </div>
-        <div class="terrain-btn" onclick="selectTraceAndRecord('obstacle')">
-          <div class="terrain-btn-circle obstacle" id="btnObstacle" title="Tracer un obstacle">
-            <span class="terrain-btn-text">OBSTACLE</span>
-          </div>
-        </div>
-        <div class="terrain-btn" onclick="openZoneMenu()">
-          <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone (tonte ou interdite)">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="8.5"/>
-              <path d="M12 8v8"/>
-              <path d="M8 12h8"/>
-            </svg>
-            <span class="terrain-btn-sub">ZONE</span>
-          </div>
-        </div>
+        <button type="button" id="traceFabSecondary" class="trace-fab-secondary"
+          hidden title="Terminer le tracé (appui long : menu)"
+          aria-label="Terminer le tracé">✓</button>
+        <button type="button" id="traceFabMain" class="trace-fab-main neutral"
+          aria-haspopup="menu" aria-expanded="false"
+          title="Choisir un tracé" aria-label="Choisir un tracé">＋</button>
       </div>
     </div>
   </div>
@@ -355,35 +350,6 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- MODAL CHOIX DE ZONE (tonte / interdite)                     -->
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="zoneModal" role="dialog" aria-modal="true"
-  aria-labelledby="zoneModalTitle" aria-hidden="true"
-  onclick="if(event.target===this)closeZoneMenu()">
-  <div class="modal-box">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="zoneModalTitle">➕ Nouvelle zone</div>
-    <div class="zone-choice-grid">
-      <button type="button" class="zone-choice tonte" onclick="selectNewZone('tonte')">
-        <span class="zone-choice-icon" aria-hidden="true">🟢</span>
-        <span class="zone-choice-text">
-          <span class="zone-choice-title">Nouvelle zone de tonte</span>
-          <span class="zone-choice-sub">Zone verte à tondre</span>
-        </span>
-      </button>
-      <button type="button" class="zone-choice interdit" onclick="selectNewZone('interdit')">
-        <span class="zone-choice-icon" aria-hidden="true">🔴</span>
-        <span class="zone-choice-text">
-          <span class="zone-choice-title">Nouvelle zone interdite</span>
-          <span class="zone-choice-sub">Zone rouge à éviter</span>
-        </span>
-      </button>
-    </div>
-    <button type="button" class="btn-secondary" onclick="closeZoneMenu()">Annuler</button>
-  </div>
-</div>
-
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- VUE DÉDIÉE DES POINTS (au-dessus de la carte)              -->

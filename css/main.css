@@ -660,7 +660,7 @@ header {
 }
 
 /* Exception animations */
-.fix-dot, #toast, .terrain-btn-circle {
+.fix-dot, #toast {
   transition: all 0.2s ease;
 }
 

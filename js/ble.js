@@ -105,16 +105,8 @@ function setBleStatus(status) {
 }
 
 function updateTerrainButtons() {
-  const connected   = APP.bleConnected;
-  const manualReady = typeof getTargetCoords === 'function'
-    && !!document.getElementById('map-points-slot');
-  const locked      = document.body?.classList.contains('locked') || false;
-  const enabled     = (connected || manualReady) && !locked;
-
-  ['btnTonte','btnInterdit','btnObstacle'].forEach(id => {
-    const circle = document.getElementById(id);
-    if (circle) circle.classList.toggle('disabled', !enabled);
-  });
-
+  // Les anciens boutons de la capsule ont été remplacés par le FAB.
+  // On maintient le badge GPS/manuel et l'état du FAB après une connexion.
   if (typeof updateRecordModeBadge === 'function') updateRecordModeBadge();
+  if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
 }

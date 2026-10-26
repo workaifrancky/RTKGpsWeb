@@ -130,7 +130,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   `padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px))` pour l'iPhone
   (`viewport-fit=cover` activé dans `index.html`).
 - `.screen` réserve `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px))` en
-  `padding-bottom` : la carte, la capsule, la barre d'export et le contenu des autres onglets
+  `padding-bottom` : la carte, le FAB, la vue POINTS et le contenu des autres onglets
   restent au-dessus de la barre.
 - `.bottom-nav .tab-label` : quatre boutons de largeur égale (`flex: 1 1 0`), en colonne
   (icône 20 px au-dessus du libellé), `min-height: 52px`, libellés **visibles** à toutes les
@@ -167,7 +167,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   `opacity` 0 → 1 via `.show`, `z-index: 1040`.
 - `.drawer` : panneau latéral droit `min(320px, 86%)`, fond `--color-white`, bordure
   `--border`, `--shadow-xl`, glissement `translateX(100%)` → 0 (`visibility` masquée au
-  repos), `z-index: 1050` — au-dessus de la capsule carte (1000), sous les modales (1100)
+  repos), `z-index: 1050` — au-dessus du FAB carte (1002), sous les modales (1100)
   et les toasts (1200).
 - `.drawer-header` : bandeau `--color-primary`, titre 15 px / 800, bouton `✕` blanc.
 - `.drawer-project` : ligne = bouton principal (nom 13 px / 800, méta `N point(s) · Zone #N`)
@@ -195,76 +195,59 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 | Plage | Comportement |
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
-| ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, capsule 64 px. |
-| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), capsule 48 px (gap 8, bas 14 px). Badge/POINTS à 12 px, hint masqué. |
-| ≤ 360 px | Logo 13 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), capsule 44 px (gap 6). Parcelle sur sa propre ligne si nécessaire (320 px). |
+| ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, FAB 56 px. |
+| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
+| ≤ 360 px | Logo 13 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. Parcelle sur sa propre ligne si nécessaire (320 px). |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
-320/360/390 px. Les libellés **dans** les cercles de la capsule restent à 8–9 px (contrainte
-des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
+320/360/390 px. Les libellés du menu FAB font 13 px et restent sur une seule ligne.
 
 ### Modes et plein écran carte
 
-- `#btnTracesMode` (`.map-mode-toggle`, `map.css`) : pastille flottante en bas de la carte.
-  Mode lecture : « ✏️ Modifier » (vert, `bottom: 20px`). Mode création : « ✓ Terminer »
-  (surface `--color-white`, `bottom: 116px`, `78px` ≤ 480 px, au-dessus de la capsule).
-- `.floating-toolbar` : `display: none` par défaut ; `#tab-points.mode-creation .floating-toolbar`
-  l'affiche. En lecture, la cible `#map-crosshair` est masquée.
 - `.map-floating-controls` : colonne de trois boutons **44 px** à `top: 110px` **dans
   `#map-points-slot`** (`position: relative`, hauteur de la carte seule) — Relief, Satellite,
-  Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`). Le `top` ne dépend
-  donc plus de la barre de mode : les boutons sont 8 px sous le zoom Leaflet (44 px chacun).
-  `.map-float-btn.active` = fond `--color-primary`, texte blanc.
-- `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px, remontés de
-  104 px (78 px ≤ 480 px) en mode création pour rester au-dessus de la capsule. Si la carte
+  Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`). Les boutons sont
+  8 px sous le zoom Leaflet (44 px chacun). `.map-float-btn.active` = fond `--color-primary`,
+  texte blanc.
+- `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
 - `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et le bouton
   `#btnPointsPanel` ; `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
-  height: 100dvh; z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent
-  visibles ; le bouton plein écran devient `✕`.
+  height: 100dvh; z-index: 900`. Le FAB et les contrôles restent visibles ; le bouton plein
+  écran devient `✕`.
+- La cible `#map-crosshair` n'est visible que lorsqu'un mode de tracé est actif
+  (`APP.currentTraceMode` non nul), sur l'onglet TRACÉS.
 - La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose « ✏️ Renommer » et
   « 🗑 » (`renameZone()`, `deleteZone()`) ; le nom personnalisé est affiché par
   `getZoneDisplayName()` (stocké dans `project.zoneNames`).
 
-### Barre d'enregistrement flottante (capsule)
+### FAB de tracé
 
-- `.floating-toolbar` : capsule posée sur la carte TRACÉS (`position: absolute`,
-  `bottom: 20px`, `left: 50%`, `translateX(-50%)`), fond `--color-white`, bordure
-  `--border`, rayon 999 px, `--shadow-lg`, `z-index: 1000`. Hors du conteneur `#map`,
-  elle ne capte donc aucun geste Leaflet.
-- `.terrain-btn-circle` : 64 px, `border-radius: 50%`, **style plat** — fond plein par
-  variante (`background-color`), `border: none`, ombre externe légère `--shadow-sm`.
-  Aucun dégradé (`background-image`), aucune ombre `inset`, aucun pseudo-élément `::before`.
-  - **survol** (souris uniquement, `@media (hover: hover) and (pointer: fine)`) :
-    `filter: brightness(0.95)` ;
-  - **clic** : `transform: scale(0.95)` ;
-  - **désactivé** : `opacity: 0.35` + `saturate(0.7)` (classe `.disabled`, gérée par
-    `updateTerrainButtons()`).
-- `.terrain-btn-text` : libellé **à l'intérieur** des cercles Tonte / Interdit / Obstacle
-  (11 px / 800, 9 px ≤ 480 px, 8 px ≤ 360 px), en `currentColor` — donc blanc, ou
-  `--color-warning-text` pour l'obstacle sur fond ambre — avec `pointer-events: none`
-  et sans `text-shadow`.
-- `.terrain-btn-circle svg` : icône **SVG outline** du bouton « Nouvelle zone »
-  (`fill: none`, `stroke: currentColor`, `stroke-width: 1.8`, 30 px, 24 px pour ce bouton,
-  sans `drop-shadow`), complétée par `.terrain-btn-sub` (« ZONE », 8 px / 800) **à
-  l'intérieur** du cercle, sous le « + » : la capsule reste basse et les quatre cercles
-  sont alignés.
-- `.terrain-btn-circle.trace-active` : anneau `3px` `--color-primary-accent` autour du type
-  actif (tonte), `--color-danger-strong` pour l'interdit et `--color-warning-strong` pour
-  l'obstacle.
-- `.map-trace-badge` : pastille du type verrouillé (`🟢 TONTE`, `🔴 INTERDIT`,
-  `🟡 OBSTACLE`) dans `.map-mode-bar`, masquée avec `[hidden]` quand aucun type n'est actif ;
-  couleurs adaptées en thème nuit dans `theme.css`.
-- Alignement : `.floating-toolbar` en `align-items: center`, `gap: clamp(8px, 3vw, 14px)`
-  et padding `8px clamp(10px, 3vw, 16px)`.
-- Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
-  nouvelle zone `--color-teal`.
-- Thème nuit : les boutons plats gardent les mêmes tokens ; seule la capsule change de
-  surface (`--color-white` sombre + bordure `--border2`). Plus aucun override d'ombre.
-- Responsive : 48 px ≤ 480 px (icône 22 px, texte 9 px, `gap: 8px`, padding `6px 10px`,
-  `bottom: 14px`) ; 44 px ≤ 360 px (texte 8 px, `gap: 6px`, padding `6px 8px`). Les quatre
-  boutons restent dans la capsule à 320 px.
+- `.trace-fab` : conteneur `absolute` en bas à droite de la carte (`right: 16px`,
+  `bottom: 20px`, `z-index: 1002`), masqué avec `[hidden]` tant qu'aucune parcelle n'est
+  sélectionnée. Il contient `#traceFabMenu`, `#traceFabSecondary` et `#traceFabMain`.
+- `.trace-fab-main` : cercle de **56 px**, fond neutre `--color-bg-muted`, texte `--text`,
+  ombre `--shadow-lg`. Les variantes `.tonte`, `.interdit`, `.obstacle` prennent
+  `--color-primary-light`, `--color-danger` et `--color-warning` (`--color-warning-text`
+  pour l'icône sur ambre), avec texte blanc sauf obstacle.
+- `.trace-fab-secondary` : cercle de **48 px** à gauche du FAB, « ✓ », fond
+  `--color-white`, bordure `--border`, ombre `--shadow-md` ; masqué sans mode actif.
+- `.trace-fab-menu` : panneau vertical au-dessus du FAB (`right: 0`,
+  `bottom: calc(100% + 12px)`), fond `--color-white`, rayon `--radius-lg`, ombre
+  `--shadow-xl`, largeur minimale 232 px ; options `.trace-fab-item` de 48 px avec icône
+  et libellé. Survol vert / rouge / ambre selon le type.
+- Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
+  ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
+- Responsive ≤ 480 px : FAB à `right: 12px; bottom: 14px`, menu min-width 220 px.
+- Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
+  verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
+
+### Badge de type
+
+- `.map-trace-badge` : pastille du type actif (`🟢 TONTE`, `🔴 INTERDIT`, `🟡 OBSTACLE`)
+  dans `.map-mode-bar`, masquée avec `[hidden]` quand aucun type n'est actif ; couleurs
+  adaptées en thème nuit dans `theme.css`.
 
 ### Cartes et listes
 
@@ -277,19 +260,11 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
   labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
-- `.points-zone-add` : bouton pleine largeur en pointillés `--color-danger` (« ＋ Nouvelle
-  zone interdite ») sous les groupes de zones interdites de la liste TRACÉS ; survol
-  `--color-danger-pale`.
 - `#pointsViewOverlay` : panneau `.modal-overlay` ouvert par `#btnPointsPanel`, avec
   `.points-view-box` (hauteur `88dvh` max 760 px, `display: flex` en colonne),
   `.points-view-head` (titre + partage + « Fermer »), `.points-view-body` scrollable et
   `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer). Les fonds/bordures
   suivent les tokens ; les boutons de fermeture et partage ont un `focus-visible` vert.
-- `#zoneModal` : menu léger ouvert par le bouton `+ ZONE` de la capsule. `.zone-choice-grid`
-  empile deux `.zone-choice` pleine largeur (60 px, icône 26 px, rayon `--radius-lg`, bordure
-  `--border`) ; survol vert (`--color-primary-pale-bg`) pour la tonte et rouge
-  (`--color-danger-pale`) pour l'interdit. Le menu est masqué par `visibility: hidden` hors
-  `.show` pour ne pas exposer ses boutons au clavier.
 - `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.
