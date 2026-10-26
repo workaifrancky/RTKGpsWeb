@@ -168,9 +168,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   ignore les doublons de la parcelle cible. Les obstacles importés restent des features
   `obstacle` au GeoJSON.
 - **Suppression de parcelle** : `deleteProject(projectId)` (`js/projects.js`) — centralisée,
-  elle refuse de supprimer la dernière parcelle et rafraîchit carte, liste, statistiques,
-  tiroir et historique. `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
-  `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
+  elle autorise la suppression de la **dernière** parcelle : `currentProject` devient `null`,
+  `rtkCurrentProject` est retiré, le FAB et la vue POINTS sont masqués, la carte est vidée,
+  le header affiche « Aucune » et le tiroir montre la liste vide avec « ＋ Nouvelle parcelle ».
+  `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir `deleteProject()` ailleurs
+  (doublon historique supprimé de `js/history.js`).
 - **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la vue POINTS
   (`#pointsViewOverlay`) ; le bouton `📤` partage le **même GeoJSON** via
   `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
@@ -208,10 +210,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
   lecture. `setTracesMode()` / `syncTracesModeUI()` restent utilisés par la gestion des
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
-- **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`) est visible dès qu'une
-  parcelle est sélectionnée. Neutre, il ouvre `#traceFabMenu` (tonte / interdit / obstacle) ;
-  `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute
-  un point (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
+- **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, bas 80 px,
+  droite 20 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
+  `#traceFabMenu` (tonte / interdit / obstacle) ; `beginTraceMode()` fixe
+  `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute un point
+  (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
   `#traceFabSecondary` (« ✓ ») termine la zone : sous 3 points, `customConfirm()` demande
   « Zone incomplète (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur
   « ✓ » rouvre le menu. Après un obstacle, le FAB redevient neutre et le mode est remis à
@@ -552,6 +555,13 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   boutons rouvre le menu. Un obstacle est ponctuel et remet le FAB en neutre. Le projet
   « Mon jardin » n'est plus créé automatiquement : le premier lancement reste sans parcelle,
   sans FAB, et la création passe par le header.
+- **3.32 — Suppression de la dernière parcelle et FAB fixe** : `deleteProject()` accepte
+  désormais la suppression de la dernière parcelle ; l'état revient à `currentProject = null`,
+  carte vide, header « Aucune », tiroir vide avec création, FAB masqué. `.trace-fab` passe en
+  `position: fixed`, `bottom: calc(80px + safe-area)`, `right: 20px` (aligné dans l'app
+  centrée sur desktop), `z-index: 1002` ; `syncTraceFabUI()` le masque hors TRACÉS et
+  `showTab()` le resynchronise. Tests : suppression de la dernière parcelle, disparition du
+  FAB, couches carte vidées et FAB visible à 56 px au-dessus de la navigation.
 
 ## 9. Langue et communication
 

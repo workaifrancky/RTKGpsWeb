@@ -224,9 +224,11 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 
 ### FAB de tracé
 
-- `.trace-fab` : conteneur `absolute` en bas à droite de la carte (`right: 16px`,
-  `bottom: 20px`, `z-index: 1002`), masqué avec `[hidden]` tant qu'aucune parcelle n'est
-  sélectionnée. Il contient `#traceFabMenu`, `#traceFabSecondary` et `#traceFabMain`.
+- `.trace-fab` : conteneur **`position: fixed`**, en bas à droite (`right: 20px`,
+  `bottom: calc(80px + env(safe-area-inset-bottom, 0px))`, `z-index: 1002`), aligné sur
+  l'app centrée sur desktop, masqué avec `[hidden]` tant qu'aucune parcelle n'est
+  sélectionnée ou hors TRACÉS. Il contient `#traceFabMenu`, `#traceFabSecondary` et
+  `#traceFabMain`.
 - `.trace-fab-main` : cercle de **56 px**, fond neutre `--color-bg-muted`, texte `--text`,
   ombre `--shadow-lg`. Les variantes `.tonte`, `.interdit`, `.obstacle` prennent
   `--color-primary-light`, `--color-danger` et `--color-warning` (`--color-warning-text`
@@ -239,7 +241,7 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   et libellé. Survol vert / rouge / ambre selon le type.
 - Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
   ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
-- Responsive ≤ 480 px : FAB à `right: 12px; bottom: 14px`, menu min-width 220 px.
+- Responsive ≤ 480 px : FAB conservé à `right: 20px` / `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
 

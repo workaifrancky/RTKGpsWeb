@@ -239,10 +239,6 @@ function addProject(name, renderAfter = true, importIds = []) {
 
 // ─── SUPPRIMER UN PROJET ─────────────────────────────────────
 async function deleteProject(projectId) {
-  if (projects.length <= 1) {
-    showToast('Impossible — au moins une parcelle requise', 'error');
-    return;
-  }
   const proj = projects.find(p => p.id === projectId);
   if (!proj) return;
   const ok = await customConfirm(
@@ -253,12 +249,15 @@ async function deleteProject(projectId) {
 
   const wasCurrent = !currentProject || currentProject.id === projectId;
   projects = projects.filter(p => p.id !== projectId);
-  if (wasCurrent) {
-    currentProject = projects[0];
-    saveCurrentProject();
+  if (wasCurrent || projects.length === 0) {
+    currentProject = projects[0] || null;
+    if (currentProject) saveCurrentProject();
+    else localStorage.removeItem(CURRENT_KEY);
   }
   saveProjects();          // persiste + rafraîchit tiroir et libellé du header
-  if (wasCurrent && typeof setTracesMode === 'function') setTracesMode('lecture');
+  if ((wasCurrent || !currentProject) && typeof setTracesMode === 'function') {
+    setTracesMode('lecture');
+  }
   if (typeof updateZoneBadge  === 'function') updateZoneBadge();
   if (typeof renderMap        === 'function') renderMap();
   if (typeof renderPointsList === 'function') renderPointsList();

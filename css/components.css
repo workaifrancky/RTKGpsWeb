@@ -120,16 +120,22 @@
 
 /* ─── FAB DE TRACÉ (bouton flottant) ────────────────────────── */
 .trace-fab {
-  position:    absolute;
-  right:       16px;
-  bottom:      20px;
-  z-index:     1002;
+  position:    fixed;
+  /* 20 px à droite de l'app (max 480 px), y compris sur desktop centré. */
+  right:       20px;
+  right:       max(20px, calc((100vw - 480px) / 2 + 20px));
+  bottom:      80px;
+  bottom:      calc(80px + env(safe-area-inset-bottom, 0px));
+  z-index:     1002; /* au-dessus de la carte/des contrôles, sous le tiroir 1050 */
   display:     flex;
   align-items: center;
   gap:         10px;
 }
 
 .trace-fab[hidden] { display: none; }
+
+/* En plein écran carte, l'app n'est plus limitée à 480 px. */
+body.map-ui-fullscreen .trace-fab { right: 20px; }
 
 .trace-fab-main {
   display:         flex;
@@ -1267,14 +1273,12 @@
   .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
   .obstacle-option          { padding: 10px 4px; }
   .obstacle-option-icon     { font-size: 20px; }
-  .trace-fab                { right: 12px; bottom: 14px; }
   .trace-fab-menu           { min-width: 220px; }
 }
 
 /* ─── RESPONSIVE MOBILE (≤ 480 px) ───────────────────────────── */
 /* FAB et cibles tactiles de 44 px minimum. */
 @media (max-width: 480px) {
-  .trace-fab        { right: 12px; bottom: 14px; }
   .trace-fab-menu   { min-width: 220px; }
 
   .drawer-project-actions button { width: 44px; height: 44px; }

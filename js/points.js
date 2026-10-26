@@ -79,12 +79,14 @@ function syncTraceFabUI() {
   if (!fab) return;
 
   const hasProject = !!currentProject;
-  fab.hidden = !hasProject;
+  const onTracesTab = typeof APP === 'undefined' || APP.currentTab === 'tab-points';
+  const visible = hasProject && onTracesTab;
+  fab.hidden = !visible;
   const pointsToggle = document.getElementById('btnPointsPanel');
-  if (pointsToggle) pointsToggle.hidden = !hasProject;
-  if (!hasProject) {
+  if (pointsToggle) pointsToggle.hidden = !visible;
+  if (!visible) {
     closeTraceFabMenu();
-    return;
+    if (!hasProject) return;
   }
 
   const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
