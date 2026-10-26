@@ -247,13 +247,24 @@ async function deleteProject(projectId) {
   );
   if (!ok) return;
 
+  // Aucune exception pour la dernière parcelle : l'état « aucune parcelle »
+  // est désormais valide et le FAB doit disparaître.
   const wasCurrent = !currentProject || currentProject.id === projectId;
-  projects = projects.filter(p => p.id !== projectId);
-  if (wasCurrent || projects.length === 0) {
-    currentProject = projects[0] || null;
-    if (currentProject) saveCurrentProject();
-    else localStorage.removeItem(CURRENT_KEY);
+  const isLastProject = projects.length === 1;
+
+  if (isLastProject) {
+    projects = [];
+    currentProject = null;
+    localStorage.removeItem(CURRENT_KEY);
+  } else {
+    projects = projects.filter(p => p.id !== projectId);
+    if (wasCurrent) {
+      currentProject = projects[0] || null;
+      if (currentProject) saveCurrentProject();
+      else localStorage.removeItem(CURRENT_KEY);
+    }
   }
+
   saveProjects();          // persiste + rafraîchit tiroir et libellé du header
   if ((wasCurrent || !currentProject) && typeof setTracesMode === 'function') {
     setTracesMode('lecture');
@@ -453,7 +464,8 @@ function renderProjectList() {
           <button type="button" onclick="renameProject('${id}')"
             title="Renommer la parcelle" aria-label="Renommer ${name}">✏️</button>
           <button type="button" class="danger" onclick="deleteProject('${id}')"
-            title="Supprimer la parcelle" aria-label="Supprimer ${name}">🗑</button>
+            title="Supprimer la parcelle (même la dernière)"
+            aria-label="Supprimer ${name}">🗑</button>
         </div>
       </div>`;
   }).join('');

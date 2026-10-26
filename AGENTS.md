@@ -210,8 +210,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
   lecture. `setTracesMode()` / `syncTracesModeUI()` restent utilisés par la gestion des
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
-- **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, bas 80 px,
-  droite 20 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
+- **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, centré en
+  bas à 80 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
   `#traceFabMenu` (tonte / interdit / obstacle) ; `beginTraceMode()` fixe
   `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute un point
   (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
@@ -558,10 +558,17 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
 - **3.32 — Suppression de la dernière parcelle et FAB fixe** : `deleteProject()` accepte
   désormais la suppression de la dernière parcelle ; l'état revient à `currentProject = null`,
   carte vide, header « Aucune », tiroir vide avec création, FAB masqué. `.trace-fab` passe en
-  `position: fixed`, `bottom: calc(80px + safe-area)`, `right: 20px` (aligné dans l'app
-  centrée sur desktop), `z-index: 1002` ; `syncTraceFabUI()` le masque hors TRACÉS et
-  `showTab()` le resynchronise. Tests : suppression de la dernière parcelle, disparition du
-  FAB, couches carte vidées et FAB visible à 56 px au-dessus de la navigation.
+  `position: fixed`, `bottom: calc(80px + safe-area)`, `z-index: 1002` ; `syncTraceFabUI()`
+  le masque hors TRACÉS et `showTab()` le resynchronise. Tests : suppression de la dernière
+  parcelle, disparition du FAB, couches carte vidées et FAB visible à 56 px au-dessus de la
+  navigation.
+- **3.35 — FAB centré et dernière parcelle** : `.trace-fab` passe de `right: 20px` à
+  `left: 50%; transform: translateX(-50%)`, avec `bottom: calc(80px + safe-area)`. Le bouton
+  secondaire est en position absolue à gauche pour que le bouton principal reste exactement
+  centré ; le menu vertical est centré au-dessus. La suppression de la dernière parcelle est
+  confirmée sans garde `projects.length` : `currentProject = null`, stockage courant retiré,
+  header « Aucune », tiroir vide, FAB masqué et carte vidée. Le bouton 🗑 reste actif et
+  indique « Supprimer la parcelle (même la dernière) ».
 
 ## 9. Langue et communication
 

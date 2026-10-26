@@ -89,7 +89,7 @@ peut être isolé.
    Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
    Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
 3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
-   en bas à droite de la carte. Il ouvre un menu vertical :
+   au centre en bas de la carte. Il ouvre un menu vertical :
    - `🟢 Nouvelle zone de tonte` : FAB vert, chaque clic ajoute un point de tonte ;
    - `🔴 Nouvelle zone interdite` : FAB rouge, chaque clic ajoute un point interdit ;
    - `🟡 Obstacle` : FAB jaune, un clic ouvre le choix du type d'obstacle et crée un point
