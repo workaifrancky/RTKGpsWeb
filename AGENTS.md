@@ -134,12 +134,16 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   17 avec Esri, 19 pour le satellite Esri. Toujours conserver `maxZoom: 22`.
 - **Multi-zones de tonte** : chaque point `tonte` porte un `zoneId` (défaut 1) et le projet
   stocke `currentZoneId`. Utiliser `getZones()` pour grouper et ne jamais fusionner les zones
-  à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante.
+  à l'affichage ou à l'export. `startNewZone()` incrémente la zone courante ; il est appelé
+  par l'option « Nouvelle zone de tonte » du menu `#zoneModal` (`openZoneMenu()` /
+  `selectNewZone()`), ouvert par le bouton « + ZONE » de la capsule.
 - **Multi-zones interdites** : chaque point `interdit` porte aussi un `zoneId` ; le projet
   stocke `currentInterditZoneId`. `getInterditZones()` groupe par zone, `startNewInterditZone()`
-  (bouton « ＋ Nouvelle zone interdite » de la liste TRACÉS, garde-fou ≥ 3 points) incrémente
-  la zone courante. Carte et export produisent un polygone / une Feature `zone_interdite`
-  **par zone** (`zone_id`), sans fusion.
+  (option « Nouvelle zone interdite » du menu `#zoneModal` et bouton « ＋ Nouvelle zone
+  interdite » de la liste TRACÉS, garde-fou ≥ 3 points) incrémente la zone courante.
+  `recordInterdit()` s'appuie sur `buildPoint()`, qui lit `getCurrentInterditZoneId()`.
+  Carte et export produisent un polygone / une Feature `zone_interdite` **par zone**
+  (`zone_id`), sans fusion. Le bouton OBSTACLE reste indépendant et n'ouvre pas ce menu.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. Le header contient
@@ -488,6 +492,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   point d'une parcelle vide met aussi `project.createdAt` à son timestamp. Les obstacles
   portent `date_creation = point.timestamp` (date de leur propre capture), tandis que le
   domaine et les zones conservent la première capture du projet.
+- **3.28 — Menu « + ZONE » (tonte / interdite)** : le bouton `+ ZONE` de la capsule ouvre
+  `#zoneModal` (`openZoneMenu()`, `selectNewZone()`) au lieu d'appeler directement
+  `startNewZone()`. Deux options pleine largeur : « Nouvelle zone de tonte » →
+  `startNewZone()` et « Nouvelle zone interdite » → `startNewInterditZone()` (garde-fou
+  ≥ 3 points et toast « Nouvelle zone interdite #N »). `recordInterdit()` reste rattaché à
+  `getCurrentInterditZoneId()` via `buildPoint()`. Le menu se ferme au choix, au clic sur le
+  voile, avec Échap et au changement d'onglet ; il est bloqué en mode lecture et écran
+  verrouillé. Le toast de la dernière capture est masqué à l'ouverture pour ne pas recouvrir
+  les options. Le bouton OBSTACLE conserve son menu et son flux indépendants. CSS :
+  `.zone-choice-grid` / `.zone-choice` (2 × 60 px, icône 26 px, survol vert ou rouge).
 
 ## 9. Langue et communication
 

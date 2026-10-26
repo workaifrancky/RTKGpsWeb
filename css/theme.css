@@ -7,6 +7,16 @@
 [data-theme="dark"] header         { background: #14532d; }
 [data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
 [data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
+/* Menu de choix des zones : les fonds pâles clairs seraient illisibles en nuit. */
+[data-theme="dark"] .zone-choice:hover {
+  background:   var(--color-bg-subtle);
+  border-color: var(--color-primary-accent);
+}
+
+[data-theme="dark"] .zone-choice.interdit:hover {
+  background:   var(--color-bg-subtle);
+  border-color: var(--color-danger-strong);
+}
 
 /* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
    sombre et --green-dark (#052e16) y serait illisible. Les pills inactives

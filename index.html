@@ -134,8 +134,8 @@
             <span class="terrain-btn-text">OBSTACLE</span>
           </div>
         </div>
-        <div class="terrain-btn" onclick="startNewZone()">
-          <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone de tonte">
+        <div class="terrain-btn" onclick="openZoneMenu()">
+          <div class="terrain-btn-circle new-zone" id="btnNewZone" title="Nouvelle zone (tonte ou interdite)">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <circle cx="12" cy="12" r="8.5"/>
               <path d="M12 8v8"/>
@@ -386,6 +386,36 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODAL CHOIX DE ZONE (tonte / interdite)                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="zoneModal" role="dialog" aria-modal="true"
+  aria-labelledby="zoneModalTitle" aria-hidden="true"
+  onclick="if(event.target===this)closeZoneMenu()">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="zoneModalTitle">➕ Nouvelle zone</div>
+    <div class="zone-choice-grid">
+      <button type="button" class="zone-choice tonte" onclick="selectNewZone('tonte')">
+        <span class="zone-choice-icon" aria-hidden="true">🟢</span>
+        <span class="zone-choice-text">
+          <span class="zone-choice-title">Nouvelle zone de tonte</span>
+          <span class="zone-choice-sub">Zone verte à tondre</span>
+        </span>
+      </button>
+      <button type="button" class="zone-choice interdit" onclick="selectNewZone('interdit')">
+        <span class="zone-choice-icon" aria-hidden="true">🔴</span>
+        <span class="zone-choice-text">
+          <span class="zone-choice-title">Nouvelle zone interdite</span>
+          <span class="zone-choice-sub">Zone rouge à éviter</span>
+        </span>
+      </button>
+    </div>
+    <button type="button" class="btn-secondary" onclick="closeZoneMenu()">Annuler</button>
+  </div>
+</div>
+
+
 <!-- MODAL NOUVEAU PROJET                                         -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="projectModal" onclick="if(event.target===this)closeProjectModal()">

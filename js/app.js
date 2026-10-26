@@ -77,6 +77,7 @@ function showTab(tabId) {
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
+  if (typeof closeZoneMenu === 'function') closeZoneMenu();
 
   // Une seule instance de carte, dans l'onglet TRACÉS.
   if (tabId === 'tab-points' && typeof mountMapForTab === 'function') {

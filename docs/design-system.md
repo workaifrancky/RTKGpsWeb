@@ -281,6 +281,11 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
 - `.points-zone-add` : bouton pleine largeur en pointillés `--color-danger` (« ＋ Nouvelle
   zone interdite ») sous les groupes de zones interdites de la liste TRACÉS ; survol
   `--color-danger-pale`.
+- `#zoneModal` : menu léger ouvert par le bouton `+ ZONE` de la capsule. `.zone-choice-grid`
+  empile deux `.zone-choice` pleine largeur (60 px, icône 26 px, rayon `--radius-lg`, bordure
+  `--border`) ; survol vert (`--color-primary-pale-bg`) pour la tonte et rouge
+  (`--color-danger-pale`) pour l'interdit. Le menu est masqué par `visibility: hidden` hors
+  `.show` pour ne pas exposer ses boutons au clavier.
 - `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.

@@ -294,6 +294,79 @@
   line-height: 1.2;
 }
 
+/* ─── CHOIX DE ZONE (tonte / interdite) ─────────────────────── */
+#zoneModal { visibility: hidden; }
+#zoneModal.show { visibility: visible; }
+
+.zone-choice-grid {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  margin:         8px 0 14px;
+}
+
+.zone-choice {
+  display:         flex;
+  align-items:     center;
+  gap:             12px;
+  width:           100%;
+  min-height:      60px;
+  padding:         12px 14px;
+  border:          2px solid var(--border);
+  border-radius:   var(--radius-lg);
+  background:      var(--color-bg-muted);
+  color:           var(--text);
+  font-family:     var(--font);
+  text-align:      left;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.zone-choice:hover {
+  border-color: var(--color-primary);
+  background:   var(--color-primary-pale-bg);
+}
+
+.zone-choice.interdit:hover {
+  border-color: var(--color-danger);
+  background:   var(--color-danger-pale);
+}
+
+.zone-choice:active { transform: scale(0.99); }
+
+.zone-choice:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.zone-choice.interdit:focus-visible {
+  outline-color: var(--color-danger-strong);
+}
+
+.zone-choice-icon {
+  flex-shrink: 0;
+  font-size:   26px;
+  line-height: 1;
+}
+
+.zone-choice-text {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  min-width:      0;
+}
+
+.zone-choice-title {
+  font-size:   14px;
+  font-weight: 800;
+  color:       var(--text);
+}
+
+.zone-choice-sub {
+  font-size: 12px;
+  color:     var(--text3);
+}
+
 /* ─── MODAL NOUVEAU PROJET ──────────────────────────────────── */
 .project-form {
   display:        flex;

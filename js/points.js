@@ -238,6 +238,54 @@ function startNewZone() {
   showToast(`Nouvelle zone #${nextZone}`, 'info');
 }
 
+// ─── CHOIX DU TYPE DE NOUVELLE ZONE ─────────────────────────
+// Le bouton « + ZONE » ne concerne que les zones de tonte et interdites ;
+// le bouton OBSTACLE reste indépendant (menu dédié).
+function openZoneMenu() {
+  if (!currentProject) return;
+  if (!canRecordPoints()) return;   // mode lecture / écran verrouillé
+
+  if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
+  if (typeof closeExportMenu === 'function') closeExportMenu();
+
+  const modal = document.getElementById('zoneModal');
+  if (!modal) return;
+
+  // Le toast de la dernière capture masquerait les options du menu.
+  const toast = document.getElementById('toast');
+  if (toast) {
+    clearTimeout(toast._timer);
+    toast.classList.remove('show');
+  }
+
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+
+  setTimeout(() => {
+    const first = modal.querySelector('.zone-choice');
+    if (first && modal.classList.contains('show')) first.focus({ preventScroll: true });
+  }, 100);
+}
+
+function closeZoneMenu() {
+  const modal = document.getElementById('zoneModal');
+  if (!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function selectNewZone(type) {
+  closeZoneMenu();
+  if (type === 'interdit') startNewInterditZone();
+  else startNewZone();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeZoneMenu();
+  });
+});
+
 function updateZoneBadge() {
   const el = document.getElementById('zoneBadge');
   if (!el) return;
@@ -255,6 +303,7 @@ function recordInterdit() {
     return;
   }
   const pt = buildPoint('interdit', null, '🔴', pos);
+  // buildPoint() rattache le point à getCurrentInterditZoneId().
   savePoint(pt);
   showToast(`🔴 Interdit #${pt.index} enregistré — zone interdite #${pt.zoneId}${pos.source === 'manual' ? ' (manuel)' : ''}`, 'interdit');
 }
