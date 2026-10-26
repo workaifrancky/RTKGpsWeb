@@ -117,7 +117,8 @@ function buildGeoJSON() {
       properties:{
         type:'domaine',
         name:projectName,
-        created_at:proj?.createdAt || null,
+        // Toujours aligné sur la première capture (et non l'ancien createdAt).
+        created_at:metadata.date_creation,
         ...metadata,
       },
     });
@@ -184,6 +185,8 @@ function buildGeoJSON() {
         hdop:p.hdop,
         timestamp:p.timestamp,
         ...metadata,
+        // Un obstacle porte sa propre date de capture.
+        date_creation:p.timestamp || metadata.date_creation,
       },
     });
   });

@@ -325,7 +325,15 @@ function getPoints() {
 
 function addPointToCurrentProject(point) {
   if (!currentProject) return;
+  const wasEmpty = currentProject.points.length === 0;
   currentProject.points.push(point);
+
+  // Une parcelle vide qui reçoit son premier point « naît » à cette capture :
+  // createdAt reste ainsi cohérent avec date_creation dans l'export.
+  if (wasEmpty && point?.timestamp) {
+    currentProject.createdAt = point.timestamp;
+  }
+
   saveProjects();
 }
 

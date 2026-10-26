@@ -17,12 +17,13 @@ En plus des champs propres à chaque type, chaque `properties` porte :
 
 | Champ | Valeur |
 |---|---|
-| `date_creation` | timestamp ISO 8601 de la **première capture** (point le plus ancien du projet), avec repli sur `project.createdAt` puis la date d'export. |
+| `date_creation` | timestamp ISO 8601 de la **première capture** (point le plus ancien du projet) pour le domaine, les zones et zones interdites ; **timestamp propre de l'obstacle** pour une Feature `obstacle`. Repli sur `project.createdAt` puis la date d'export. |
 | `version_app` | version de l'application (`APP.version`, actuellement `"2.0.0"`). |
 | `source` | `"rtk-mower"`. |
 
-`created_at` reste spécifique à la Feature `domaine` (date de création de la parcelle). Les
-applications consommatrices doivent ignorer les propriétés qu'elles ne connaissent pas.
+`created_at` reste spécifique à la Feature `domaine` : il est **identique à `date_creation`**
+(et non plus un ancien `project.createdAt`). Les applications consommatrices doivent ignorer
+les propriétés qu'elles ne connaissent pas.
 
 ## Ordre des features
 
@@ -56,7 +57,7 @@ Polygone fermé : la première coordonnée est répétée à la fin.
   "properties": {
     "type": "domaine",
     "name": "Jardin Nord",
-    "created_at": "2026-10-01T08:00:00.000Z",
+    "created_at": "2026-10-23T10:00:00.000Z",
     "date_creation": "2026-10-23T10:00:00.000Z",
     "version_app": "2.0.0",
     "source": "rtk-mower"
@@ -65,7 +66,8 @@ Polygone fermé : la première coordonnée est répétée à la fin.
 ```
 
 - `name` = nom du projet.
-- `created_at` = date de création du projet (ISO 8601) ou `null`.
+- `created_at` = **`date_creation`** (première capture ISO 8601), y compris pour une ancienne
+  parcelle dont le `createdAt` stocké serait plus ancien.
 - Aucun domaine n'est émis si moins de 3 points uniques (ou si tous sont alignés).
 
 ## 2. Zones de tonte
@@ -163,7 +165,7 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
     "satellites": 20,
     "hdop": 0.6,
     "timestamp": "2026-10-23T10:00:10.000Z",
-    "date_creation": "2026-10-23T10:00:00.000Z",
+    "date_creation": "2026-10-23T10:00:10.000Z",
     "version_app": "2.0.0",
     "source": "rtk-mower"
   }
@@ -174,6 +176,8 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 - `categorie` : `subtype` du point, sinon `"Autre"`.
 - `rayon` : rayon de sécurité en mètres (constante `1.0`).
 - `index` : numérotation de l'obstacle dans la parcelle.
+- `date_creation` : **`timestamp` propre de l'obstacle** (date de sa capture), et non la première
+  capture de la parcelle.
 
 ## Règles à ne pas casser
 
@@ -196,5 +200,7 @@ Une feature `Point` par obstacle. La catégorie provient du sous-type saisi dans
 - [ ] Les `surface_m2` sont numériques et > 0.
 - [ ] Chaque obstacle possède un `properties.name` (nom personnalisé ou catégorie).
 - [ ] Toutes les features portent `date_creation`, `version_app` et `source: 'rtk-mower'`.
-- [ ] `date_creation` correspond au timestamp de la première capture (pas à la date d'export).
+- [ ] `date_creation` des features de surface correspond au timestamp de la première capture.
+- [ ] Domaine : `created_at` **égal** à `date_creation`.
+- [ ] Obstacle : `date_creation` **égal** à son propre `timestamp`.
 - [ ] Aucune Feature `base` n'est présente.

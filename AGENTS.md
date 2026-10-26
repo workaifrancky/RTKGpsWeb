@@ -121,8 +121,10 @@ Aucune Feature `base` n'est produite.
 
 Nom du fichier : `RTK_<projet>_<YYYY-MM-DD>.geojson`.
 
-Toutes les propriétés incluent `source: 'rtk-mower'`, `date_creation` (première capture ISO) et
-`version_app` (`APP.version`, actuellement `2.0.0`).
+Toutes les propriétés incluent `source: 'rtk-mower'`, `date_creation` (première capture ISO pour
+le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) et
+`version_app` (`APP.version`, actuellement `2.0.0`). Le `created_at` du domaine est toujours
+égal à `date_creation`, même si l'ancien `project.createdAt` est plus ancien.
 
 ## 7. Points de vigilance
 
@@ -481,6 +483,11 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   fallback toast), métadonnées `date_creation` / `version_app` / `source` sur toutes les
   features et sauvegarde locale renforcée (autosave 30 s, `pagehide`/`visibilitychange`,
   indicateur `💾` qui clignote). Le contrat GeoJSON reste inchangé (ajout de propriétés).
+- **3.27 — Correction des métadonnées d'export** : le `created_at` du domaine est forcé à
+  `date_creation` (première capture), et non plus à l'ancien `project.createdAt` ; le premier
+  point d'une parcelle vide met aussi `project.createdAt` à son timestamp. Les obstacles
+  portent `date_creation = point.timestamp` (date de leur propre capture), tandis que le
+  domaine et les zones conservent la première capture du projet.
 
 ## 9. Langue et communication
 
