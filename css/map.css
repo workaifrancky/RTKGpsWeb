@@ -335,24 +335,43 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   color:      var(--color-danger-text);
 }
 
-.map-surface-overlay {
-  display: none;
-  max-width: 260px;
-  margin: 10px 10px 0 0;
-  background: rgba(17, 24, 39, 0.82);
-  color: #f9fafb;
-  border: 1px solid rgba(74, 222, 128, 0.75);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.4;
+/* ─── LABELS DE SURFACE ET NUMÉROS DE POINTS SUR LA CARTE ───── */
+.zone-surface-label {
+  background:    rgba(255, 255, 255, 0.94);
+  color:         var(--color-primary-deep);
+  border:        1px solid var(--color-primary-light);
+  border-radius: 999px;
+  box-shadow:    var(--shadow-sm);
+  padding:       3px 8px;
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   800;
+  line-height:   1.4;
   letter-spacing: 0.2px;
-  padding: 8px 10px;
+  white-space:   nowrap;
 }
 
-.map-surface-overlay.show {
-  display: block;
+.zone-surface-label::before { display: none; }
+
+.point-number-label {
+  background:    rgba(255, 255, 255, 0.94);
+  color:         var(--color-primary-deep);
+  border:        1px solid var(--color-primary-light);
+  border-radius: 999px;
+  box-shadow:    var(--shadow-sm);
+  padding:       1px 5px;
+  font-family:   var(--font);
+  font-size:     10px;
+  font-weight:   800;
+  line-height:   1.4;
+}
+
+.point-number-label::before { display: none; }
+
+[data-theme="dark"] .zone-surface-label,
+[data-theme="dark"] .point-number-label {
+  background: rgba(15, 17, 23, 0.92);
+  color:      var(--color-primary-light);
 }
 
 /* Contrôles zoom */
@@ -427,6 +446,4 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   color: var(--text3) !important;
 }
 
-[data-theme="dark"] .map-surface-overlay {
-  border-color: rgba(74, 222, 128, 0.6);
-}
+

@@ -349,12 +349,22 @@ function startNewInterditZone() {
 }
 
 // ─── NOMS DES ZONES ─────────────────────────────────────────
+// Code court affiché sur la carte : ZT1, ZT2… pour la tonte et ZI1, ZI2…
+// pour les zones interdites.
+function getZoneCode(type, zoneId) {
+  const kind = type === 'interdit' ? 'ZI' : 'ZT';
+  const id = Number(zoneId) || 1;
+  return `${kind}${id}`;
+}
+
 function getZoneDisplayName(type, zoneId) {
   const kind = type === 'interdit' ? 'interdit' : 'tonte';
   const id = Number(zoneId) || 1;
   const custom = currentProject?.zoneNames?.[kind]?.[String(id)];
   if (custom) return custom;
-  return kind === 'interdit' ? `Zone interdite #${id}` : `Zone de tonte #${id}`;
+  return kind === 'interdit'
+    ? `Zone interdite ${getZoneCode('interdit', id)}`
+    : `Zone de tonte ${getZoneCode('tonte', id)}`;
 }
 
 async function renameZone(type, zoneId) {
@@ -715,20 +725,27 @@ function renderPointsList() {
 
 function renderGroup(title, pts, color, type) {
   if (pts.length === 0) return '';
+  const numberedZone = type === 'tonte' || type === 'interdit';
   return `
     <div class="points-group">
       <div class="points-group-header" style="border-left-color:${color}">
         <span>${title}</span>
         <span class="points-group-count" style="background:${color}">${pts.length}</span>
       </div>
-      ${pts.map(p => renderPointItem(p)).join('')}
+      ${pts.map((p, i) => renderPointItem(p, numberedZone ? i + 1 : null)).join('')}
     </div>`;
 }
 
-function renderPointItem(p) {
+function renderPointItem(p, zoneIndex = null) {
   const date = new Date(p.timestamp).toLocaleDateString('fr-FR');
   const time  = fmtTime(p.timestamp);
-  const name  = `${p.icon} ${getPointDisplayName(p)} #${p.index}`;
+  const inZone = p.type === 'tonte' || p.type === 'interdit';
+  const number = inZone && Number.isInteger(zoneIndex) ? zoneIndex : p.index;
+  const customName = p.name ? ` — ${p.name}` : '';
+  const name = inZone
+    ? `${p.icon} Point ${number}${customName}`
+    : `${p.icon} ${getPointDisplayName(p)} #${p.index}`;
+  const zoneMeta = inZone ? `${getZoneCode(p.type, p.zoneId)} &nbsp;·&nbsp; ` : '';
   const fix   = getFixMeta(p.fix);
   return `
     <div class="point-item">
@@ -737,7 +754,7 @@ function renderPointItem(p) {
         <div class="point-name">${name}</div>
         <div class="point-coords">${fmt(p.lat,6)}, ${fmt(p.lon,6)}</div>
         <div class="point-meta">
-          ${p.type === 'tonte' ? `Zone ${p.zoneId || 1} &nbsp;·&nbsp; ` : ''}Alt: ${fmt(p.alt,1)}m &nbsp;·&nbsp;
+          ${zoneMeta}Alt: ${fmt(p.alt,1)}m &nbsp;·&nbsp;
           <span class="${fix.cssClass}" style="font-size:10px;font-weight:700">${p.fix}</span>
           &nbsp;·&nbsp; Sat: ${p.satellites || '—'}
         </div>

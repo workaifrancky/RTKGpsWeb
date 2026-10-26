@@ -11,8 +11,10 @@ let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
 // Métré temporaire du segment en cours de tracé (zone de tonte à 2 points).
 let tempMeasureLine = null;
-let surfaceOverlayControl = null;
-let surfaceOverlayEl = null;
+// Labels permanents de surface (ZT1 : … m² / ZI1 : … m²), visibles à partir
+// du zoom ZONE_LABEL_MIN_ZOOM pour ne pas surcharger la carte.
+let zoneLabelLayer = null;
+const ZONE_LABEL_MIN_ZOOM = 18;
 
 // Mode de tracé : suivi GPS, position connue et état de la vue TRACÉS.
 let followGps = true;
@@ -77,12 +79,13 @@ function initMap() {
   layerTonte    = L.layerGroup().addTo(map);
   layerInterdit = L.layerGroup().addTo(map);
   layerObstacle = L.layerGroup().addTo(map);
+  zoneLabelLayer = L.layerGroup().addTo(map);
 
-  initSurfaceOverlayControl();
   initGpsControl();
 
   // Un déplacement manuel désactive le suivi GPS (le bouton permet de le réactiver).
   map.on('dragstart', disableGpsFollow);
+  map.on('zoomend', syncZoneLabelVisibility);
 
   // Marqueur station NTRIP sélectionnée
   L.circleMarker([centerLat,centerLon],{
@@ -159,9 +162,11 @@ function renderMap() {
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
 
+  if (zoneLabelLayer) zoneLabelLayer.clearLayers();
+
   const pts = getPoints();
   if (pts.length === 0) {
-    updateSurfaceOverlay('');
+    syncZoneLabelVisibility();
     // Évite un recadrage intempestif au premier point manuel : la vue courante
     // de l'onglet TRACÉS est conservée.
     if (APP.currentTab === 'tab-points' && map.getSize().x > 0) {
@@ -174,7 +179,6 @@ function renderMap() {
   const tonte    = pts.filter(p=>p.type==='tonte');
   const interdit = pts.filter(p=>p.type==='interdit');
   const obstacle = pts.filter(p=>p.type==='obstacle');
-  const surfaceParts = [];
 
   // Zones de tonte : un polygone par zoneId, teinte de vert différente
   const zones = typeof getZones === 'function' ? getZones() : { 1: tonte };
@@ -196,22 +200,7 @@ function renderMap() {
         .addTo(layerTonte)
         .bindPopup(zonePopup('tonte', zoneId, area));
 
-      // Numéro de zone au centre du polygone
-      const center = zonePts.reduce(
-        (acc, p) => ({ lat: acc.lat + p.lat, lon: acc.lon + p.lon }), { lat: 0, lon: 0 });
-      center.lat /= zonePts.length;
-      center.lon /= zonePts.length;
-      L.marker([center.lat, center.lon], {
-        icon: L.divIcon({
-          className: 'zone-label',
-          html: `<div>Z${zoneId}</div>`,
-          iconSize: [28, 28], iconAnchor: [14, 14],
-        }),
-        interactive: false,
-        keyboard: false,
-      }).addTo(layerTonte);
-
-      surfaceParts.push(`Zone ${zoneId} : <b>${formatArea(area)}</b>`);
+      addZoneSurfaceLabel('tonte', zoneId, zonePts, area);
     }
 
     // Zone en cours de tracé (2 points) : une ligne seule n'est pas mesurée par
@@ -229,13 +218,17 @@ function renderMap() {
       }
     }
 
-    // Marqueurs des points de la zone
-    zonePts.forEach(p => {
+    // Marqueurs des points de la zone, numérotés de 1 à N dans l'ordre de création.
+    zonePts.forEach((p, index) => {
       L.circleMarker([p.lat, p.lon], {
         radius: 8, fillColor: palette.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
       })
         .addTo(layerTonte)
-        .bindPopup(pointPopup(p, p.index));
+        .bindPopup(pointPopup(p, index + 1))
+        .bindTooltip(String(index + 1), {
+          permanent: true, direction: 'right', offset: [8, 0],
+          className: 'point-number-label', interactive: false,
+        });
     });
   });
 
@@ -250,19 +243,26 @@ function renderMap() {
       L.polygon(zonePts.map(p => [p.lat, p.lon]), {
         color: COLORS.interdit.stroke, weight: 2.5,
         fillColor: COLORS.interdit.fill, fillOpacity: 1,
+        showMeasurements: true,
+        measurementOptions: ZONE_MEASUREMENT_OPTIONS,
       })
         .addTo(layerInterdit)
         .bindPopup(zonePopup('interdit', zoneId, area));
 
-      surfaceParts.push(`Zone interdite ${zoneId} : <b>${formatArea(area)}</b>`);
+      addZoneSurfaceLabel('interdit', zoneId, zonePts, area);
     }
 
-    zonePts.forEach(p => {
+    // Points numérotés de 1 à N dans leur zone interdite.
+    zonePts.forEach((p, index) => {
       L.circleMarker([p.lat, p.lon], {
         radius: 8, fillColor: COLORS.interdit.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
       })
         .addTo(layerInterdit)
-        .bindPopup(pointPopup(p, p.index));
+        .bindPopup(pointPopup(p, index + 1))
+        .bindTooltip(String(index + 1), {
+          permanent: true, direction: 'right', offset: [8, 0],
+          className: 'point-number-label', interactive: false,
+        });
     });
   });
 
@@ -294,7 +294,48 @@ function renderMap() {
     pointsViewNeedsFit = false;
   }
 
-  updateSurfaceOverlay(surfaceParts.join(' &nbsp;•&nbsp; '));
+  syncZoneLabelVisibility();
+}
+
+// Centre approximatif de la zone (moyenne des sommets) pour le label de surface.
+function getZoneCenter(zonePts) {
+  const center = zonePts.reduce(
+    (acc, p) => ({ lat: acc.lat + p.lat, lon: acc.lon + p.lon }), { lat: 0, lon: 0 });
+  center.lat /= zonePts.length;
+  center.lon /= zonePts.length;
+  return center;
+}
+
+// Ajoute un label permanent « ZT1 : 123 m² » / « ZI1 : 45 m² » au centre de la zone.
+function addZoneSurfaceLabel(type, zoneId, zonePts, area) {
+  if (!map || !zoneLabelLayer) return;
+  const center = getZoneCenter(zonePts);
+  const code = typeof getZoneCode === 'function'
+    ? getZoneCode(type, zoneId)
+    : `${type === 'interdit' ? 'ZI' : 'ZT'}${zoneId}`;
+
+  const label = L.tooltip({
+    permanent: true,
+    direction: 'center',
+    className: 'zone-surface-label',
+    opacity: 1,
+    interactive: false,
+  })
+    .setLatLng([center.lat, center.lon])
+    .setContent(`${code} : ${formatArea(area)}`);
+
+  zoneLabelLayer.addLayer(label);
+}
+
+// Les labels de surface ne sont visibles qu'à partir du zoom 18.
+function syncZoneLabelVisibility() {
+  if (!map || !zoneLabelLayer) return;
+  const shouldShow = map.getZoom() >= ZONE_LABEL_MIN_ZOOM;
+  if (shouldShow) {
+    if (!map.hasLayer(zoneLabelLayer)) map.addLayer(zoneLabelLayer);
+  } else if (map.hasLayer(zoneLabelLayer)) {
+    map.removeLayer(zoneLabelLayer);
+  }
 }
 
 function pointPopup(p, idx) {
@@ -302,7 +343,9 @@ function pointPopup(p, idx) {
     ? getPointDisplayName(p)
     : (p.subtype ? p.subtype : (p.type==='tonte'?'Tonte':'Interdit'));
   const icon = p.icon || '📍';
-  const zone = p.type === 'tonte' ? `Zone ${p.zoneId || 1} · ` : '';
+  const zone = (p.type === 'tonte' || p.type === 'interdit') && typeof getZoneCode === 'function'
+    ? `${getZoneCode(p.type, p.zoneId)} · `
+    : '';
   const actions = `
     <div class="popup-actions">
       <button class="popup-btn" onclick="renamePoint(${p.id})" title="Renommer ce point">✏️ Renommer</button>
@@ -662,36 +705,6 @@ function calculateArea(pts) {
 function formatArea(m2) {
   if(m2>=10000) return `${(m2/10000).toFixed(4)} ha`;
   return `${m2.toFixed(1)} m²`;
-}
-
-function initSurfaceOverlayControl() {
-  if (!map || surfaceOverlayControl) return;
-
-  surfaceOverlayControl = L.control({ position: 'topright' });
-  surfaceOverlayControl.onAdd = () => {
-    const el = L.DomUtil.create('div', 'map-surface-overlay');
-    L.DomEvent.disableClickPropagation(el);
-    L.DomEvent.disableScrollPropagation(el);
-    surfaceOverlayEl = el;
-    return el;
-  };
-
-  surfaceOverlayControl.addTo(map);
-}
-
-function updateSurfaceOverlay(html) {
-  if (!map) return;
-  if (!surfaceOverlayControl || !surfaceOverlayEl) initSurfaceOverlayControl();
-  if (!surfaceOverlayEl) return;
-
-  if (!html) {
-    surfaceOverlayEl.innerHTML = '';
-    surfaceOverlayEl.classList.remove('show');
-    return;
-  }
-
-  surfaceOverlayEl.innerHTML = html;
-  surfaceOverlayEl.classList.add('show');
 }
 
 function setHTML(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
