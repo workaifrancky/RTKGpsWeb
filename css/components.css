@@ -234,6 +234,20 @@
   filter:    saturate(0.7);
 }
 
+/* Type de tracé actif : anneau visible autour du bouton concerné. */
+.terrain-btn-circle.trace-active {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 3px;
+}
+
+.terrain-btn-circle.interdit.trace-active {
+  outline-color: var(--color-danger-strong);
+}
+
+.terrain-btn-circle.obstacle.trace-active {
+  outline-color: var(--color-warning-strong);
+}
+
 /* Bouton « Nouvelle zone » : le « + » et le libellé ZONE tiennent dans le
    cercle, pour rester aligné avec les trois autres boutons de la capsule. */
 .terrain-btn-circle.new-zone {
@@ -297,6 +311,103 @@
 /* ─── CHOIX DE ZONE (tonte / interdite) ─────────────────────── */
 #zoneModal { visibility: hidden; }
 #zoneModal.show { visibility: visible; }
+
+/* ─── VUE DÉDIÉE DES POINTS ─────────────────────────────────── */
+#pointsViewOverlay { visibility: hidden; }
+#pointsViewOverlay.show { visibility: visible; }
+
+.points-view-box {
+  display:        flex;
+  flex-direction: column;
+  width:          100%;
+  max-width:      560px;
+  height:         min(88dvh, 760px);
+  max-height:     90dvh;
+  padding:        16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  overflow:       hidden;
+}
+
+.points-view-head {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  flex-shrink:     0;
+  margin-bottom:   4px;
+}
+
+.points-view-title {
+  margin:        0;
+  padding:       0;
+  border:        none;
+  font-size:     11px;
+  letter-spacing: 1.5px;
+  color:         var(--text3);
+}
+
+.points-view-head-actions {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.points-view-icon {
+  width:       44px;
+  min-width:   44px;
+  padding:     0;
+  border:      1px solid var(--border);
+  border-radius: var(--radius-md);
+  background:  var(--color-white);
+  color:       var(--text);
+  font-size:   18px;
+  cursor:      pointer;
+}
+
+.points-view-close {
+  width:      auto;
+  min-width:  80px;
+  padding:    8px 12px;
+  font-size:  13px;
+}
+
+.points-view-close:focus-visible,
+.points-view-icon:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.points-view-meta {
+  flex-shrink:  0;
+  margin:       4px 0 8px;
+}
+
+.points-view-body {
+  flex:                 1 1 auto;
+  min-height:           0;
+  overflow-y:           auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior:  contain;
+}
+
+.points-view-actions {
+  display:               grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:                   8px;
+  flex-shrink:           0;
+  padding-top:           12px;
+  margin-top:            4px;
+  border-top:            1px solid var(--border);
+}
+
+.points-view-actions .action-button,
+.points-view-actions .action-button-danger,
+.points-view-actions .export-primary {
+  width:     100%;
+  min-width: 0;
+  padding:   10px 8px;
+  font-size: 13px;
+}
 
 .zone-choice-grid {
   display:        flex;

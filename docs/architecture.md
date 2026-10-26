@@ -26,14 +26,14 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), menu de choix `#zoneModal` (`openZoneMenu()`, `selectNewZone()`), renommage (`renamePoint()`), liste des points |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), menu de choix `#zoneModal` (`openZoneMenu()`, `selectNewZone()`), verrouillage du type (`ensureTraceType()`, `selectTraceAndRecord()`), vue POINTS (`openPointsView()`, `closePointsView()`), renommage (`renamePoint()`), liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, état des boutons terrain |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
 | `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones (distances de segments via `leaflet-measure-path`), marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
 | `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
 | `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
-| `js/export.js` | Export GeoJSON principal (une Feature `zone`/`zone_interdite` par `zoneId`), menu CSV/GPX (`toggleExportMenu()`), calcul d'enveloppe convexe |
+| `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
 | `js/ui.js` | Bandeau Fix (fix, précision) et alertes GPS à partir des trames |

@@ -11,11 +11,11 @@
   z-index:     1;
 }
 
-/* Carte de l'onglet TRACÉS : plein écran, la liste des points défile dessous */
+/* Carte de l'onglet TRACÉS : la vue des points s'ouvre en panneau dédié. */
 #tab-points #map-points {
-  flex:           0 0 auto;
-  height:         100%;      /* hauteur visible de l'onglet */
-  min-height:     320px;
+  flex:           1 1 auto;
+  height:         auto;      /* remplit la zone visible de l'onglet */
+  min-height:     0;
   display:        flex;
   flex-direction: column;
   overflow:       hidden;
@@ -175,6 +175,35 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
 .map-mode-badge.gps {
   background: var(--color-primary-pale);
   color:      var(--color-primary-deep);
+}
+
+/* Type de tracé verrouillé (tonte / interdit / obstacle). */
+.map-trace-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            4px;
+  padding:        4px 9px;
+  border:         1px solid var(--border);
+  border-radius:  999px;
+  background:     var(--color-bg-subtle);
+  color:          var(--text2);
+  font-size:      11px;
+  font-weight:    800;
+  white-space:    nowrap;
+}
+
+.map-trace-badge[hidden] { display: none; }
+.map-trace-badge.tonte {
+  color:        var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+.map-trace-badge.interdit {
+  color:        var(--color-danger);
+  border-color: var(--color-danger-strong);
+}
+.map-trace-badge.obstacle {
+  color:        var(--color-warning-text);
+  border-color: var(--color-warning-strong);
 }
 
 .map-mode-hint {

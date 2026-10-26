@@ -75,9 +75,10 @@
     <div id="map-points" class="map-wrapper">
       <div class="map-mode-bar">
         <span id="recordModeBadge" class="map-mode-badge">✋ MODE MANUEL</span>
+        <span id="traceModeBadge" class="map-trace-badge" hidden aria-hidden="true"></span>
         <span class="map-mode-hint">Cible : centre</span>
         <button type="button" class="map-panel-toggle" id="btnPointsPanel"
-          onclick="scrollToPointsPanel()" title="Afficher les points enregistrés">POINTS ▾</button>
+          onclick="openPointsView()" title="Ouvrir la vue des points">POINTS ▾</button>
       </div>
       <div id="map-points-slot">
         <div id="map">
@@ -119,18 +120,18 @@
 
       <!-- Barre d'enregistrement flottante sur la carte (capsule) -->
       <div class="floating-toolbar" role="toolbar" aria-label="Enregistrer un point">
-        <div class="terrain-btn" onclick="recordTonte()">
-          <div class="terrain-btn-circle tonte" id="btnTonte" title="Enregistrer un point de tonte">
+        <div class="terrain-btn" onclick="selectTraceAndRecord('tonte')">
+          <div class="terrain-btn-circle tonte" id="btnTonte" title="Tracer une zone de tonte">
             <span class="terrain-btn-text">TONTE</span>
           </div>
         </div>
-        <div class="terrain-btn" onclick="recordInterdit()">
-          <div class="terrain-btn-circle interdit" id="btnInterdit" title="Enregistrer un point interdit">
+        <div class="terrain-btn" onclick="selectTraceAndRecord('interdit')">
+          <div class="terrain-btn-circle interdit" id="btnInterdit" title="Tracer une zone interdite">
             <span class="terrain-btn-text">INTERDIT</span>
           </div>
         </div>
-        <div class="terrain-btn" onclick="openObstacleMenu()">
-          <div class="terrain-btn-circle obstacle" id="btnObstacle" title="Enregistrer un obstacle">
+        <div class="terrain-btn" onclick="selectTraceAndRecord('obstacle')">
+          <div class="terrain-btn-circle obstacle" id="btnObstacle" title="Tracer un obstacle">
             <span class="terrain-btn-text">OBSTACLE</span>
           </div>
         </div>
@@ -144,38 +145,6 @@
             <span class="terrain-btn-sub">ZONE</span>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="points-panel">
-      <div class="points-panel-head">
-        <div class="section-title" style="margin:0;border:none">POINTS ENREGISTRÉS</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span id="zoneBadge" class="zone-badge" title="Zone de tonte en cours">Zone #1</span>
-          <span id="pointCount" style="font-size:12px;color:var(--text3);font-weight:700">0 point(s)</span>
-        </div>
-      </div>
-      <div id="pointsList"></div>
-      <div class="actions-bar actions-bar-export">
-        <div class="export-primary-group">
-          <button class="action-button export-primary" onclick="exportGeoJSON()" title="Exporter en GeoJSON">⬇ GeoJSON</button>
-          <button type="button" class="action-button export-share" onclick="shareGeoJSON()"
-            title="Partager le GeoJSON" aria-label="Partager le GeoJSON">
-            <span aria-hidden="true">📤</span><span class="export-share-label">Partager</span>
-          </button>
-        </div>
-        <div class="export-menu">
-          <button id="btnExportMenu" class="export-menu-toggle" onclick="toggleExportMenu(event)"
-            title="Autres formats d'export (CSV, GPX)"
-            aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">⋮</button>
-          <div id="exportMenu" class="export-menu-list" role="menu">
-            <button type="button" class="export-menu-item" role="menuitem"
-              onclick="exportCSV(); closeExportMenu()">⬇ CSV</button>
-            <button type="button" class="export-menu-item" role="menuitem"
-              onclick="exportGPX(); closeExportMenu()">⬇ GPX</button>
-          </div>
-        </div>
-        <button class="action-button-danger action-button-compact" onclick="clearAllPoints()">🗑 Effacer</button>
       </div>
     </div>
   </div>
@@ -416,6 +385,50 @@
 </div>
 
 
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- VUE DÉDIÉE DES POINTS (au-dessus de la carte)              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay points-view-overlay" id="pointsViewOverlay"
+  role="dialog" aria-modal="true" aria-labelledby="pointsViewTitle" aria-hidden="true"
+  onclick="if(event.target===this)closePointsView()">
+  <div class="modal-box points-view-box">
+    <div class="modal-handle"></div>
+
+    <div class="points-view-head">
+      <div class="section-title points-view-title" id="pointsViewTitle">POINTS ENREGISTRÉS</div>
+      <div class="points-view-head-actions">
+        <button type="button" id="pointsViewShare" class="points-view-icon"
+          onclick="shareGeoJSON()" title="Partager le GeoJSON"
+          aria-label="Partager le GeoJSON">📤</button>
+        <button type="button" id="pointsViewClose" class="btn-secondary points-view-close"
+          onclick="closePointsView()">Fermer</button>
+      </div>
+    </div>
+
+    <div class="points-panel-head points-view-meta">
+      <span id="zoneBadge" class="zone-badge" title="Zone de tonte en cours">Zone #1</span>
+      <span id="pointCount" style="font-size:12px;color:var(--text3);font-weight:700">0 point(s)</span>
+    </div>
+
+    <div class="points-view-body">
+      <div id="pointsList"></div>
+    </div>
+
+    <div class="points-view-actions">
+      <button class="action-button export-primary" onclick="exportGeoJSON()"
+        title="Exporter en GeoJSON">⬇ GeoJSON</button>
+      <button class="action-button" onclick="exportCSV()"
+        title="Exporter en CSV">⬇ CSV</button>
+      <button class="action-button" onclick="exportGPX()"
+        title="Exporter en GPX">⬇ GPX</button>
+      <button class="action-button-danger" onclick="clearAllPoints()"
+        title="Effacer tous les points de la parcelle">🗑 Effacer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODAL NOUVEAU PROJET                                         -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="projectModal" onclick="if(event.target===this)closeProjectModal()">

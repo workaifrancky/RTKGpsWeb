@@ -7,6 +7,7 @@ const APP = {
   version:      '2.0.0',
   currentTab:   'tab-points',
   tracesMode:   'lecture',   // 'lecture' (consultation) | 'creation' (tracé)
+  currentTraceMode: null,    // 'tonte' | 'interdit' | 'obstacle' | null
   theme:        'light',
   bleConnected: false,
   hasGpsData:   false,
@@ -78,6 +79,7 @@ function showTab(tabId) {
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeZoneMenu === 'function') closeZoneMenu();
+  if (typeof closePointsView === 'function') closePointsView(false);
 
   // Une seule instance de carte, dans l'onglet TRACÉS.
   if (tabId === 'tab-points' && typeof mountMapForTab === 'function') {
@@ -141,10 +143,25 @@ function openObstacleMenu() {
     showToast('Mode lecture — ✏️ Modifier pour ajouter', 'info');
     return;
   }
+  const activeType = typeof APP !== 'undefined' ? (APP.currentTraceMode || null) : null;
+  if (activeType && activeType !== 'obstacle') {
+    showToast('Terminez le tracé en cours (✓ Terminer) avant d’ajouter un obstacle', 'error');
+    return;
+  }
   const pos = typeof getPointPosition === 'function' ? getPointPosition() : null;
   if (!pos) {
+    if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
+      APP.currentTraceMode = null;
+      if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+    }
     showToast('Position indisponible — placez la cible sur la carte', 'error');
     return;
+  }
+  // Appel direct au menu : on entre dans le type obstacle. Le clic normal
+  // passe d'abord par selectTraceAndRecord(), qui gère la confirmation.
+  if (typeof APP !== 'undefined' && !activeType) {
+    APP.currentTraceMode = 'obstacle';
+    if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   }
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.add('show');
@@ -153,9 +170,22 @@ function openObstacleMenu() {
 function closeObstacleMenu() {
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.remove('show');
+  // Fermer le menu sans choisir (ou après le choix) libère le type obstacle.
+  if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
+    APP.currentTraceMode = null;
+    if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  }
 }
 
 function selectObstacleType(type, icon) {
+  // Sécurité supplémentaire si le menu était ouvert hors du flux normal :
+  // un obstacle ne peut pas être créé au milieu d'une zone.
+  if (typeof APP !== 'undefined' && APP.currentTraceMode
+      && APP.currentTraceMode !== 'obstacle') {
+    closeObstacleMenu();
+    showToast('Terminez le tracé en cours (✓ Terminer) avant d’ajouter un obstacle', 'error');
+    return;
+  }
   closeObstacleMenu();
   if (typeof recordObstacle === 'function') recordObstacle(type, icon);
 }

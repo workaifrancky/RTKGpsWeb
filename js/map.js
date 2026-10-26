@@ -547,6 +547,8 @@ function isTracesCreation() {
 function setTracesMode(mode) {
   if (typeof APP === 'undefined') return;
   APP.tracesMode = mode === 'creation' ? 'creation' : 'lecture';
+  // Changer de mode (Terminer / Modifier) remet le type de tracé à zéro.
+  APP.currentTraceMode = null;
   syncTracesModeUI();
 }
 
@@ -573,6 +575,7 @@ function syncTracesModeUI() {
 
   syncCrosshairVisibility(typeof APP !== 'undefined' ? APP.currentTab : 'tab-points');
   if (typeof updateTerrainButtons === 'function') updateTerrainButtons();
+  if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   // Le bouton « Nouvelle zone interdite » et l'état vide dépendent du mode.
   if (typeof renderPointsList === 'function') renderPointsList();
 }
@@ -617,6 +620,35 @@ function updateRecordModeBadge() {
 
   badge.textContent = gpsMode ? '🛰 MODE GPS' : '✋ MODE MANUEL';
   badge.classList.toggle('gps', gpsMode);
+}
+
+// Type de tracé actif : badge dédié + anneau sur le bouton correspondant.
+function updateTraceTypeUI() {
+  if (typeof APP === 'undefined') return;
+  const type = APP.currentTraceMode || null;
+  const meta = {
+    tonte:    { icon:'🟢', label:'TONTE' },
+    interdit: { icon:'🔴', label:'INTERDIT' },
+    obstacle: { icon:'🟡', label:'OBSTACLE' },
+  };
+  const info = meta[type] || null;
+
+  const badge = document.getElementById('traceModeBadge');
+  if (badge) {
+    badge.hidden = !info;
+    badge.textContent = info ? `${info.icon} ${info.label}` : '';
+    badge.className = 'map-trace-badge' + (info ? ` ${type}` : '');
+    badge.setAttribute('aria-hidden', info ? 'false' : 'true');
+  }
+
+  const buttons = { tonte:'btnTonte', interdit:'btnInterdit', obstacle:'btnObstacle' };
+  Object.entries(buttons).forEach(([kind, id]) => {
+    const circle = document.getElementById(id);
+    if (!circle) return;
+    const active = type === kind;
+    circle.classList.toggle('trace-active', active);
+    circle.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 }
 
 function centerMapOnPoint(lat, lon) {

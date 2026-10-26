@@ -64,6 +64,49 @@ function canRecordPoints() {
   return true;
 }
 
+// ─── VERROUILLAGE DU TYPE DE TRACÉ ───────────────────────────
+// Le type choisi reste actif tant qu'on ne clique pas sur « Terminer ».
+// Changer de type en cours de route demande une confirmation explicite.
+const TRACE_TYPE_LABELS = {
+  tonte:    'Zone de tonte',
+  interdit: 'Zone interdite',
+  obstacle: 'Obstacle',
+};
+
+async function ensureTraceType(type) {
+  if (!currentProject || !TRACE_TYPE_LABELS[type]) return false;
+  if (!canRecordPoints()) return false;
+
+  const current = APP.currentTraceMode || null;
+  if (current === type) return true;
+
+  if (current) {
+    const message = `Abandonner le tracé « ${TRACE_TYPE_LABELS[current]} » en cours `
+      + `et passer à « ${TRACE_TYPE_LABELS[type]} » ?`;
+    const ok = typeof customConfirm === 'function'
+      ? await customConfirm(message, {
+        title: 'Changer de type de tracé',
+        confirmText: 'Changer',
+        danger: true,
+      })
+      : true;
+    if (!ok) return false;
+  }
+
+  APP.currentTraceMode = type;
+  if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  return true;
+}
+
+// Les boutons de la capsule sélectionnent le type puis enregistrent le point
+// (ou ouvrent le menu obstacle). Le type reste verrouillé ensuite.
+async function selectTraceAndRecord(type) {
+  if (!(await ensureTraceType(type))) return;
+  if (type === 'tonte') recordTonte();
+  else if (type === 'interdit') recordInterdit();
+  else if (type === 'obstacle') openObstacleMenu();
+}
+
 // ─── ENREGISTRER — ZONE DE TONTE ─────────────────────────────
 function recordTonte() {
   if (!canRecordPoints()) return;
@@ -74,7 +117,6 @@ function recordTonte() {
   }
   const pt = buildPoint('tonte', null, '🟢', pos);
   savePoint(pt);
-  showToast(`🟢 Tonte #${pt.index} enregistré — zone #${pt.zoneId}${pos.source === 'manual' ? ' (manuel)' : ''}`, 'tonte');
 }
 
 // ─── ZONES DE TONTE ──────────────────────────────────────────
@@ -294,7 +336,10 @@ function selectNewZone(type) {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeZoneMenu();
+    if (event.key === 'Escape') {
+      closeZoneMenu();
+      closePointsView();
+    }
   });
 });
 
@@ -317,7 +362,6 @@ function recordInterdit() {
   const pt = buildPoint('interdit', null, '🔴', pos);
   // buildPoint() rattache le point à getCurrentInterditZoneId().
   savePoint(pt);
-  showToast(`🔴 Interdit #${pt.index} enregistré — zone interdite #${pt.zoneId}${pos.source === 'manual' ? ' (manuel)' : ''}`, 'interdit');
 }
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
@@ -332,7 +376,11 @@ function recordObstacle(subtype, icon) {
   savePoint(pt);
   // Ajoute aussi l'obstacle à la bibliothèque globale (réutilisable).
   if (typeof addGlobalObstacle === 'function') addGlobalObstacle(pt);
-  showToast(`${icon} ${subtype} #${pt.index} enregistré${pos.source === 'manual' ? ' (manuel)' : ''}`, 'obstacle');
+  // Un obstacle est un tracé ponctuel : on revient à l'état sans type actif.
+  if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
+    APP.currentTraceMode = null;
+    if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  }
 }
 
 // ─── CONSTRUCTION D'UN POINT ─────────────────────────────────
@@ -433,16 +481,61 @@ async function clearAllPoints() {
   showToast('Points effacés', 'info');
 }
 
-// ─── ACCÈS À LA LISTE DEPUIS LA CARTE PLEIN ÉCRAN ───────────
-// La carte occupe toute la hauteur : molette = zoom Leaflet et glissement =
-// panoramique. Ce bouton amène la liste (et la barre d'export) à l'écran.
-function scrollToPointsPanel() {
-  const screen = document.getElementById('tab-points');
-  const panel = document.querySelector('.points-panel');
-  if (!screen || !panel) return;
+// ─── VUE DÉDIÉE DES POINTS ───────────────────────────────────
+// Ouvre un panneau plein écran (bottom sheet) au-dessus de la carte, avec la
+// liste et les actions d'export. La carte reste intacte derrière le voile.
+function openPointsView() {
+  if (!currentProject) return;
 
-  const delta = panel.getBoundingClientRect().top - screen.getBoundingClientRect().top;
-  screen.scrollTo({ top: screen.scrollTop + delta - 8, behavior: 'smooth' });
+  if (typeof closeZoneMenu === 'function') closeZoneMenu();
+  if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
+  if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
+  if (typeof closeExportMenu === 'function') closeExportMenu();
+
+  const overlay = document.getElementById('pointsViewOverlay');
+  if (!overlay) return;
+
+  // Un toast de gestion encore affiché ne doit pas recouvrir la vue.
+  const toast = document.getElementById('toast');
+  if (toast) {
+    clearTimeout(toast._timer);
+    toast.classList.remove('show');
+  }
+
+  renderPointsList();
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+
+  setTimeout(() => {
+    const closeBtn = document.getElementById('pointsViewClose');
+    if (closeBtn && overlay.classList.contains('show')) {
+      closeBtn.focus({ preventScroll: true });
+    }
+  }, 80);
+}
+
+function closePointsView(restoreFocus = true) {
+  const overlay = document.getElementById('pointsViewOverlay');
+  if (!overlay || !overlay.classList.contains('show')) return;
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  if (typeof closeExportMenu === 'function') closeExportMenu();
+  if (restoreFocus) {
+    const toggle = document.getElementById('btnPointsPanel');
+    if (toggle) toggle.focus({ preventScroll: true });
+  }
+}
+
+function togglePointsView() {
+  const overlay = document.getElementById('pointsViewOverlay');
+  if (!overlay) return;
+  if (overlay.classList.contains('show')) closePointsView();
+  else openPointsView();
+}
+
+// Compatibilité avec l'ancien bouton qui faisait défiler la liste.
+function scrollToPointsPanel() {
+  openPointsView();
 }
 
 // ─── RENDU LISTE ─────────────────────────────────────────────

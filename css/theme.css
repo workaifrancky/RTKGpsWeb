@@ -18,6 +18,20 @@
   border-color: var(--color-danger-strong);
 }
 
+/* Badges de type de tracé lisibles sur fond sombre. */
+[data-theme="dark"] .map-trace-badge.tonte {
+  color:        var(--color-primary-accent);
+  border-color: var(--color-primary-accent);
+}
+[data-theme="dark"] .map-trace-badge.interdit {
+  color:        var(--color-danger-strong);
+  border-color: var(--color-danger-strong);
+}
+[data-theme="dark"] .map-trace-badge.obstacle {
+  color:        var(--color-warning-strong);
+  border-color: var(--color-warning-strong);
+}
+
 /* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
    sombre et --green-dark (#052e16) y serait illisible. Les pills inactives
    passent donc en texte vert clair, et la pill active en fond vert clair avec

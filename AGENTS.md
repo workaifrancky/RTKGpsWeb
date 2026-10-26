@@ -171,12 +171,16 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   elle refuse de supprimer la dernière parcelle et rafraîchit carte, liste, statistiques,
   tiroir et historique. `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
   `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
-- **Export** : GeoJSON est le format principal (bouton `.export-primary`). CSV et GPX sont
-  dans le menu `#exportMenu`, piloté par `toggleExportMenu()` / `closeExportMenu()`
-  (`js/export.js`) ; le menu se ferme au clic extérieur, avec Échap et au changement d'onglet.
-  Le bouton `📤` (`shareGeoJSON()`) partage le **même GeoJSON** via `navigator.share({ files })`
-  (fallback toast sur desktop). `buildGeoJSON()` centralise la construction et les métadonnées
-  `date_creation` / `version_app` / `source` ajoutées à **toutes** les features.
+- **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la vue POINTS
+  (`#pointsViewOverlay`) ; le bouton `📤` partage le **même GeoJSON** via
+  `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
+  `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
+  `version_app` / `source` ajoutées à **toutes** les features.
+- **Vue POINTS** : `#btnPointsPanel` ouvre `#pointsViewOverlay` (`openPointsView()`,
+  `closePointsView()`, `togglePointsView()` dans `js/points.js`) au lieu de faire défiler
+  la page. Le panneau contient `#pointsList`, `#zoneBadge`, le compteur, les exports
+  GeoJSON/CSV/GPX, le partage et « Effacer ». Il se ferme par « Fermer », au clic sur le
+  voile, avec Échap et au changement d'onglet. `scrollToPointsPanel()` reste un alias.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet, `canRecordPoints()` et
@@ -193,14 +197,25 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
 - **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
   Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
-  Effacer restent dans la barre d'actions de TRACÉS.
+  Effacer sont dans la vue POINTS (`#pointsViewOverlay`).
 - **Modes lecture / création** : `APP.tracesMode` vaut `lecture` au chargement, à l'ouverture
   d'une parcelle et après suppression ; il passe à `creation` via `createProject()` ou le
   bouton `#btnTracesMode`. En lecture, `.floating-toolbar` est masquée, la cible est masquée
   et `canRecordPoints()` bloque tout ajout. `setTracesMode()` / `toggleTracesMode()` /
   `syncTracesModeUI()` dans `js/map.js`.
+- **Type de tracé verrouillé** : `APP.currentTraceMode` vaut `tonte`, `interdit`, `obstacle`
+  ou `null`. `selectTraceAndRecord(type)` (`js/points.js`) est appelé par les boutons de la
+  capsule : il sélectionne le type via `ensureTraceType()` puis enregistre le point.
+  Changer de type en cours de route demande une confirmation (`customConfirm`) ; un appel
+  direct à `openObstacleMenu()` en mode tonte/interdit est bloqué avec un toast. Un obstacle
+  est ponctuel : son enregistrement remet `currentTraceMode` à `null`. « ✓ Terminer »
+  (`setTracesMode('lecture')`) remet aussi le type à `null`. Le badge `#traceModeBadge` et
+  l'anneau `.trace-active` indiquent le type actif.
+- **Toasts de création** : `recordTonte()`, `recordInterdit()` et `recordObstacle()`
+  n'affichent plus de toast de succès ; seules les erreurs (position indisponible, mode
+  lecture, stockage) et les actions de gestion (suppression, renommage…) en produisent.
 - **Plein écran carte** : `toggleMapFullscreen()` / `exitMapFullscreen()` (`js/map.js`),
-  classe `body.map-ui-fullscreen` (header, onglets, tiroir et panneau des points masqués ;
+  classe `body.map-ui-fullscreen` (header, onglets, tiroir et bouton POINTS masqués ;
   `#tab-points` fixé plein écran). Fermeture au changement d'onglet.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
@@ -381,7 +396,7 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `tab-points` est libellé `📍 TRACÉS` (le `data-tab` reste `tab-points`). La barre d'actions
   devient `.actions-bar-export` (grille) : bouton principal `.export-primary`
   « ⬇ Exporter GeoJSON », bouton `⋮` (`#btnExportMenu`) ouvrant `#exportMenu` avec CSV/GPX,
-  puis « Effacer ». `leaflet-measure-path` 1.5.0 (CDN) affiche la longueur de chaque segment
+  puis « Effacer » (remplacé en 3.30 par les boutons de la vue POINTS). `leaflet-measure-path` 1.5.0 (CDN) affiche la longueur de chaque segment
   des polygones de tonte (`showMeasurements`, `ZONE_MEASUREMENT_OPTIONS`) ; le libellé est mis
   en forme dans `css/map.css`. Le `padding-bottom` de `.screen` passe à 190 px pour que la
   barre d'export reste accessible au-dessus de la barre terrain fixe. Message de la caméra mis
@@ -516,6 +531,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   réellement obsolètes. Tests : zones #2 tonte et interdite avec 3 points, rechargement
   d'une zone vide, export de 2 Features `zone` et 2 Features `zone_interdite` (`zone_id`
   1 et 2).
+- **3.30 — Vue POINTS, verrouillage du type et toasts allégés** : `#btnPointsPanel` ouvre
+  désormais `#pointsViewOverlay` (`openPointsView()`) avec la liste, le compteur, la zone
+  courante, les exports GeoJSON/CSV/GPX, le partage et « Effacer » ; fermeture par bouton,
+  voile, Échap et changement d'onglet. `APP.currentTraceMode` verrouille le type
+  (`tonte`/`interdit`/`obstacle`) ; changer de type demande une confirmation et un obstacle
+  ne peut pas être créé au milieu d'une zone. Le badge `#traceModeBadge` et l'anneau
+  `.trace-active` rendent le mode visible. Les toasts de création de point sont supprimés
+  (les erreurs restent). Le dialogue de type utilise `customConfirm()`.
 
 ## 9. Langue et communication
 

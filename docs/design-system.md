@@ -82,19 +82,12 @@ Overrides de lisibilité :
 - `.action-button-danger` : fond `--color-danger`, hover `#b71c1c`.
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
-- `.actions-bar-export` : grille `minmax(0, 1fr) auto auto` (groupe GeoJSON/Partager / menu / Effacer).
-- `.export-primary-group` : groupe flex `Exporter` + `Partager` (bords arrondis uniquement à
-  l'extérieur), sans élargir la grille.
+- `.points-view-actions` : grille 2 × 2 des actions de la vue POINTS (GeoJSON, CSV, GPX,
+  Effacer), boutons pleine largeur.
 - `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
-  hover `--color-primary-deep`.
-- `.export-share` : bouton 44 px collé à droite de l'export, fond `--color-primary-deep` ;
-  icône `📤` seule sur mobile, libellé « Partager » visible à partir de 481 px. Ouvre le partage
-  natif du GeoJSON (`navigator.share({ files })`), sinon toast « Partage non supporté ».
-- `.export-menu-toggle` : bouton `⋮` 46 × 44 px, fond `--color-white`, bordure `--border`.
-- `.export-menu-list` : panneau flottant au-dessus du bouton (fond `--color-white`,
-  `--shadow-lg`, `z-index: 40`), ouvert par `.show` ; items `.export-menu-item`
-  (hover `--color-primary-pale-bg`). Fermeture au clic extérieur, à Échap et au changement
-  d'onglet.
+  hover `--color-primary-deep`, utilisé pour GeoJSON.
+- `#pointsViewShare` / `.points-view-icon` : bouton 44 px de partage du GeoJSON dans l'en-tête
+  de la vue POINTS ; icône `📤`, partage natif (`navigator.share({ files })`).
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
   **Inutilisé** : les boutons de simulation sont retirés de l'interface terrain, la classe est
   conservée pour une réactivation (voir [simulation.md](simulation.md)).
@@ -226,10 +219,10 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
   104 px (78 px ≤ 480 px) en mode création pour rester au-dessus de la capsule. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
-- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et `.points-panel` ;
-  `#tab-points` passe en `position: fixed; inset: 0; width: 100vw; height: 100dvh;
-  z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent visibles ; le bouton
-  plein écran devient `✕`.
+- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et le bouton
+  `#btnPointsPanel` ; `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
+  height: 100dvh; z-index: 900`. La capsule, `#btnTracesMode` et les contrôles restent
+  visibles ; le bouton plein écran devient `✕`.
 - La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose « ✏️ Renommer » et
   « 🗑 » (`renameZone()`, `deleteZone()`) ; le nom personnalisé est affiché par
   `getZoneDisplayName()` (stocké dans `project.zoneNames`).
@@ -257,6 +250,12 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
   sans `drop-shadow`), complétée par `.terrain-btn-sub` (« ZONE », 8 px / 800) **à
   l'intérieur** du cercle, sous le « + » : la capsule reste basse et les quatre cercles
   sont alignés.
+- `.terrain-btn-circle.trace-active` : anneau `3px` `--color-primary-accent` autour du type
+  actif (tonte), `--color-danger-strong` pour l'interdit et `--color-warning-strong` pour
+  l'obstacle.
+- `.map-trace-badge` : pastille du type verrouillé (`🟢 TONTE`, `🔴 INTERDIT`,
+  `🟡 OBSTACLE`) dans `.map-mode-bar`, masquée avec `[hidden]` quand aucun type n'est actif ;
+  couleurs adaptées en thème nuit dans `theme.css`.
 - Alignement : `.floating-toolbar` en `align-items: center`, `gap: clamp(8px, 3vw, 14px)`
   et padding `8px clamp(10px, 3vw, 16px)`.
 - Couleurs : tonte `--color-primary-light`, interdit `--color-danger`, obstacle `--color-warning`,
@@ -281,6 +280,11 @@ des cercles 44–48 px) ; ils sont doublés par un `title` sur chaque bouton.
 - `.points-zone-add` : bouton pleine largeur en pointillés `--color-danger` (« ＋ Nouvelle
   zone interdite ») sous les groupes de zones interdites de la liste TRACÉS ; survol
   `--color-danger-pale`.
+- `#pointsViewOverlay` : panneau `.modal-overlay` ouvert par `#btnPointsPanel`, avec
+  `.points-view-box` (hauteur `88dvh` max 760 px, `display: flex` en colonne),
+  `.points-view-head` (titre + partage + « Fermer »), `.points-view-body` scrollable et
+  `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer). Les fonds/bordures
+  suivent les tokens ; les boutons de fermeture et partage ont un `focus-visible` vert.
 - `#zoneModal` : menu léger ouvert par le bouton `+ ZONE` de la capsule. `.zone-choice-grid`
   empile deux `.zone-choice` pleine largeur (60 px, icône 26 px, rayon `--radius-lg`, bordure
   `--border`) ; survol vert (`--color-primary-pale-bg`) pour la tonte et rouge
