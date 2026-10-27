@@ -125,11 +125,27 @@ function initNavigation() {
   if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
 }
 
-// ─── MENU DÉROULANT DU HEADER ────────────────────────────────
+// ─── MENU DÉROULANT DU HEADER (bouton « Connexion ») ────────
+// Déclencheur du panneau : #btnConnectionSettings (header 2 lignes).
+function getHeaderMenuTrigger() {
+  return document.getElementById('btnConnectionSettings')
+    || document.getElementById('btnHeaderMenu');
+}
+
+// Le header mesure deux lignes : on aligne le menu juste sous lui plutôt
+// que d'utiliser un décalage fixe (robuste aux breakpoints et au safe-area).
+function positionHeaderMenu() {
+  const menu = document.getElementById('headerMenu');
+  const header = document.querySelector('header');
+  if (!menu || !header) return;
+  const bottom = header.getBoundingClientRect().bottom;
+  menu.style.top = `${Math.round(bottom + 8)}px`;
+}
+
 function openHeaderMenu() {
   const menu = document.getElementById('headerMenu');
   const overlay = document.getElementById('headerMenuOverlay');
-  const btn = document.getElementById('btnHeaderMenu');
+  const btn = getHeaderMenuTrigger();
   if (!menu) return;
 
   // Le verrouillage écran reste prioritaire (z-index 3000 sous le menu,
@@ -139,6 +155,7 @@ function openHeaderMenu() {
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
   if (typeof closePointsView === 'function') closePointsView(false);
 
+  positionHeaderMenu();
   menu.classList.add('show');
   menu.setAttribute('aria-hidden', 'false');
   if (overlay) {
@@ -151,7 +168,7 @@ function openHeaderMenu() {
 function closeHeaderMenu() {
   const menu = document.getElementById('headerMenu');
   const overlay = document.getElementById('headerMenuOverlay');
-  const btn = document.getElementById('btnHeaderMenu');
+  const btn = getHeaderMenuTrigger();
   if (!menu) return;
 
   const wasOpen = menu.classList.contains('show');
@@ -172,17 +189,30 @@ function toggleHeaderMenu() {
   else openHeaderMenu();
 }
 
+// Alias métier du bouton « Connexion » : le panneau regroupe la parcelle
+// courante et la station NTRIP de référence.
+function toggleConnectionPanel() {
+  toggleHeaderMenu();
+}
+
 function initHeaderMenu() {
   if (!document.getElementById('headerMenu')) return;
 
   document.addEventListener('click', event => {
     if (!(event.target instanceof Element)) return;
-    if (event.target.closest('#headerMenu') || event.target.closest('#btnHeaderMenu')) return;
+    if (event.target.closest('#headerMenu')) return;
+    if (event.target.closest('#btnConnectionSettings') || event.target.closest('#btnHeaderMenu')) return;
     closeHeaderMenu();
   });
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeHeaderMenu();
+  });
+
+  // Le menu est positionné en JS : on le recalcule si la fenêtre change.
+  window.addEventListener('resize', () => {
+    const menu = document.getElementById('headerMenu');
+    if (menu && menu.classList.contains('show')) positionHeaderMenu();
   });
 }
 

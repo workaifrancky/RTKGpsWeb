@@ -117,29 +117,32 @@ Overrides de lisibilité :
 
 ### Header et menu du header (`main.css`)
 
-- `header` : **une seule ligne** collante (`position: sticky`, `z-index: 200`,
-  `min-height: 56px`, fond `--color-primary`) contenant le logo (🌾 + « RTK Mower »),
-  la pastille de statut GPS (`#headerGpsStatus`, `.gps-status-pill`, `flex: 1 1 auto`) et
-  le bouton menu (`#btnHeaderMenu`). Toute la hauteur gagnée va à la carte.
-- `.header-menu-btn` : 44 × 44 px (42 px ≤ 360 px), bordure et fond translucides
-  (`rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`), rayon `--radius-md`, texte `#fff`,
-  survol `rgba(255,255,255,0.22)`. L'icône est un **SVG Lucide inline** (`M4 5h16`,
-  `M4 12h16`, `M4 19h16`, `fill: none`, `stroke: currentColor`, 24 px / 22 px ≤ 360 px) et
-  non un emoji `☰` : rendu identique sur Android et iOS. `aria-expanded` et la classe `.show`
-  du menu portent l'état ouvert.
+- `header` : **deux lignes** collantes (`position: sticky`, `z-index: 200`,
+  `flex-direction: column`, `gap: 6px`, fond `--color-primary`) :
+  - `.header-top-row` : logo (🌾 + « RTK Mower ») + bouton `#btnConnectionSettings` ;
+  - `.header-bottom-row` : pastille `#headerGpsStatus` (`.gps-status-pill`,
+    `flex: 1 1 auto`) + `.header-actions-group` (thème `#btnTheme`, BLE `#btnBle`).
+- `.header-connection-btn` : pastille translucide de 36 px (rayon 999 px, bordure et fond
+  `rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`, survol `0.22`), icône **SVG Lucide
+  `settings`** de 16 px + libellé « Connexion » (12 px / 800, 11 px ≤ 360 px). L'état ouvert
+  est porté par `aria-expanded` ; l'emoji `⚙️` n'est pas utilisé.
+- `.header-icon-btn` : carrés de 40 px (38 px ≤ 480 px), translucides et centrés
+  (`inline-flex`). Le thème affiche `ICON_MOON` / `ICON_SUN` (injectés par `applyTheme()`), le
+  BLE `getBleIconMarkup()` (SVG + trois ondes). Couleurs d'état `#btnBle.connected` /
+  `.disconnected` dans `components.css`.
 - `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
   **hors de `.app-wrapper`** pour que leur `z-index` (3999 / 4000) passe au-dessus du
-  verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé sous le header
-  (`top: calc(env(safe-area-inset-top) + 62px)`), largeur `min(340px, 100vw - 20px)`,
-  fond `--color-white`, `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- Deux lignes `.menu-row` : (1) thème `.menu-icon-btn` (icône SVG **lune / soleil** injectée par
-  `applyTheme()` : `ICON_MOON` / `ICON_SUN`), BLE `.menu-ble-btn` (icône seule, SVG + ondes) et
-  station `.menu-ntrip-select` ; (2) `Parcelle :` + `#btnProjectDrawer` (`.menu-project-btn`,
-  **map-pin** SVG de 16 px en `.menu-project-icon`) et l'indicateur de sauvegarde
-  `#saveIndicator`.
-- `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` (`js/app.js`) : Échap, clic
-  hors du menu (délégation sur `document`) ou sur le voile referment et rendent le focus au
-  bouton ; l'ouverture est refusée pendant le verrouillage d'écran.
+  verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé **sous le header mesuré**
+  par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
+  de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
+  `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
+- Deux lignes `.menu-row` : (1) libellé `NTRIP` + station `.menu-ntrip-select` ; (2)
+  `Parcelle :` + `#btnProjectDrawer` (`.menu-project-btn`, **map-pin** SVG de 16 px en
+  `.menu-project-icon`) et l'indicateur de sauvegarde `#saveIndicator`.
+- `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
+  (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
+  Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le
+  focus au bouton ; l'ouverture est refusée pendant le verrouillage d'écran.
 
 ### Barre de navigation basse (`main.css`, overrides dans `theme.css`)
 
@@ -225,9 +228,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 | Plage | Comportement |
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
-| ≥ 481 px | Header sur une ligne (logo, pastille GPS, bouton menu) ; le menu du header porte tous les contrôles secondaires (thème, BLE, NTRIP, parcelle, sauvegarde) ; onglets avec libellés, FAB 56 px. |
-| ≤ 480 px | Header compact sur une ligne : logo 15 px sans « v2 », pastille GPS 30 px, bouton menu 44 px ; libellés d'onglets masqués (`.tab-text`), **barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
-| ≤ 360 px | Logo 13 px, bouton menu 42 px (SVG 22 px), **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. |
+| ≥ 481 px | Header sur deux lignes (logo + « Connexion », puis pastille GPS + thème + BLE) ; le panneau Connexion porte la station NTRIP, la parcelle et la sauvegarde ; onglets avec libellés, FAB 56 px. |
+| ≤ 480 px | Header sur deux lignes : logo 15 px sans « v2 », bouton Connexion 34 px (11 px), pastille GPS 30 px, boutons icône 38 px ; libellés d'onglets masqués (`.tab-text`), **barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
+| ≤ 360 px | Logo 14 px, bouton Connexion 34 px, boutons icône 38 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
 320/360/390 px. Les libellés du menu FAB font 13 px et restent sur une seule ligne.

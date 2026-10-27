@@ -152,19 +152,38 @@ body {
   overflow:       hidden;
 }
 
-/* ─── HEADER COMPACT (logo · statut GPS · menu) ─────────────── */
-/* Une seule ligne fine : toute la hauteur gagnée va à la carte. */
+/* ─── HEADER COMPACT SUR DEUX LIGNES ────────────────────────── */
+/* Ligne 1 : logo + bouton Connexion (parcelle / NTRIP).
+   Ligne 2 : pastille de statut GPS + actions rapides (thème, BLE). */
 header {
   position:        sticky;
   top:             0;
   z-index:         200;
   display:         flex;
-  align-items:     center;
-  gap:             10px;
+  flex-direction:  column;
+  gap:             6px;
   min-height:      56px;
   padding:         8px 12px;
   background:      var(--color-primary);
   box-shadow:      0 2px 10px rgba(0,0,0,0.2);
+}
+
+.header-top-row,
+.header-bottom-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  min-width:       0;
+}
+
+.header-bottom-row { gap: 8px; }
+
+.header-actions-group {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  flex:        0 0 auto;
 }
 
 .header-logo {
@@ -233,15 +252,50 @@ header {
 .gps-status-pill.float { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.55); }
 .gps-status-pill.dgps  { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.55); }
 
-/* Bouton menu (icône SVG Lucide) */
-.header-menu-btn {
+/* Bouton « Connexion » : ouvre le panneau Parcelle / NTRIP */
+.header-connection-btn {
   flex:            0 0 auto;
-  width:           44px;
-  height:          44px;
+  display:         inline-flex;
+  align-items:     center;
+  gap:             6px;
+  height:          36px;
+  padding:         0 12px;
+  border:          1px solid rgba(255,255,255,0.35);
+  border-radius:   999px;
+  background:      rgba(255,255,255,0.12);
+  color:           #fff;
+  font-family:     var(--font);
+  font-size:       12px;
+  font-weight:     800;
+  letter-spacing:  0.3px;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.header-connection-btn:hover,
+.header-connection-btn[aria-expanded="true"] {
+  background:   rgba(255,255,255,0.22);
+  border-color: #fff;
+}
+
+.header-connection-btn svg {
+  display:        block;
+  width:          16px;
+  height:         16px;
+  flex-shrink:    0;
+  pointer-events: none;
+}
+
+/* Actions rapides du header : thème (lune / soleil) et Bluetooth */
+.header-icon-btn {
+  width:           40px;
+  height:          40px;
+  min-width:       40px;
   padding:         0;
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
+  flex:            0 0 auto;
   border:          1px solid rgba(255,255,255,0.35);
   border-radius:   var(--radius-md);
   background:      rgba(255,255,255,0.12);
@@ -250,21 +304,15 @@ header {
   transition:      var(--transition);
 }
 
-/* L'icône est un SVG Lucide (fill: none / stroke: currentColor) : la taille
-   est fixée ici pour ne pas dépendre des attributs du markup. */
-.header-menu-btn svg {
-  display:        block;
-  width:          24px;
-  height:         24px;
-  flex-shrink:    0;
-  pointer-events: none;
-}
-
-.header-menu-btn:hover,
-.header-menu-btn[aria-expanded="true"] {
+.header-icon-btn:hover {
   background:   rgba(255,255,255,0.22);
   border-color: #fff;
 }
+
+.header-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.header-icon-btn .ble-icon-container { width: 24px; height: 24px; }
+.header-icon-btn .ble-svg             { width: 18px; height: 18px; }
 
 /* ─── MENU DÉROULANT DU HEADER ──────────────────────────────── */
 /* Le menu et son voile sont hors de .app-wrapper : leur z-index échappe
@@ -284,7 +332,7 @@ header {
 
 .header-menu {
   position:       fixed;
-  top:            calc(env(safe-area-inset-top, 0px) + 62px);
+  top:            calc(env(safe-area-inset-top, 0px) + 108px); /* secours : recalculé par positionHeaderMenu() */
   right:          max(10px, calc((100vw - 480px) / 2 + 10px));
   z-index:        4000;
   display:        none;
@@ -319,35 +367,9 @@ header {
   border-top:  1px solid var(--border);
 }
 
-/* Ligne 1 : thème, BLE, NTRIP */
-.menu-icon-btn,
-.menu-ble-btn {
-  width:           44px;
-  height:          44px;
-  min-width:       44px;
-  padding:         0;
-  display:         inline-flex;
-  align-items:     center;
-  justify-content: center;
-  flex:            0 0 auto;
-  border:          1px solid var(--border);
-  border-radius:   var(--radius-md);
-  background:      var(--color-bg-subtle);
-  color:           var(--text);
-  cursor:          pointer;
-  transition:      var(--transition);
-}
-
-.menu-icon-btn:hover,
-.menu-ble-btn:hover {
-  border-color: var(--color-primary);
-  background:   var(--color-primary-pale);
-}
-
-.menu-ble-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.menu-ble-btn .ble-icon-container { width: 24px; height: 24px; }
-.menu-ble-btn .ble-svg             { width: 18px; height: 18px; }
+/* Le menu ne contient plus que les paramètres de connexion :
+   station NTRIP (ligne 1) puis parcelle courante + sauvegarde (ligne 2).
+   Les actions thème / Bluetooth sont dans le header. */
 
 /* Icône de thème : SVG Lucide (lune / soleil) injecté par applyTheme().
    Le centrage est porté par le conteneur, plus par la taille de police. */
@@ -767,8 +789,8 @@ header {
   .header-logo  { font-size: 14px; gap: 4px; }
   .header-logo > span[aria-hidden] { font-size: 18px; }
   .gps-status-pill { height: 30px; padding: 0 8px; font-size: 10px; }
-  .header-menu-btn { width: 42px; height: 42px; }
-  .header-menu-btn svg { width: 22px; height: 22px; }
+  .header-connection-btn { height: 34px; padding: 0 10px; font-size: 11px; }
+  .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
   .header-menu { right: 8px; width: calc(100% - 16px); padding: 12px; }
 }
 
@@ -780,15 +802,17 @@ header {
 }
 
 /* ─── RESPONSIVE MOBILE (≤ 480 px) ─────────────────────────── */
-/* Header sur une seule ligne : logo, statut GPS et menu. */
+/* Header sur deux lignes : (1) logo + Connexion, (2) GPS + thème + BLE. */
 @media (max-width: 480px) {
   header {
-    gap:        8px;
+    gap:        6px;
     min-height: 54px;
     padding:    8px 10px;
   }
 
   .header-logo { font-size: 15px; }
+  .header-connection-btn { height: 34px; padding: 0 10px; font-size: 11px; }
+  .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
 
   .gps-status-pill {
     height:   30px;

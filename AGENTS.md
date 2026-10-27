@@ -150,19 +150,25 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   les points suivants repartent dans l'ancienne zone après un rechargement.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
-- **Header et menu** : le header tient sur **une seule ligne** (logo `🌾 RTK Mower`, pastille GPS
-  `#headerGpsStatus` / `.gps-status-pill`, bouton `#btnHeaderMenu`) ; il remplace l'ancienne
-  `#fixBar`. Les contrôles secondaires sont dans `#headerMenu` (thème, BLE, NTRIP en ligne 1 ;
-  parcelle `#btnProjectDrawer` + `#saveIndicator` en ligne 2). Le bouton menu porte une **icône
-  SVG Lucide inline** (`M4 5h16` / `M4 12h16` / `M4 19h16`, `fill: none`,
-  `stroke: currentColor`, 24 px, 22 px ≤ 360 px) et non un emoji `☰` : ne pas revenir à un
-  caractère texte (rendu variable selon la plateforme) ni remettre un `font-size` sur
-  `.header-menu-btn`. Le menu et son voile `#headerMenuOverlay` sont **hors de `.app-wrapper`**
-  (z-index 4000 / 3999) pour passer au-dessus du verrouillage écran (3000) et des FAB (1002) :
-  ne pas les replacer dans `<header>` (contexte d'empilement `z-index: 200`) et les masquer
-  explicitement en plein écran (`body.map-ui-fullscreen` dans `map.css`,
-  `body.camera-ui-fullscreen` dans `theme.css`). `js/projects.js` rend le focus à
-  `#btnHeaderMenu` à la fermeture du tiroir.
+- **Header et menu** : le header tient sur **deux lignes** :
+  1. logo `🌾 RTK Mower` + bouton `#btnConnectionSettings` (`.header-connection-btn`, icône
+     SVG Lucide `settings` + libellé « Connexion ») qui ouvre le panneau de connexion ;
+  2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`) + `.header-actions-group` contenant
+     le bouton thème `#btnTheme` et le bouton BLE `#btnBle` (tous deux `.header-icon-btn`).
+
+  Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
+  `toggleConnectionPanel()` → `toggleHeaderMenu()` — ne contient plus que la station NTRIP
+  (ligne 1) puis `Parcelle :` + `#btnProjectDrawer` + `#saveIndicator` (ligne 2) : le thème et
+  le BLE sont **dans le header**, ne pas les remettre dans le menu (doublons d'ID interdits).
+  `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
+  (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
+  breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
+  (`settings`) et non un emoji `⚙️` : ne pas revenir à un caractère texte. Le menu et son voile
+  `#headerMenuOverlay` sont **hors de `.app-wrapper`** (z-index 4000 / 3999) pour passer
+  au-dessus du verrouillage écran (3000) et des FAB (1002) : ne pas les replacer dans
+  `<header>` (contexte d'empilement `z-index: 200`) et les masquer explicitement en plein écran
+  (`body.map-ui-fullscreen` dans `map.css`, `body.camera-ui-fullscreen` dans `theme.css`).
+  `js/projects.js` rend le focus à `#btnConnectionSettings` à la fermeture du tiroir.
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
@@ -665,6 +671,22 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`point.icon`, types d'obstacles), les libellés statistiques (🟡 obstacles, 🔴 zones
   interdites) et les boutons hors périmètre (🗺 🛰 ⛶ 🔒 de la carte, ⬇ des exports, 📤 du
   partage, 📂 / ⬇ de l'historique, ＋ ✓ ✕ ⋮).
+- **3.43 — Header sur deux lignes et panneau « Connexion »** : le header passe de une à
+  **deux lignes** : (1) `.header-top-row` avec le logo et `#btnConnectionSettings`
+  (`.header-connection-btn`, icône `settings` + « Connexion »), (2) `.header-bottom-row` avec
+  la pastille `#headerGpsStatus` et `.header-actions-group` (thème `#btnTheme` + BLE
+  `#btnBle`, tous deux `.header-icon-btn`). Le bouton hamburger `#btnHeaderMenu` et les classes
+  `.header-menu-btn` / `.menu-icon-btn` / `.menu-ble-btn` disparaissent. `#btnTheme` et `#btnBle`
+  quittent `#headerMenu`, qui se réduit à la station NTRIP puis à `Parcelle :` +
+  `#btnProjectDrawer` + `#saveIndicator` (libellé `NTRIP` réintroduit).
+  `js/app.js` gagne `getHeaderMenuTrigger()` (retourne `#btnConnectionSettings`, repli sur
+  l'ancien id), `positionHeaderMenu()` (aligne le panneau sous le header mesuré, recalculé au
+  `resize`) et `toggleConnectionPanel()` (alias de `toggleHeaderMenu()`). `openHeaderMenu()` /
+  `closeHeaderMenu()` / `initHeaderMenu()` et le focus de `js/projects.js` ciblent le nouveau
+  déclencheur. CSS : `header` en `flex-direction: column` (gap 6 px), boutons translucides
+  `.header-connection-btn` (36 px, rayon 999 px) et `.header-icon-btn` (40 px, 38 px ≤ 480 px),
+  suppression des règles mortes du bouton menu. Vérifié à 360 / 390 / 480 px et en thème nuit,
+  panneau ouvert et fermé.
 
 ## 9. Langue et communication
 

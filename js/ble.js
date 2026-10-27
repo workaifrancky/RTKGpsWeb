@@ -86,7 +86,7 @@ function onBleDataReceived(event) {
 
 function setBleStatus(status) {
   const btn=document.getElementById('btnBle');
-  // Icône seule dans le menu : la couleur (bleu / vert) et le title portent
+  // Icône seule dans le header : la couleur (bleu / vert) et le title portent
   // l'état, sans texte additionnel.
   const states = {
     disconnected:{ label:'Connecter le module BLE', btnCls:'disconnected' },

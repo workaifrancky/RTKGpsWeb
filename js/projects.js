@@ -417,10 +417,11 @@ function closeProjectDrawer() {
   if (overlay) overlay.classList.remove('show');
   if (toggle) toggle.setAttribute('aria-expanded', 'false');
 
-  // Le bouton Parcelle est dans le menu déroulant, refermé à l'ouverture du
-  // tiroir : on rend le focus au bouton menu (icône ☰ en SVG), toujours visible.
-  const menuBtn = document.getElementById('btnHeaderMenu');
-  if (menuBtn && typeof menuBtn.focus === 'function') menuBtn.focus();
+  // Le bouton Parcelle est dans le panneau « Connexion », refermé à
+  // l'ouverture du tiroir : on rend le focus au déclencheur, toujours visible.
+  const trigger = document.getElementById('btnConnectionSettings')
+    || document.getElementById('btnHeaderMenu');
+  if (trigger && typeof trigger.focus === 'function') trigger.focus();
 }
 
 function toggleProjectDrawer() {
