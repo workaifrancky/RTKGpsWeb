@@ -86,23 +86,22 @@ function onBleDataReceived(event) {
 
 function setBleStatus(status) {
   const btn=document.getElementById('btnBle');
-  const statusText=document.getElementById('statusText');
-  // L'icône est dessinée en CSS (components.css) : ondes animées dans tous
-  // les états, la classe du bouton pilote la couleur (bleu / vert).
+  // Icône seule dans le menu : la couleur (bleu / vert) et le title portent
+  // l'état, sans texte additionnel.
   const states = {
-    disconnected:{ label:'CONNECTER BLE', text:'Non connecté',            btnCls:'disconnected' },
-    scanning:    { label:'Scan...',       text:'Recherche RTK_Mower...',  btnCls:'disconnected' },
-    connecting:  { label:'Connexion...',  text:'Connexion en cours...',   btnCls:'disconnected' },
-    connected:   { label:'BLE CONNECTÉ',  text:'Connecté à RTK_Mower',    btnCls:'connected' },
+    disconnected:{ label:'Connecter le module BLE', btnCls:'disconnected' },
+    scanning:    { label:'Recherche RTK_Mower...',  btnCls:'disconnected' },
+    connecting:  { label:'Connexion en cours...',   btnCls:'disconnected' },
+    connected:   { label:'Connecté à RTK_Mower',    btnCls:'connected' },
   };
   const s = states[status] || states.disconnected;
   if (btn) {
-    btn.innerHTML = `${getBleIconMarkup()}<span class="ble-label">${s.label}</span>`;
-    btn.className = s.btnCls;
+    btn.innerHTML = getBleIconMarkup();
+    btn.classList.remove('connected', 'disconnected');
+    btn.classList.add(s.btnCls);
     btn.title = s.label;
     btn.setAttribute('aria-label', s.label);
   }
-  if (statusText) statusText.textContent=s.text;
 }
 
 // Markup de l'icône Bluetooth : SVG Lucide + trois ondes animées.

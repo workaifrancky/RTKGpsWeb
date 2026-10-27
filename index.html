@@ -39,61 +39,6 @@
       aria-label="Menu principal" aria-haspopup="true" aria-expanded="false"
       aria-controls="headerMenu">☰</button>
 
-    <!-- Menu déroulant : contrôles secondaires -->
-    <div id="headerMenu" class="header-menu" aria-hidden="true">
-      <div class="header-menu-section">
-        <span class="header-menu-label">Parcelle</span>
-        <button type="button" id="btnProjectDrawer" onclick="toggleProjectDrawer()"
-          aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
-          title="Choisir une parcelle">
-          <span aria-hidden="true">📍</span>
-          <span id="currentProjectName">Aucune</span>
-          <span class="header-project-caret" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div class="header-menu-section">
-        <span class="header-menu-label">Bluetooth</span>
-        <button id="btnBle" class="disconnected" onclick="toggleBle()"
-          title="Connecter le module BLE" aria-label="Connecter le module BLE">
-          <div class="ble-icon-container" aria-hidden="true">
-            <div class="ble-waves"></div>
-            <div class="ble-waves"></div>
-            <div class="ble-waves"></div>
-            <svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m7 7 10 10-5 5V2l5 5L7 17"/>
-            </svg>
-          </div>
-          <span class="ble-label">CONNECTER BLE</span>
-        </button>
-        <span id="statusText" class="header-menu-hint">Non connecté</span>
-      </div>
-
-      <div class="header-menu-section">
-        <label class="header-menu-label" for="ntripSelect">NTRIP</label>
-        <select id="ntripSelect" class="header-menu-select" onchange="selectNtripStation(this.value)">
-        </select>
-      </div>
-
-      <div class="header-menu-actions">
-        <button type="button" id="btnTheme" onclick="toggleTheme()"
-          title="Changer de thème" aria-label="Changer de thème">
-          <span class="theme-icon" aria-hidden="true">🌙</span>
-          <span class="theme-label">Thème</span>
-        </button>
-        <span id="saveIndicator" class="save-indicator" title="Sauvegardé localement" aria-live="polite">
-          <span class="save-icon" aria-hidden="true">💾</span><span class="save-label">Sauvegardé</span>
-        </span>
-      </div>
-
-      <div class="header-menu-gps">
-        <div class="fix-dot none" id="fixDot" aria-hidden="true"></div>
-        <div class="header-menu-gps-text">
-          <span class="fix-name" id="fixName">AUCUN FIX</span>
-          <span class="fix-prec" id="fixPrec">Non connecté</span>
-        </div>
-      </div>
-    </div>
   </header>
 
   <!-- ═══════════════════════════════════════════════════════ -->
@@ -330,6 +275,53 @@
   </aside>
 
 </div><!-- fin .app-wrapper -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MENU HEADER (hors .app-wrapper pour passer au-dessus du     -->
+<!-- verrouillage écran, des FAB et de tous les éléments fixes)  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="headerMenuOverlay" class="header-menu-overlay" onclick="closeHeaderMenu()"
+  aria-hidden="true"></div>
+
+<div id="headerMenu" class="header-menu" aria-hidden="true">
+  <div class="header-menu-content">
+    <div class="menu-row menu-row-tools">
+      <button type="button" id="btnTheme" class="menu-icon-btn" onclick="toggleTheme()"
+        title="Thème sombre" aria-label="Thème sombre">
+        <span class="theme-icon" aria-hidden="true">🌙</span>
+      </button>
+      <button id="btnBle" class="menu-ble-btn disconnected" onclick="toggleBle()"
+        title="Connecter le module BLE" aria-label="Connecter le module BLE">
+        <div class="ble-icon-container" aria-hidden="true">
+          <div class="ble-waves"></div>
+          <div class="ble-waves"></div>
+          <div class="ble-waves"></div>
+          <svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m7 7 10 10-5 5V2l5 5L7 17"/>
+          </svg>
+        </div>
+      </button>
+      <select id="ntripSelect" class="menu-ntrip-select" onchange="selectNtripStation(this.value)"
+        aria-label="Station NTRIP">
+      </select>
+    </div>
+
+    <div class="menu-row menu-row-context">
+      <span class="menu-label">Parcelle :</span>
+      <button type="button" id="btnProjectDrawer" class="menu-project-btn" onclick="toggleProjectDrawer()"
+        aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
+        title="Choisir une parcelle">
+        <span aria-hidden="true">📍</span>
+        <span id="currentProjectName">Aucune</span>
+        <span class="header-project-caret" aria-hidden="true">▾</span>
+      </button>
+      <span id="saveIndicator" class="save-indicator menu-save-indicator"
+        title="Sauvegardé localement" aria-live="polite">
+        <span class="save-icon" aria-hidden="true">💾</span>
+      </span>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- NAVIGATION BASSE                                            -->

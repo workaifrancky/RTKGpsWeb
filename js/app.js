@@ -41,11 +41,13 @@ function applyTheme(theme) {
 
   const btn = document.getElementById('btnTheme');
   if (btn) {
+    const isDark = theme === 'dark';
     const icon = btn.querySelector('.theme-icon');
-    const label = btn.querySelector('.theme-label');
-    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
-    if (label) label.textContent = theme === 'dark' ? 'Thème clair' : 'Thème sombre';
-    if (!icon && !label) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    else btn.textContent = isDark ? '☀️' : '🌙';
+    const label = isDark ? 'Thème clair' : 'Thème sombre';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
   }
 }
 
@@ -62,24 +64,41 @@ function initNavigation() {
 // ─── MENU DÉROULANT DU HEADER ────────────────────────────────
 function openHeaderMenu() {
   const menu = document.getElementById('headerMenu');
+  const overlay = document.getElementById('headerMenuOverlay');
   const btn = document.getElementById('btnHeaderMenu');
   if (!menu) return;
+
+  // Le verrouillage écran reste prioritaire (z-index 3000 sous le menu,
+  // mais on évite toute ouverture programmatique pendant le verrouillage).
+  if (document.body && document.body.classList.contains('locked')) return;
 
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
   if (typeof closePointsView === 'function') closePointsView(false);
 
   menu.classList.add('show');
   menu.setAttribute('aria-hidden', 'false');
+  if (overlay) {
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
   if (btn) btn.setAttribute('aria-expanded', 'true');
 }
 
 function closeHeaderMenu() {
   const menu = document.getElementById('headerMenu');
+  const overlay = document.getElementById('headerMenuOverlay');
   const btn = document.getElementById('btnHeaderMenu');
   if (!menu) return;
+
+  const wasOpen = menu.classList.contains('show');
   menu.classList.remove('show');
   menu.setAttribute('aria-hidden', 'true');
+  if (overlay) {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
   if (btn) btn.setAttribute('aria-expanded', 'false');
+  if (wasOpen && btn) btn.focus({ preventScroll: true });
 }
 
 function toggleHeaderMenu() {
@@ -164,9 +183,11 @@ function checkBleSupport() {
     const btn = document.getElementById('btnBle');
     if (btn) {
       const icon = typeof getBleIconMarkup === 'function' ? getBleIconMarkup() : '';
-      btn.className = 'disconnected';
+      btn.classList.remove('connected');
+      btn.classList.add('disconnected');
       btn.disabled = true;
-      btn.innerHTML = `${icon}<span class="ble-label">NON SUPPORTÉ</span>`;
+      btn.innerHTML = icon;
+      btn.title = 'Web Bluetooth non supporté';
       btn.setAttribute('aria-label', 'Web Bluetooth non supporté');
     }
   }
@@ -559,6 +580,7 @@ function setScreenLock(locked, options = {}) {
   const isLocked = !!locked;
 
   document.body.classList.toggle('locked', isLocked);
+  if (isLocked && typeof closeHeaderMenu === 'function') closeHeaderMenu();
   const overlay = document.getElementById('lockOverlay');
   if (overlay) overlay.setAttribute('aria-hidden', isLocked ? 'false' : 'true');
 
