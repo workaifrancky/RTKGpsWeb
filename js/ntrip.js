@@ -84,7 +84,7 @@ let selectedNtripStationId = null;
 document.addEventListener('DOMContentLoaded', () => {
   selectedNtripStationId = loadSelectedNtripStationId();
   // Initialisation autonome : ne dépend plus de l'ordre d'init de app.js,
-  // le <select> ayant été déplacé dans le bandeau Fix (session 3.6).
+  // le <select> étant rendu par le menu du header.
   initNtripBar();
 });
 

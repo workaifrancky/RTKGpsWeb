@@ -42,7 +42,7 @@ Dans `index.html`, onglet TRACÉS, dans la `.actions-bar` (sous les boutons d'ex
   title="Générer un jeu de données fictif pour tester sans GPS">🎮 Mode Simulation</button>
 
 <button class="action-button-simulation-gps" onclick="simulateGpsFrame()"
-  title="Injecter une trame GPS fictive dans le bandeau Fix">📡 Simuler une trame GPS</button>
+  title="Injecter une trame GPS fictive dans la pastille GPS du header">📡 Simuler une trame GPS</button>
 ```
 
 ### Étape 3 — Recharger sans cache
@@ -56,8 +56,9 @@ En cas de doute, fermer l'onglet et rouvrir <http://127.0.0.1:8000/>.
   14 points fictifs : 2 zones de tonte de 4 points, 3 points interdits et 3 obstacles.
   La parcelle est vidée puis reconstruite à chaque appel.
 - `simulateGpsFrame()` — injecte une trame GPS fixe (`44.832223 / -0.701992`, RTK Fix, cap 45°)
-  dans le même pipeline que le BLE (`parseGpsFrame()` → `updateUI()`), ce qui met à jour le
-  bandeau Fix. L'onglet GPS/DONNÉES ayant été supprimé, le test se fait sur la carte et la caméra.
+  dans le même pipeline que le BLE (`parseGpsFrame()` → `updateUI()`), ce qui met à jour la
+  pastille GPS du header. L'onglet GPS/DONNÉES ayant été supprimé, le test se fait sur la
+  carte et la caméra.
 - `simulateGpsAt(lat, lon, course, fix)` — variante positionnée, appelable uniquement depuis la
   console du navigateur (aucun bouton) :
 

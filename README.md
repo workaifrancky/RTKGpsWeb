@@ -81,13 +81,13 @@ peut être isolé.
 
 ## Utilisation
 
-1. **Connecter le BLE** : bouton `⬡ CONNECTER BLE` dans l'en-tête, sélectionner l'appareil
-   `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
+1. **Connecter le BLE** : bouton menu `☰` du header → icône Bluetooth, puis sélectionner
+   l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
 2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
-   reste masqué. Le bouton `📍 <nom> ▾` dans le header ouvre le tiroir « Parcelles » ; chaque
-   ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou la supprimer (`🗑`).
-   Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
-   Sélectionner éventuellement une station NTRIP de référence, dans le bandeau Fix (à droite).
+   reste masqué. Le bouton `📍 <nom> ▾` (2ᵉ ligne du menu du header) ouvre le tiroir
+   « Parcelles » ; chaque ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou
+   la supprimer (`🗑`). Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
+   Sélectionner éventuellement une station NTRIP de référence, dans la 1ʳᵉ ligne du menu.
 3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
    au centre en bas de la carte. Il ouvre un menu vertical :
    - `🟢 Nouvelle zone de tonte` : FAB vert, chaque clic ajoute un point de tonte ;
@@ -129,7 +129,7 @@ RTKGpsWeb/
 │   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull)
 │   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
-│   └── ui.js               # Bandeau Fix et alertes GPS
+│   └── ui.js               # Pastille GPS du header et alertes
 ├── docs/
 │   ├── architecture.md     # Architecture, flux de données, modules
 │   ├── design-system.md    # Tokens et composants UI

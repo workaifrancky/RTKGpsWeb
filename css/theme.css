@@ -330,6 +330,8 @@
 }
 
 body.camera-ui-fullscreen header,
+body.camera-ui-fullscreen #headerMenu,
+body.camera-ui-fullscreen #headerMenuOverlay,
 body.camera-ui-fullscreen #projectDrawer,
 body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,

@@ -1,5 +1,5 @@
 // ============================================================
-// ui.js — Bandeau Fix et alertes GPS
+// ui.js — Pastille GPS du header et alertes
 // RTKGpsWeb v2
 // ============================================================
 

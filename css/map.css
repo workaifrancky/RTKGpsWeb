@@ -83,7 +83,11 @@
 }
 
 /* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
+/* Le menu du header vit hors de `<header>` (voir main.css) : il doit être
+   masqué explicitement, comme le header et son voile. */
 body.map-ui-fullscreen header,
+body.map-ui-fullscreen #headerMenu,
+body.map-ui-fullscreen #headerMenuOverlay,
 body.map-ui-fullscreen .tabs-wrapper,
 body.map-ui-fullscreen #projectDrawer,
 body.map-ui-fullscreen #projectDrawerOverlay {

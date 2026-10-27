@@ -22,7 +22,7 @@
   background:    var(--color-white);
   border-radius: var(--radius-lg);
   padding:       12px;
-  border-left:   none; /* fond uniforme, l'état du fix est porté par #fixBar */
+  border-left:   none; /* fond uniforme, l'état du fix est porté par la pastille du header */
   box-shadow:    var(--shadow-sm);
   transition:    var(--transition);
 }

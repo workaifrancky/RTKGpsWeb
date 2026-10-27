@@ -150,8 +150,22 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   les points suivants repartent dans l'ancienne zone après un rechargement.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
-- **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. Le header contient
-  `#btnProjectDrawer` (nom de la parcelle courante) qui ouvre `#projectDrawer`
+- **Header et menu** : le header tient sur **une seule ligne** (logo `🌾 RTK Mower`, pastille GPS
+  `#headerGpsStatus` / `.gps-status-pill`, bouton `#btnHeaderMenu`) ; il remplace l'ancienne
+  `#fixBar`. Les contrôles secondaires sont dans `#headerMenu` (thème, BLE, NTRIP en ligne 1 ;
+  parcelle `#btnProjectDrawer` + `#saveIndicator` en ligne 2). Le bouton menu porte une **icône
+  SVG Lucide inline** (`M4 5h16` / `M4 12h16` / `M4 19h16`, `fill: none`,
+  `stroke: currentColor`, 24 px, 22 px ≤ 360 px) et non un emoji `☰` : ne pas revenir à un
+  caractère texte (rendu variable selon la plateforme) ni remettre un `font-size` sur
+  `.header-menu-btn`. Le menu et son voile `#headerMenuOverlay` sont **hors de `.app-wrapper`**
+  (z-index 4000 / 3999) pour passer au-dessus du verrouillage écran (3000) et des FAB (1002) :
+  ne pas les replacer dans `<header>` (contexte d'empilement `z-index: 200`) et les masquer
+  explicitement en plein écran (`body.map-ui-fullscreen` dans `map.css`,
+  `body.camera-ui-fullscreen` dans `theme.css`). `js/projects.js` rend le focus à
+  `#btnHeaderMenu` à la fermeture du tiroir.
+- **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (nom de la
+  parcelle courante) est le bouton `.menu-project-btn` de la **2ᵉ ligne du menu du header**
+  (voir point « Header et menu ») ; il ouvre `#projectDrawer`
   (`openProjectDrawer()` / `closeProjectDrawer()` / `toggleProjectDrawer()` dans
   `js/projects.js`). La liste (`renderProjectList()`) affiche une ligne par parcelle avec
   `switchProject(id)`, `renameProject(id)` et `deleteProject(id)` ; `saveProjects()` rafraîchit
@@ -591,6 +605,32 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   « 📋 Voir les points » du menu FAB TRACÉS (`openPointsView()`) ; à la fermeture de la vue,
   le focus revient au FAB. La navigation basse utilise des **SVG Lucide inline** (map-pin,
   camera, bar-chart, clock) en `currentColor`, avec les libellés conservés.
+- **3.39 — Refonte du header et menu unifié** : la barre Fix `#fixBar` (sous le header) est
+  supprimée ; le header devient une **seule ligne** (`position: sticky`, `z-index: 200`,
+  `min-height: 56px`) avec le logo compact `🌾 RTK Mower` (`.header-logo` / `.logo-text`), la
+  pastille de statut GPS `#headerGpsStatus` (`.gps-status-pill` + `.status-dot`, alimentée par
+  `updateFixBar()` / `setGpsStatusIdle()`) et le bouton `#btnHeaderMenu` (`.header-menu-btn`).
+  Les contrôles secondaires (parcelle, Bluetooth, NTRIP, thème, indicateur de sauvegarde,
+  diagnostics GPS) passent dans un menu déroulant `#headerMenu`. `js/app.js` gagne
+  `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `initHeaderMenu()`
+  (fermeture par Échap et par clic hors du menu) ; `#btnProjectDrawer` quitte le header et
+  `.header-project-label` disparaît, comme `.header-top`, `.header-actions`, `.logo` et
+  `.logo-sub`.
+- **3.40 — Optimisation du menu Header** : `#headerMenu` et son nouveau voile
+  `#headerMenuOverlay` sont **sortis de `<header>`** (placés après `.app-wrapper`) pour échapper
+  au contexte d'empilement du header : `z-index` 4000 / 3999, au-dessus du verrouillage écran
+  (3000). Le menu est repositionné (`top: calc(env(safe-area-inset-top) + 62px)`, largeur
+  `min(340px, 100vw - 20px)`, `--shadow-xl`, scroll interne) et restructuré en **deux lignes**
+  `.menu-row` : thème `.menu-icon-btn`, BLE `.menu-ble-btn` en icône seule et NTRIP
+  `.menu-ntrip-select` ; puis `Parcelle :`, `.menu-project-btn` et `#saveIndicator`. La classe
+  `.header-menu-hint` (`#statusText`), les diagnostics `#fixDot` / `#fixName` / `#fixPrec` et le
+  libellé « CONNECTER BLE » sont supprimés : `setBleStatus()` n'écrit plus que l'icône
+  (`getBleIconMarkup()`) avec `title` / `aria-label`, `updateFixBar()` ne pilote que la pastille.
+  Le bouton `#btnHeaderMenu` remplace l'emoji `☰` par une **icône SVG Lucide** (`M4 5h16`,
+  `M4 12h16`, `M4 19h16`, 24 px, 22 px ≤ 360 px) et `.header-menu-btn` perd `font-size` /
+  `font-family` / `line-height`. `menu-test.html` (page de démonstration versionnée) reçoit la
+  même icône ; `#headerMenu` / `#headerMenuOverlay` sont explicitement masqués en plein écran
+  carte (`map.css`) et caméra (`theme.css`).
 
 ## 9. Langue et communication
 

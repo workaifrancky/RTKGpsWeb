@@ -386,8 +386,8 @@ function clearCurrentProjectPoints() {
 }
 
 // ─── TIROIR PARCELLES ────────────────────────────────────────
-// Le bandeau #projectBar est remplacé par un bouton compact dans le header
-// qui ouvre ce tiroir latéral (liste + actions par parcelle).
+// Le bandeau #projectBar est remplacé par un bouton compact dans le menu du
+// header, qui ouvre ce tiroir latéral (liste + actions par parcelle).
 function openProjectDrawer() {
   const drawer = document.getElementById('projectDrawer');
   const overlay = document.getElementById('projectDrawerOverlay');
@@ -418,7 +418,7 @@ function closeProjectDrawer() {
   if (toggle) toggle.setAttribute('aria-expanded', 'false');
 
   // Le bouton Parcelle est dans le menu déroulant, refermé à l'ouverture du
-  // tiroir : on rend le focus au bouton ☰, toujours visible.
+  // tiroir : on rend le focus au bouton menu (icône ☰ en SVG), toujours visible.
   const menuBtn = document.getElementById('btnHeaderMenu');
   if (menuBtn && typeof menuBtn.focus === 'function') menuBtn.focus();
 }

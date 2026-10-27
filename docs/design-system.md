@@ -97,8 +97,8 @@ Overrides de lisibilité :
 
 ### Indicateur de sauvegarde et verrouillage
 
-- `#saveIndicator` (`.save-indicator`) : indicateur discret dans la barre Fix, icône `💾` sur
-  mobile et texte « Sauvegardé » à partir de 481 px. `flashSaveIndicator()` relance
+- `#saveIndicator` (`.save-indicator`) : indicateur discret de la 2ᵉ ligne du menu du header
+  (à droite du bouton Parcelle), icône `💾` ; `flashSaveIndicator()` relance
   l'animation `saveFlash` (0,9 s) à chaque écriture locale et met le `title` à l'heure de
   sauvegarde. L'écriture réelle est centralisée par `persistProjectStorage()` /
   `flushProjectStorage()`.
@@ -114,6 +114,30 @@ Overrides de lisibilité :
   `aria-pressed` synchronisé, icône 🔒 / 🔓. Pendant le verrouillage, les gestes Leaflet sont
   désactivés (`setMapInteractionEnabled`) et les boutons d'enregistrement sont bloqués par
   `canRecordPoints()` + `updateTerrainButtons()`.
+
+### Header et menu du header (`main.css`)
+
+- `header` : **une seule ligne** collante (`position: sticky`, `z-index: 200`,
+  `min-height: 56px`, fond `--color-primary`) contenant le logo (🌾 + « RTK Mower »),
+  la pastille de statut GPS (`#headerGpsStatus`, `.gps-status-pill`, `flex: 1 1 auto`) et
+  le bouton menu (`#btnHeaderMenu`). Toute la hauteur gagnée va à la carte.
+- `.header-menu-btn` : 44 × 44 px (42 px ≤ 360 px), bordure et fond translucides
+  (`rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`), rayon `--radius-md`, texte `#fff`,
+  survol `rgba(255,255,255,0.22)`. L'icône est un **SVG Lucide inline** (`M4 5h16`,
+  `M4 12h16`, `M4 19h16`, `fill: none`, `stroke: currentColor`, 24 px / 22 px ≤ 360 px) et
+  non un emoji `☰` : rendu identique sur Android et iOS. `aria-expanded` et la classe `.show`
+  du menu portent l'état ouvert.
+- `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
+  **hors de `.app-wrapper`** pour que leur `z-index` (3999 / 4000) passe au-dessus du
+  verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé sous le header
+  (`top: calc(env(safe-area-inset-top) + 62px)`), largeur `min(340px, 100vw - 20px)`,
+  fond `--color-white`, `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
+- Deux lignes `.menu-row` : (1) thème `.menu-icon-btn` (🌙), BLE `.menu-ble-btn` (icône seule,
+  SVG + ondes) et station `.menu-ntrip-select` ; (2) `Parcelle :` + `#btnProjectDrawer`
+  (`.menu-project-btn`) et l'indicateur de sauvegarde `#saveIndicator`.
+- `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` (`js/app.js`) : Échap, clic
+  hors du menu (délégation sur `document`) ou sur le voile referment et rendent le focus au
+  bouton ; l'ouverture est refusée pendant le verrouillage d'écran.
 
 ### Barre de navigation basse (`main.css`, overrides dans `theme.css`)
 
@@ -162,8 +186,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 
 ### Tiroir Parcelles
 
-- `#btnProjectDrawer` (`main.css`) : pastille translucide pleine largeur sous la ligne
-  logo/actions du header ; nom ellipsé (`#currentProjectName`) et chevron `▾`.
+- `#btnProjectDrawer` (`main.css`) : bouton `.menu-project-btn` de la 2ᵉ ligne du menu du
+  header (sous `Parcelle :`), hauteur 44 px, nom ellipsé (`#currentProjectName`) et chevron
+  `▾`. Il ouvre le tiroir et reçoit `aria-expanded` (`aria-controls="projectDrawer"`).
 - `.drawer-overlay` : voile `rgba(0,0,0,0.5)` en position absolue dans `.app-wrapper`,
   `opacity` 0 → 1 via `.show`, `z-index: 1040`.
 - `.drawer` : panneau latéral droit `min(320px, 86%)`, fond `--color-white`, bordure
@@ -196,9 +221,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 | Plage | Comportement |
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
-| ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, FAB 56 px. |
-| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon-container`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
-| ≤ 360 px | Logo 13 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. Parcelle sur sa propre ligne si nécessaire (320 px). |
+| ≥ 481 px | Header sur une ligne (logo, pastille GPS, bouton menu) ; le menu du header porte tous les contrôles secondaires (thème, BLE, NTRIP, parcelle, sauvegarde) ; onglets avec libellés, FAB 56 px. |
+| ≤ 480 px | Header compact sur une ligne : logo 15 px sans « v2 », pastille GPS 30 px, bouton menu 44 px ; libellés d'onglets masqués (`.tab-text`), **barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
+| ≤ 360 px | Logo 13 px, bouton menu 42 px (SVG 22 px), **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
 320/360/390 px. Les libellés du menu FAB font 13 px et restent sur une seule ligne.
@@ -213,7 +238,7 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
-- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets et tiroir ;
+- `body.map-ui-fullscreen` : masque header, menu du header, onglets et tiroir ;
   `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
   height: 100dvh; z-index: 900`. Le FAB et les contrôles restent visibles ; le bouton plein
   écran devient `✕`.
