@@ -5,7 +5,6 @@
 
 /* ─── MODE NUIT — overrides spécifiques ─────────────────────── */
 [data-theme="dark"] header         { background: #14532d; }
-[data-theme="dark"] #fixBar        { background: #052e16; border-color: #14532d; }
 [data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
 /* FAB neutre et bouton secondaire lisibles en thème nuit. */
 [data-theme="dark"] .trace-fab-main.neutral {
@@ -331,11 +330,9 @@
 }
 
 body.camera-ui-fullscreen header,
-body.camera-ui-fullscreen #fixBar,
 body.camera-ui-fullscreen #projectDrawer,
 body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
-body.camera-ui-fullscreen .fix-ntrip,
 body.camera-ui-fullscreen .tabs-wrapper {
   display: none !important;
 }

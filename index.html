@@ -22,12 +22,40 @@
   <!-- HEADER                                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <header>
-    <div class="header-top">
-      <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
-      <div class="header-actions">
-        <button type="button" id="btnTheme" onclick="toggleTheme()" title="Thème" aria-label="Changer de thème">🌙</button>
-        <button id="btnBle" class="disconnected" onclick="toggleBle()" title="Connecter le module BLE"
-          aria-label="Connecter le module BLE">
+    <!-- Logo compact -->
+    <div class="header-logo">
+      <span aria-hidden="true">🌾</span>
+      <span class="logo-text">RTK Mower</span>
+    </div>
+
+    <!-- Pastille de statut GPS -->
+    <div id="headerGpsStatus" class="gps-status-pill disconnected" title="Aucun fix GPS">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="headerGpsText">AUCUN FIX</span>
+    </div>
+
+    <!-- Bouton Menu principal -->
+    <button type="button" id="btnHeaderMenu" class="header-menu-btn" onclick="toggleHeaderMenu()"
+      aria-label="Menu principal" aria-haspopup="true" aria-expanded="false"
+      aria-controls="headerMenu">☰</button>
+
+    <!-- Menu déroulant : contrôles secondaires -->
+    <div id="headerMenu" class="header-menu" aria-hidden="true">
+      <div class="header-menu-section">
+        <span class="header-menu-label">Parcelle</span>
+        <button type="button" id="btnProjectDrawer" onclick="toggleProjectDrawer()"
+          aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
+          title="Choisir une parcelle">
+          <span aria-hidden="true">📍</span>
+          <span id="currentProjectName">Aucune</span>
+          <span class="header-project-caret" aria-hidden="true">▾</span>
+        </button>
+      </div>
+
+      <div class="header-menu-section">
+        <span class="header-menu-label">Bluetooth</span>
+        <button id="btnBle" class="disconnected" onclick="toggleBle()"
+          title="Connecter le module BLE" aria-label="Connecter le module BLE">
           <div class="ble-icon-container" aria-hidden="true">
             <div class="ble-waves"></div>
             <div class="ble-waves"></div>
@@ -38,34 +66,35 @@
           </div>
           <span class="ble-label">CONNECTER BLE</span>
         </button>
+        <span id="statusText" class="header-menu-hint">Non connecté</span>
+      </div>
+
+      <div class="header-menu-section">
+        <label class="header-menu-label" for="ntripSelect">NTRIP</label>
+        <select id="ntripSelect" class="header-menu-select" onchange="selectNtripStation(this.value)">
+        </select>
+      </div>
+
+      <div class="header-menu-actions">
+        <button type="button" id="btnTheme" onclick="toggleTheme()"
+          title="Changer de thème" aria-label="Changer de thème">
+          <span class="theme-icon" aria-hidden="true">🌙</span>
+          <span class="theme-label">Thème</span>
+        </button>
+        <span id="saveIndicator" class="save-indicator" title="Sauvegardé localement" aria-live="polite">
+          <span class="save-icon" aria-hidden="true">💾</span><span class="save-label">Sauvegardé</span>
+        </span>
+      </div>
+
+      <div class="header-menu-gps">
+        <div class="fix-dot none" id="fixDot" aria-hidden="true"></div>
+        <div class="header-menu-gps-text">
+          <span class="fix-name" id="fixName">AUCUN FIX</span>
+          <span class="fix-prec" id="fixPrec">Non connecté</span>
+        </div>
       </div>
     </div>
-    <button type="button" id="btnProjectDrawer" onclick="toggleProjectDrawer()"
-      aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
-      title="Choisir une parcelle">
-      <span aria-hidden="true">📍</span>
-      <span class="header-project-label">Parcelle :</span>
-      <span id="currentProjectName">Aucune</span>
-      <span class="header-project-caret" aria-hidden="true">▾</span>
-    </button>
   </header>
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- BARRE FIX GPS                                           -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <div id="fixBar">
-    <div class="fix-dot none" id="fixDot"></div>
-    <span class="fix-name" id="fixName">AUCUN FIX</span>
-    <span class="fix-prec" id="fixPrec">Non connecté</span>
-    <div class="fix-ntrip" style="margin-left:auto; display:flex; align-items:center; gap:4px;">
-      <span style="font-size:10px; font-weight:800; color:rgba(255,255,255,0.7); letter-spacing:0.5px;">NTRIP</span>
-      <select id="ntripSelect" onchange="selectNtripStation(this.value)" style="font-size:11px; padding:2px 4px; background:transparent; color:white; border:1px solid rgba(255,255,255,0.3); border-radius:4px; max-width:120px;">
-      </select>
-    </div>
-    <span id="saveIndicator" class="save-indicator" title="Sauvegardé localement" aria-live="polite">
-      <span class="save-icon" aria-hidden="true">💾</span><span class="save-label">Sauvegardé</span>
-    </span>
-  </div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- ALERTE GPS                                              -->

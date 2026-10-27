@@ -116,9 +116,9 @@ function renderNtripStationSelect() {
 
   if (!selectedNtripStationId) selectedNtripStationId = loadSelectedNtripStationId();
 
-  // Le select est sur fond vert (bandeau Fix) : texte blanc. Les options du
-  // popup natif restent sur fond clair, il faut donc forcer un texte foncé,
-  // sinon la liste apparaît vide (blanc sur blanc).
+  // Le select est intégré au menu du header (fond clair). On force malgré
+  // tout le texte des options en foncé sur blanc : certains navigateurs
+  // mobiles ignorent l'héritage de couleur dans la liste native.
   select.innerHTML = NTRIP_STATIONS.map(station => {
     const suffix = station.id === 'near'
       ? ' — automatique'

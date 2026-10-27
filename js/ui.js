@@ -17,14 +17,44 @@ function updateUI(data) {
   hideAlert();
 }
 
-// ─── FIX BAR (header vert) ───────────────────────────────────
+// ─── STATUT GPS (pastille header + diagnostics du menu) ──────
 function updateFixBar(data) {
   const dot  = document.getElementById('fixDot');
   const name = document.getElementById('fixName');
   const prec = document.getElementById('fixPrec');
-  if (dot)  dot.className  = `fix-dot ${data.dotClass}`;
+  const pill = document.getElementById('headerGpsStatus');
+  const pillText = document.getElementById('headerGpsText');
+  const dotClass = data.dotClass || 'none';
+
+  if (dot)  dot.className  = `fix-dot ${dotClass}`;
   if (name) name.textContent = data.fix.toUpperCase();
   if (prec) prec.textContent = `${data.label} ${data.precision}`;
+
+  if (pill) {
+    pill.className = `gps-status-pill ${dotClass}`;
+    pill.title = `${data.fix} — ${data.label} ${data.precision}`;
+  }
+  if (pillText) {
+    pillText.textContent = data.fix === 'None' ? 'AUCUN FIX' : data.fix.toUpperCase();
+  }
+}
+
+// Retour à l'état sans GPS (déconnexion BLE, démarrage).
+function setGpsStatusIdle() {
+  const pill = document.getElementById('headerGpsStatus');
+  const pillText = document.getElementById('headerGpsText');
+  const dot  = document.getElementById('fixDot');
+  const name = document.getElementById('fixName');
+  const prec = document.getElementById('fixPrec');
+
+  if (pill) {
+    pill.className = 'gps-status-pill disconnected';
+    pill.title = 'Aucun fix GPS';
+  }
+  if (pillText) pillText.textContent = 'AUCUN FIX';
+  if (dot)  dot.className = 'fix-dot none';
+  if (name) name.textContent = 'AUCUN FIX';
+  if (prec) prec.textContent = 'Non connecté';
 }
 
 function showRejectedFrame(data) {

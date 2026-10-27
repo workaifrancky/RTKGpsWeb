@@ -394,6 +394,8 @@ function openProjectDrawer() {
   const toggle = document.getElementById('btnProjectDrawer');
   if (!drawer) return;
 
+  if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
+
   renderProjectList();
   drawer.classList.add('open');
   drawer.setAttribute('aria-hidden', 'false');
@@ -413,10 +415,12 @@ function closeProjectDrawer() {
   drawer.classList.remove('open');
   drawer.setAttribute('aria-hidden', 'true');
   if (overlay) overlay.classList.remove('show');
-  if (toggle) {
-    toggle.setAttribute('aria-expanded', 'false');
-    if (typeof toggle.focus === 'function') toggle.focus();
-  }
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+
+  // Le bouton Parcelle est dans le menu déroulant, refermé à l'ouverture du
+  // tiroir : on rend le focus au bouton ☰, toujours visible.
+  const menuBtn = document.getElementById('btnHeaderMenu');
+  if (menuBtn && typeof menuBtn.focus === 'function') menuBtn.focus();
 }
 
 function toggleProjectDrawer() {

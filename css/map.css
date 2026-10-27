@@ -84,7 +84,6 @@
 
 /* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
 body.map-ui-fullscreen header,
-body.map-ui-fullscreen #fixBar,
 body.map-ui-fullscreen .tabs-wrapper,
 body.map-ui-fullscreen #projectDrawer,
 body.map-ui-fullscreen #projectDrawerOverlay {

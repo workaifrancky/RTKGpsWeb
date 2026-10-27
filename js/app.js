@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCustomModal();
   initScreenLock();
   initNavigation();
+  initHeaderMenu();
   checkBleSupport();
   initProjectUI();
   initAutosave();
@@ -37,8 +38,15 @@ function applyTheme(theme) {
   APP.theme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('rtkTheme', theme);
+
   const btn = document.getElementById('btnTheme');
-  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  if (btn) {
+    const icon = btn.querySelector('.theme-icon');
+    const label = btn.querySelector('.theme-label');
+    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (label) label.textContent = theme === 'dark' ? 'Thème clair' : 'Thème sombre';
+    if (!icon && !label) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
 }
 
 function toggleTheme() {
@@ -49,6 +57,50 @@ function toggleTheme() {
 function initNavigation() {
   showTab(APP.currentTab);
   if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+}
+
+// ─── MENU DÉROULANT DU HEADER ────────────────────────────────
+function openHeaderMenu() {
+  const menu = document.getElementById('headerMenu');
+  const btn = document.getElementById('btnHeaderMenu');
+  if (!menu) return;
+
+  if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
+  if (typeof closePointsView === 'function') closePointsView(false);
+
+  menu.classList.add('show');
+  menu.setAttribute('aria-hidden', 'false');
+  if (btn) btn.setAttribute('aria-expanded', 'true');
+}
+
+function closeHeaderMenu() {
+  const menu = document.getElementById('headerMenu');
+  const btn = document.getElementById('btnHeaderMenu');
+  if (!menu) return;
+  menu.classList.remove('show');
+  menu.setAttribute('aria-hidden', 'true');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleHeaderMenu() {
+  const menu = document.getElementById('headerMenu');
+  if (!menu) return;
+  if (menu.classList.contains('show')) closeHeaderMenu();
+  else openHeaderMenu();
+}
+
+function initHeaderMenu() {
+  if (!document.getElementById('headerMenu')) return;
+
+  document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('#headerMenu') || event.target.closest('#btnHeaderMenu')) return;
+    closeHeaderMenu();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeHeaderMenu();
+  });
 }
 
 function showTab(tabId) {
@@ -79,6 +131,7 @@ function showTab(tabId) {
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
   if (typeof syncCameraFabUI === 'function') syncCameraFabUI();
   if (typeof closeExportMenu === 'function') closeExportMenu();
+  if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();

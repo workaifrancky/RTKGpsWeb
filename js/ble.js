@@ -68,6 +68,7 @@ function onConnected() {
 function onDisconnected() {
   APP.bleConnected = false; bleServer=null; bleChar=null;
   if (typeof clearLiveGpsPosition === 'function') clearLiveGpsPosition();
+  if (typeof setGpsStatusIdle === 'function') setGpsStatusIdle();
   setBleStatus('disconnected');
   updateTerrainButtons();
 }
@@ -85,19 +86,17 @@ function onBleDataReceived(event) {
 
 function setBleStatus(status) {
   const btn=document.getElementById('btnBle');
-  const dot=document.getElementById('fixDot');
   const statusText=document.getElementById('statusText');
   // L'icône est dessinée en CSS (components.css) : ondes animées dans tous
   // les états, la classe du bouton pilote la couleur (bleu / vert).
   const states = {
-    disconnected:{ label:'CONNECTER BLE', dot:'none', text:'Non connecté',            btnCls:'disconnected' },
-    scanning:    { label:'Scan...',       dot:'none', text:'Recherche RTK_Mower...',  btnCls:'disconnected' },
-    connecting:  { label:'Connexion...',  dot:'none', text:'Connexion en cours...',   btnCls:'disconnected' },
-    connected:   { label:'BLE CONNECTÉ',  dot:'',     text:'Connecté à RTK_Mower',    btnCls:'connected' },
+    disconnected:{ label:'CONNECTER BLE', text:'Non connecté',            btnCls:'disconnected' },
+    scanning:    { label:'Scan...',       text:'Recherche RTK_Mower...',  btnCls:'disconnected' },
+    connecting:  { label:'Connexion...',  text:'Connexion en cours...',   btnCls:'disconnected' },
+    connected:   { label:'BLE CONNECTÉ',  text:'Connecté à RTK_Mower',    btnCls:'connected' },
   };
   const s = states[status] || states.disconnected;
   if (btn) {
-    // Icône et libellé séparés : sur mobile seul le pictogramme reste visible.
     btn.innerHTML = `${getBleIconMarkup()}<span class="ble-label">${s.label}</span>`;
     btn.className = s.btnCls;
     btn.title = s.label;

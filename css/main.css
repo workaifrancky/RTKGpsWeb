@@ -152,73 +152,180 @@ body {
   overflow:       hidden;
 }
 
-/* ─── HEADER ────────────────────────────────────────────────── */
+/* ─── HEADER COMPACT (logo · statut GPS · menu) ─────────────── */
+/* Une seule ligne fine : toute la hauteur gagnée va à la carte. */
 header {
-  background:      var(--color-primary);
-  padding:         10px 16px;
-  display:         flex;
-  flex-direction:  column;
-  gap:             8px;
   position:        sticky;
   top:             0;
   z-index:         200;
-  box-shadow:      0 2px 8px rgba(0,0,0,0.2);
-}
-
-.header-top {
   display:         flex;
   align-items:     center;
-  justify-content: space-between;
-  gap:             8px;
+  gap:             10px;
+  min-height:      56px;
+  padding:         8px 12px;
+  background:      var(--color-primary);
+  box-shadow:      0 2px 10px rgba(0,0,0,0.2);
 }
 
-.logo {
-  color:          white;
-  font-size:      20px;
+.header-logo {
+  flex:            0 0 auto;
+  display:         flex;
+  align-items:     center;
+  gap:             6px;
+  color:           #fff;
+  font-size:       16px;
+  font-weight:     800;
+  letter-spacing:  0.3px;
+  white-space:     nowrap;
+}
+
+.header-logo > span[aria-hidden] {
+  font-size:   20px;
+  line-height: 1;
+}
+
+.logo-text { line-height: 1; }
+
+/* Pastille de statut GPS */
+.gps-status-pill {
+  flex:            1 1 auto;
+  min-width:       0;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+  height:          32px;
+  padding:         0 10px;
+  border:          1px solid rgba(255,255,255,0.3);
+  border-radius:   999px;
+  background:      rgba(255,255,255,0.12);
+  color:           #fff;
+  font-size:       11px;
+  font-weight:     800;
+  letter-spacing:  0.4px;
+  white-space:     nowrap;
+  overflow:        hidden;
+  transition:      var(--transition);
+}
+
+#headerGpsText {
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.status-dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  flex-shrink:   0;
+  background:    var(--color-danger-strong);
+  box-shadow:    0 0 6px currentColor;
+}
+
+.gps-status-pill.rtk   .status-dot { background: var(--color-primary-accent); color: var(--color-primary-accent); }
+.gps-status-pill.float .status-dot { background: var(--color-warning-strong); color: var(--color-warning-strong); }
+.gps-status-pill.dgps  .status-dot { background: var(--color-info-strong); color: var(--color-info-strong); }
+.gps-status-pill.gps   .status-dot { background: var(--color-text-secondary); color: var(--color-text-secondary); }
+.gps-status-pill.none  .status-dot,
+.gps-status-pill.disconnected .status-dot { background: var(--color-danger-strong); color: var(--color-danger-strong); }
+
+.gps-status-pill.rtk   { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.55); }
+.gps-status-pill.float { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.55); }
+.gps-status-pill.dgps  { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.55); }
+
+/* Bouton ☰ */
+.header-menu-btn {
+  flex:            0 0 auto;
+  width:           44px;
+  height:          44px;
+  padding:         0;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  border:          1px solid rgba(255,255,255,0.35);
+  border-radius:   var(--radius-md);
+  background:      rgba(255,255,255,0.12);
+  color:           #fff;
+  font-family:     var(--font);
+  font-size:       22px;
+  line-height:     1;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.header-menu-btn:hover,
+.header-menu-btn[aria-expanded="true"] {
+  background:   rgba(255,255,255,0.22);
+  border-color: #fff;
+}
+
+/* ─── MENU DÉROULANT DU HEADER ──────────────────────────────── */
+.header-menu {
+  position:       absolute;
+  top:            calc(100% + 8px);
+  right:          10px;
+  z-index:        300;
+  display:        none;
+  flex-direction: column;
+  gap:            12px;
+  width:          min(320px, calc(100% - 20px));
+  padding:        14px;
+  border:         1px solid var(--border);
+  border-radius:  var(--radius-xl);
+  background:     var(--color-white);
+  color:          var(--text);
+  box-shadow:     var(--shadow-xl);
+  max-height:     calc(100dvh - 76px);
+  overflow-y:     auto;
+}
+
+.header-menu.show { display: flex; }
+
+.header-menu-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  min-width:      0;
+}
+
+.header-menu-label {
+  font-size:      10px;
   font-weight:    800;
   letter-spacing: 1px;
-  display:        flex;
-  align-items:    center;
-  gap:            8px;
+  color:          var(--text3);
+  text-transform: uppercase;
 }
 
-.logo-sub {
-  font-size:   12px;
-  font-weight: 400;
-  opacity:     0.7;
-  letter-spacing: 0;
+.header-menu-hint {
+  font-size:   11px;
+  font-weight: 600;
+  color:       var(--text3);
 }
 
-.header-actions {
-  display:     flex;
-  align-items: center;
-  gap:         8px;
-}
-
-/* ─── BOUTON PARCELLE (header → tiroir) ─────────────────────── */
-#btnProjectDrawer {
+/* Parcelle */
+.header-menu #btnProjectDrawer {
   display:         flex;
   align-items:     center;
   gap:             6px;
   width:           100%;
-  min-width:       0;          /* autorise l'ellipse du nom */
-  padding:         7px 12px;
-  background:      rgba(255,255,255,0.12);
-  border:          1px solid rgba(255,255,255,0.35);
-  border-radius:   999px;
-  color:           white;
+  min-width:       0;
+  padding:         10px 12px;
+  border:          1px solid var(--border);
+  border-radius:   var(--radius-md);
+  background:      var(--color-bg-subtle);
+  color:           var(--text);
   font-family:     var(--font);
   font-size:       13px;
   font-weight:     800;
-  letter-spacing:  0.2px;
   text-align:      left;
   cursor:          pointer;
   transition:      var(--transition);
 }
 
-#btnProjectDrawer:hover {
-  background:   rgba(255,255,255,0.2);
-  border-color: white;
+.header-menu #btnProjectDrawer:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale);
 }
 
 #currentProjectName {
@@ -229,112 +336,151 @@ header {
   white-space:   nowrap;
 }
 
-.header-project-label {
-  flex-shrink: 0;
-  font-weight: 700;
-  opacity:     0.82;
-}
-
 .header-project-caret {
   flex-shrink: 0;
   font-size:   10px;
-  opacity:     0.8;
+  opacity:     0.7;
 }
 
-/* ─── BOUTON BLE HEADER ─────────────────────────────────────── */
-#btnBle {
-  display:        inline-flex;
-  align-items:    center;
-  justify-content: center;
-  gap:            6px;
-  background:     white;
-  color:          var(--color-primary);
-  border:         none;
-  border-radius:  var(--radius-lg);
-  font-size:      12px;
-  font-weight:    800;
-  padding:        8px 16px;
-  cursor:         pointer;
-  transition:     var(--transition);
-  letter-spacing: 0.5px;
-  white-space:    nowrap;
+/* Bluetooth */
+.header-menu #btnBle {
+  width:            100%;
+  justify-content:  flex-start;
+  padding:          8px 12px;
+  border:           1px solid var(--border);
+  border-radius:    var(--radius-md);
+  background:       var(--color-bg-subtle);
+  font-size:        12px;
+  letter-spacing:   0.3px;
+  white-space:      normal;
 }
 
-#btnBle:hover    { background: var(--color-primary-pale); }
-#btnBle:disabled  { opacity: 0.5; cursor: not-allowed; }
-/* Les couleurs des états connected / disconnected sont définies dans
-   components.css (icône Bluetooth dessinée en CSS). */
+.header-menu #btnBle:hover {
+  border-color: var(--color-primary);
+  background:   var(--color-primary-pale);
+}
 
-/* ─── BOUTON THÈME ──────────────────────────────────────────── */
-#btnTheme {
-  background:    transparent;
-  color:         rgba(255,255,255,0.8);
-  border:        1px solid rgba(255,255,255,0.3);
-  border-radius: var(--radius-sm);
-  padding:       7px 10px;
-  font-size:     16px;
+.header-menu #btnBle:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.header-menu #btnBle .ble-icon-container { width: 24px; height: 24px; }
+.header-menu #btnBle .ble-svg             { width: 18px; height: 18px; }
+
+/* NTRIP */
+.header-menu-select {
+  width:         100%;
+  padding:       9px 10px;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-md);
+  background:    var(--color-white);
+  color:         var(--text);
+  font-family:   var(--font);
+  font-size:     12px;
+  font-weight:   600;
+  cursor:        pointer;
+}
+
+.header-menu-select:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+/* Thème + sauvegarde */
+.header-menu-actions {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.header-menu #btnTheme {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       8px 12px;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-md);
+  background:    var(--color-bg-subtle);
+  color:         var(--text);
+  font-size:     12px;
+  font-weight:   700;
   cursor:        pointer;
   transition:    var(--transition);
 }
 
-#btnTheme:hover {
-  background: rgba(255,255,255,0.15);
-  color:      white;
+.header-menu #btnTheme:hover {
+  border-color: var(--color-primary);
+  color:        var(--color-primary);
+  background:   var(--color-primary-pale);
 }
 
-/* ─── BARRE FIX GPS ─────────────────────────────────────────── */
-#fixBar {
-  background:      var(--color-primary-deep);
-  padding:         10px 16px;
-  display:         flex;
-  align-items:     center;
-  gap:             10px;
-  border-bottom:   2px solid var(--color-primary);
+.theme-icon {
+  font-size:   15px;
+  line-height: 1;
+}
+
+.header-menu .save-indicator {
+  margin-left: auto;
+  color:       var(--text3);
+}
+
+.header-menu .save-label { display: inline; }
+
+/* Diagnostics GPS du menu */
+.header-menu-gps {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  padding-top: 10px;
+  border-top:  1px solid var(--border);
+}
+
+.header-menu .fix-dot {
+  width:      10px;
+  height:     10px;
+  margin:     0;
 }
 
 .fix-dot {
-  width:         14px;
-  height:        14px;
+  width:         10px;
+  height:        10px;
   border-radius: 50%;
   flex-shrink:   0;
   transition:    var(--transition);
 }
 
-.fix-dot.rtk    {
-  background:  var(--color-primary-accent);
-  box-shadow:  0 0 8px var(--color-primary-accent);
-}
-.fix-dot.float  {
-  background:  var(--color-warning-strong);
-  box-shadow:  0 0 6px var(--color-warning-strong);
-}
+.fix-dot.rtk    { background: var(--color-primary-accent); box-shadow: 0 0 8px var(--color-primary-accent); }
+.fix-dot.float  { background: var(--color-warning-strong); box-shadow: 0 0 6px var(--color-warning-strong); }
 .fix-dot.dgps   { background: var(--color-info-strong); }
 .fix-dot.gps    { background: var(--color-text-secondary); }
 .fix-dot.none   { background: var(--color-danger-strong); }
 
-.fix-name {
-  color:          white;
-  font-size:      14px;
-  font-weight:    800;
-  letter-spacing: 1px;
+.header-menu-gps-text {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  min-width:      0;
 }
 
-.fix-prec {
-  color:      var(--color-primary-accent-text);
-  font-size:  11px;
-  margin-left: 0;
+.header-menu .fix-name {
+  color:          var(--text);
+  font-size:      12px;
+  font-weight:    800;
+  letter-spacing: 0.5px;
+}
+
+.header-menu .fix-prec {
+  color:       var(--text3);
+  font-size:   11px;
   font-weight: 600;
 }
 
-/* Indicateur discret de sauvegarde locale (barre Fix) */
+/* Indicateur discret de sauvegarde locale */
 .save-indicator {
   display:     inline-flex;
   align-items: center;
   gap:         4px;
-  margin-left: 6px;
   font-size:   10px;
   font-weight: 700;
-  color:       rgba(255, 255, 255, 0.78);
+  color:       var(--text3);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -344,30 +490,13 @@ header {
   line-height: 1;
 }
 
-.save-label { display: none; }
-
 .save-indicator.flash {
   animation: saveFlash 0.9s ease;
 }
 
 @keyframes saveFlash {
   0%, 100% { opacity: 0.65; }
-  30%      { opacity: 1; color: var(--color-primary-accent-text); }
-}
-
-@media (min-width: 481px) {
-  .save-label { display: inline; }
-}
-
-@media (max-width: 360px) {
-  #saveIndicator { margin-left: 2px; }
-  .save-icon     { font-size: 12px; }
-}
-
-/* NTRIP intégré au bandeau Fix (à droite) */
-.fix-ntrip {
-  display:     flex;
-  align-items: center;
+  30%      { opacity: 1; color: var(--color-primary); }
 }
 
 /* ─── BARRE D'ALERTE ────────────────────────────────────────── */
@@ -664,13 +793,11 @@ header {
 @media (max-width: 360px) {
   .tabs-wrapper { gap: 5px; padding: 7px 8px; }
   .tab-label    { padding: 9px 12px; font-size: 11px; letter-spacing: 0.1px; }
-  .logo   { font-size: 17px; }
-  #btnBle { font-size: 11px; padding: 7px 12px; }
-  #btnProjectDrawer { font-size: 12px; padding: 6px 10px; }
-  #fixBar { gap: 6px; padding: 8px 10px; }
-  .fix-name { font-size: 12px; }
-  .fix-prec { font-size: 10px; }
-  #fixBar #ntripSelect { max-width: 96px !important; }
+  .header-logo  { font-size: 14px; gap: 4px; }
+  .header-logo > span[aria-hidden] { font-size: 18px; }
+  .gps-status-pill { height: 30px; padding: 0 8px; font-size: 10px; }
+  .header-menu-btn { width: 42px; height: 42px; font-size: 20px; }
+  .header-menu { right: 8px; width: calc(100% - 16px); padding: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -681,50 +808,21 @@ header {
 }
 
 /* ─── RESPONSIVE MOBILE (≤ 480 px) ─────────────────────────── */
-/* Header compact sur une ligne : logo, thème, BLE (icône) et parcelle.
-   Les wrappers .header-top / .header-actions disparaissent (display:contents)
-   pour que leurs enfants deviennent des items du header. */
+/* Header sur une seule ligne : logo, statut GPS et menu. */
 @media (max-width: 480px) {
   header {
-    flex-direction: row;
-    flex-wrap:      wrap;
-    align-items:    center;
-    gap:            6px;
-    padding:        8px 10px;
+    gap:        8px;
+    min-height: 54px;
+    padding:    8px 10px;
   }
 
-  .header-top,
-  .header-actions { display: contents; }
+  .header-logo { font-size: 15px; }
 
-  .logo {
-    flex:           0 0 auto;
-    font-size:      14px;
-    letter-spacing: 0.3px;
-    white-space:    nowrap;
+  .gps-status-pill {
+    height:   30px;
+    padding:  0 9px;
+    font-size: 10px;
   }
-
-  .logo-sub { display: none; }
-
-  #btnTheme,
-  #btnBle {
-    min-width:  44px;
-    min-height: 44px;
-    padding:    0 10px;
-  }
-
-  .ble-label { display: none; }
-
-  #btnProjectDrawer {
-    flex:       1 1 120px;
-    width:      auto;
-    min-width:  0;
-    min-height: 44px;
-    padding:    6px 10px;
-    font-size:  12px;
-  }
-
-  /* Le titre du bouton porte « Parcelle : <nom> » (voir renderProjectList). */
-  .header-project-label { display: none; }
 
   /* Onglets : icônes seules, 44 px de haut, jamais de débordement. */
   .tabs-wrapper {
@@ -770,7 +868,7 @@ header {
 }
 
 @media (max-width: 360px) {
-  .logo { font-size: 13px; }
+  .header-logo { font-size: 13px; }
   .tabs-wrapper { gap: 4px; padding: 6px; }
   .tab-label { padding: 8px 12px; }
   .tab-icon { font-size: 17px; }
