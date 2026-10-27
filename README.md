@@ -95,14 +95,15 @@ peut être isolé.
    - `Obstacle` (pastille ambre) : FAB jaune, un clic ouvre le choix du type d'obstacle et crée
      un point ponctuel.
    Le bouton `✓` à gauche du FAB termine la zone (confirmation si elle a moins de 3 points).
-   Un appui long sur le FAB ou sur `✓` rouvre le menu. L'icône crayon d'une ligne de la vue
-   POINTS ou d'une popup carte permet de renommer un point.
-4. **Consulter** : `POINTS` ouvre la vue dédiée avec la liste, les exports et « Effacer ».
-   `⛶` affiche la carte en plein écran. Cliquer sur une zone (tonte ou interdite) permet de la
-   renommer ou de la supprimer. Le relevé est dans l'onglet RELEVÉ, l'historique dans
-   HISTORIQUE. Les polygones de tonte affichent la longueur de chaque segment.
-5. **Exporter** depuis la vue POINTS avec `⬇ GeoJSON` (format principal), `⬇ CSV`, `⬇ GPX` et
-   `📤 Partager`. Le GeoJSON suit le contrat décrit dans
+   Un appui long sur le FAB ou sur `✓` rouvre le menu. L'icône crayon d'une ligne de la
+   section POINTS (onglet HISTORIQUE) ou d'une popup carte permet de renommer un point.
+4. **Consulter** : l'onglet **HISTORIQUE** regroupe la section POINTS (liste, zone, compteur,
+   exports, partage et « Effacer ») puis les parcelles / sessions ; son option « Historique »
+   dans le menu du FAB y amène directement. `⛶` affiche la carte en plein écran. Cliquer sur
+   une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
+   l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
+5. **Exporter** depuis la section POINTS avec `⬇ GeoJSON` (format principal), `⬇ CSV`,
+   `⬇ GPX` et `📤 Partager`. Le GeoJSON suit le contrat décrit dans
    [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet

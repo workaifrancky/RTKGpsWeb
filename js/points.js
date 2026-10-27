@@ -629,9 +629,10 @@ async function clearAllPoints() {
   showToast('Points effacés', 'info');
 }
 
-// ─── VUE DÉDIÉE DES POINTS ───────────────────────────────────
-// Ouvre un panneau plein écran (bottom sheet) au-dessus de la carte, avec la
-// liste et les actions d'export. La carte reste intacte derrière le voile.
+// ─── SECTION POINTS DE L'ONGLET HISTORIQUE ───────────────────
+// La vue des points n'est plus un panneau flottant : la liste, la zone, le
+// compteur, les exports, le partage et « Effacer » vivent dans la section
+// #pointsSection de l'onglet HISTORIQUE. `openPointsView()` y amène l'utilisateur.
 function openPointsView() {
   if (!currentProject) return;
 
@@ -640,48 +641,30 @@ function openPointsView() {
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeExportMenu === 'function') closeExportMenu();
 
-  const overlay = document.getElementById('pointsViewOverlay');
-  if (!overlay) return;
-
-  // Un toast de gestion encore affiché ne doit pas recouvrir la vue.
-  const toast = document.getElementById('toast');
-  if (toast) {
-    clearTimeout(toast._timer);
-    toast.classList.remove('show');
-  }
-
   renderPointsList();
-  overlay.classList.add('show');
-  overlay.setAttribute('aria-hidden', 'false');
+  if (typeof loadHistory === 'function') loadHistory();
+  if (typeof showTab === 'function') showTab('tab-history');
 
+  // Amène la section « POINTS ENREGISTRÉS » en haut de l'onglet.
   setTimeout(() => {
-    const closeBtn = document.getElementById('pointsViewClose');
-    if (closeBtn && overlay.classList.contains('show')) {
-      closeBtn.focus({ preventScroll: true });
+    const section = document.getElementById('pointsSection');
+    if (section && typeof section.scrollIntoView === 'function') {
+      section.scrollIntoView({ block: 'start' });
     }
-  }, 80);
+    const share = document.getElementById('pointsViewShare');
+    if (share && typeof share.focus === 'function') share.focus({ preventScroll: true });
+  }, 60);
 }
 
-function closePointsView(restoreFocus = true) {
-  const overlay = document.getElementById('pointsViewOverlay');
-  if (!overlay || !overlay.classList.contains('show')) return;
-  overlay.classList.remove('show');
-  overlay.setAttribute('aria-hidden', 'true');
-  if (typeof closeExportMenu === 'function') closeExportMenu();
-  if (restoreFocus) {
-    const fabMain = document.getElementById('traceFabMain');
-    if (fabMain) fabMain.focus({ preventScroll: true });
-  }
-}
+// Compatibilité : l'ancien panneau a été supprimé (fusion dans HISTORIQUE).
+// `showTab()` et `openHeaderMenu()` continuent d'appeler cette fonction.
+function closePointsView() {}
 
+// Conservés pour les appels historiques : ouvrent la section points.
 function togglePointsView() {
-  const overlay = document.getElementById('pointsViewOverlay');
-  if (!overlay) return;
-  if (overlay.classList.contains('show')) closePointsView();
-  else openPointsView();
+  openPointsView();
 }
 
-// Compatibilité avec l'ancien bouton qui faisait défiler la liste.
 function scrollToPointsPanel() {
   openPointsView();
 }

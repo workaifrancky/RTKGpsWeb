@@ -200,21 +200,24 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `obstacle` au GeoJSON.
 - **Suppression de parcelle** : `deleteProject(projectId)` (`js/projects.js`) — centralisée,
   elle autorise la suppression de la **dernière** parcelle : `currentProject` devient `null`,
-  `rtkCurrentProject` est retiré, le FAB et la vue POINTS sont masqués, la carte est vidée,
+  `rtkCurrentProject` est retiré, le FAB est masqué, la carte est vidée,
   le header affiche « Aucune » et le tiroir montre la liste vide avec « ＋ Nouvelle parcelle ».
   `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir `deleteProject()` ailleurs
   (doublon historique supprimé de `js/history.js`).
-- **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la vue POINTS
-  (`#pointsViewOverlay`) ; le bouton `📤` partage le **même GeoJSON** via
+- **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la section POINTS de
+  l'onglet HISTORIQUE (`#pointsSection`) ; le bouton `📤` partage le **même GeoJSON** via
   `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
   `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
   `version_app` / `source` ajoutées à **toutes** les features.
-- **Vue POINTS** : l'option « 📋 Voir les points » du menu FAB TRACÉS ouvre
-  `#pointsViewOverlay` (`openPointsView()`, `closePointsView()`, `togglePointsView()` dans
-  `js/points.js`) au lieu de faire défiler la page. Le panneau contient `#pointsList`,
-  `#zoneBadge`, le compteur, les exports GeoJSON/CSV/GPX, le partage et « Effacer ». Il se
-  ferme par « Fermer », au clic sur le voile, avec Échap et au changement d'onglet ; le focus
-  revient alors au FAB. `scrollToPointsPanel()` reste un alias.
+- **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
+  (`#pointsViewOverlay` supprimé). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
+  `#pointsList`, le partage `#pointsViewShare`, les exports GeoJSON/CSV/GPX et « Effacer » ;
+  elle précède la section « PARCELLES / SESSIONS » (`#historyList`, `loadHistory()`).
+  L'option « Historique » du menu FAB TRACÉS appelle `openPointsView()` (`js/points.js`), qui
+  rafraîchit la liste, appelle `showTab('tab-history')` puis amène la section en haut
+  (`scrollIntoView`). `closePointsView()` ne fait plus rien (compatibilité des appels de
+  `showTab()` / `openHeaderMenu()`) ; `togglePointsView()` et `scrollToPointsPanel()` restent
+  des alias. `showTab('tab-history')` appelle `renderPointsList()` **et** `loadHistory()`.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
@@ -231,7 +234,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
 - **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
   Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
-  Effacer sont dans la vue POINTS (`#pointsViewOverlay`).
+  Effacer sont dans la section POINTS de l'onglet HISTORIQUE (`#pointsSection`).
 - **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
   `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
   Le header (`#btnProjectDrawer`) permet de choisir ou créer une parcelle. Tant qu'aucune
@@ -687,6 +690,23 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.header-connection-btn` (36 px, rayon 999 px) et `.header-icon-btn` (40 px, 38 px ≤ 480 px),
   suppression des règles mortes du bouton menu. Vérifié à 360 / 390 / 480 px et en thème nuit,
   panneau ouvert et fermé.
+- **3.44 — Bouton thème en SVG Lucide 20 px** : `ICON_MOON` / `ICON_SUN` (`js/app.js`) passent de
+  18 à 20 px et `applyTheme()` injecte l'icône **directement dans `#btnTheme`**
+  (`btn.innerHTML = isDark ? ICON_SUN : ICON_MOON`). Le conteneur `<span class="theme-icon">`
+  et les règles CSS `.theme-icon` sont supprimés : `.header-icon-btn > svg` assure
+  `display: block`, `flex-shrink: 0` et `pointer-events: none`. `index.html` et
+  `menu-test.html` portent le SVG lune 20 px comme contenu initial (remplacé au chargement).
+- **3.45 — Fusion de la vue POINTS dans l'onglet HISTORIQUE** : `#pointsViewOverlay` est supprimé.
+  La section `#pointsSection` (zone, compteur, `#pointsList`, partage, exports GeoJSON/CSV/GPX,
+  « Effacer ») ouvre l'onglet `#tab-history`, suivie de « PARCELLES / SESSIONS ». L'option du
+  menu FAB TRACÉS devient « Historique » (icône `clock`) et appelle toujours
+  `openPointsView()`, qui rend les listes, bascule sur l'onglet et centre la section.
+  `showTab('tab-history')` rend la liste des points **et** l'historique ; `closePointsView()`
+  devient un no-op (appels de compatibilité), `togglePointsView()` / `scrollToPointsPanel()`
+  restent des alias. CSS : `.history-screen` / `.history-section` / `.points-section-head`
+  remplacent `.points-view-box`, `.points-view-head`, `.points-view-title` et
+  `.points-view-close` ; `.points-view-body` n'a plus de hauteur contrainte (c'est `.screen`
+  qui défile). `index.html` et `menu-test.html` alignés.
 
 ## 9. Langue et communication
 

@@ -336,38 +336,24 @@
   line-height: 1.2;
 }
 
-/* ─── VUE DÉDIÉE DES POINTS ─────────────────────────────────── */
-#pointsViewOverlay { visibility: hidden; }
-#pointsViewOverlay.show { visibility: visible; }
-
-.points-view-box {
-  display:        flex;
-  flex-direction: column;
-  width:          100%;
-  max-width:      560px;
-  height:         min(88dvh, 760px);
-  max-height:     90dvh;
-  padding:        16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  overflow:       hidden;
+/* ─── ONGLET HISTORIQUE : SECTION POINTS + SESSIONS ────────── */
+/* La vue des points n'est plus un panneau flottant : liste, zone, compteur,
+   exports, partage et « Effacer » forment la 1re section de l'onglet
+   HISTORIQUE, suivie des parcelles / sessions. */
+.history-screen {
+  padding: 12px 12px 0;
 }
 
-.points-view-head {
+.history-section {
+  margin-bottom: 18px;
+}
+
+.points-section-head {
   display:         flex;
   align-items:     center;
   justify-content: space-between;
   gap:             10px;
-  flex-shrink:     0;
   margin-bottom:   4px;
-}
-
-.points-view-title {
-  margin:        0;
-  padding:       0;
-  border:        none;
-  font-size:     11px;
-  letter-spacing: 1.5px;
-  color:         var(--text3);
 }
 
 .points-view-head-actions {
@@ -388,14 +374,6 @@
   cursor:      pointer;
 }
 
-.points-view-close {
-  width:      auto;
-  min-width:  80px;
-  padding:    8px 12px;
-  font-size:  13px;
-}
-
-.points-view-close:focus-visible,
 .points-view-icon:focus-visible {
   outline:        3px solid var(--color-primary-accent);
   outline-offset: 2px;
@@ -406,12 +384,9 @@
   margin:       4px 0 8px;
 }
 
+/* Plus de hauteur contrainte : c'est l'onglet (.screen) qui défile. */
 .points-view-body {
-  flex:                 1 1 auto;
-  min-height:           0;
-  overflow-y:           auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior:  contain;
+  min-height: 0;
 }
 
 .points-view-actions {

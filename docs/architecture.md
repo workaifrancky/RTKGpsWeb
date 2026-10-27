@@ -26,7 +26,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), vue POINTS (`openPointsView()`, `closePointsView()`), renommage (`renamePoint()`), liste des points |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), section POINTS de l'onglet HISTORIQUE (`openPointsView()`), renommage (`renamePoint()`), liste des points |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, badge GPS/manuel |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |

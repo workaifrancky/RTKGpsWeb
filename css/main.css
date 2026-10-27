@@ -371,18 +371,12 @@ header {
    station NTRIP (ligne 1) puis parcelle courante + sauvegarde (ligne 2).
    Les actions thème / Bluetooth sont dans le header. */
 
-/* Icône de thème : SVG Lucide (lune / soleil) injecté par applyTheme().
-   Le centrage est porté par le conteneur, plus par la taille de police. */
-.theme-icon {
-  display:         inline-flex;
-  align-items:     center;
-  justify-content: center;
-  font-size:       18px;
-  line-height:     1;
-}
-
-.theme-icon svg {
-  display: block;
+/* Icônes SVG des boutons du header (thème, futur contenu) : le centrage est
+   porté par `.header-icon-btn` (inline-flex), l'icône n'intercepte pas le clic. */
+.header-icon-btn > svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
 }
 
 .menu-ntrip-select {

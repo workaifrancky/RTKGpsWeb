@@ -37,13 +37,13 @@ const ICON_TRASH = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
   <line x1="14" x2="14" y1="11" y2="17"/>
 </svg>`;
 
-const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
   aria-hidden="true" focusable="false">
   <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
 </svg>`;
 
-const ICON_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+const ICON_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
   aria-hidden="true" focusable="false">
   <circle cx="12" cy="12" r="4"/>
@@ -106,9 +106,9 @@ function applyTheme(theme) {
   const btn = document.getElementById('btnTheme');
   if (btn) {
     const isDark = theme === 'dark';
-    const icon = btn.querySelector('.theme-icon');
-    if (icon) icon.innerHTML = isDark ? ICON_SUN : ICON_MOON;
-    else btn.innerHTML = isDark ? ICON_SUN : ICON_MOON;
+    // Icône Lucide injectée directement dans le bouton (lune en clair,
+    // soleil en sombre) : aucun conteneur intermédiaire à maintenir.
+    btn.innerHTML = isDark ? ICON_SUN : ICON_MOON;
     const label = isDark ? 'Thème clair' : 'Thème sombre';
     btn.title = label;
     btn.setAttribute('aria-label', label);
@@ -153,7 +153,6 @@ function openHeaderMenu() {
   if (document.body && document.body.classList.contains('locked')) return;
 
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
-  if (typeof closePointsView === 'function') closePointsView(false);
 
   positionHeaderMenu();
   menu.classList.add('show');
@@ -248,7 +247,6 @@ function showTab(tabId) {
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
-  if (typeof closePointsView === 'function') closePointsView(false);
 
   // Une seule instance de carte, dans l'onglet TRACÉS.
   if (tabId === 'tab-points' && typeof mountMapForTab === 'function') {
@@ -263,6 +261,8 @@ function showTab(tabId) {
     if (typeof setCameraFullscreen === 'function') setCameraFullscreen(false);
   }
   if (tabId === 'tab-history') {
+    // L'onglet contient la section POINTS puis les parcelles / sessions.
+    if (typeof renderPointsList === 'function') renderPointsList();
     if (typeof loadHistory === 'function') loadHistory();
   }
   if (tabId === 'tab-stats') {

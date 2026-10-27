@@ -127,8 +127,9 @@ Overrides de lisibilité :
   `settings`** de 16 px + libellé « Connexion » (12 px / 800, 11 px ≤ 360 px). L'état ouvert
   est porté par `aria-expanded` ; l'emoji `⚙️` n'est pas utilisé.
 - `.header-icon-btn` : carrés de 40 px (38 px ≤ 480 px), translucides et centrés
-  (`inline-flex`). Le thème affiche `ICON_MOON` / `ICON_SUN` (injectés par `applyTheme()`), le
-  BLE `getBleIconMarkup()` (SVG + trois ondes). Couleurs d'état `#btnBle.connected` /
+  (`inline-flex`). Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans
+  `#btnTheme` par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
+  `getBleIconMarkup()` (SVG + trois ondes). Couleurs d'état `#btnBle.connected` /
   `.disconnected` dans `components.css`.
 - `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
   **hors de `.app-wrapper`** pour que leur `z-index` (3999 / 4000) passe au-dessus du
@@ -277,12 +278,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `.trace-fab-item` de 48 px avec icône et libellé. Survol vert / rouge / ambre selon le type.
 - `.trace-fab-item-icon` : conteneur de 18 px avec **SVG Lucide** — pastille pleine `<circle>`
   pour les types de tracé (couleur portée par `.tonte` / `.interdit` / `.obstacle`), et icônes
-  en trait pour les actions (`clipboard-list` pour la vue POINTS, `crosshair` pour la cible,
+  en trait pour les actions (`clock` pour l'accès à l'historique, `crosshair` pour la cible,
   `ruler` pour la mesure), toujours en `stroke: currentColor`.
 - Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
   ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
-- 4ᵉ option « Voir les points » (icône `clipboard-list`, `openPointsView()`) : elle remplace
-  l'ancien bouton `POINTS ▾` qui flottait sur la carte.
+- 4ᵉ option « Historique » (icône `clock`, `openPointsView()`) : elle ouvre l'onglet
+  HISTORIQUE sur sa section POINTS (elle remplaçait l'ancien bouton `POINTS ▾` de la carte).
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
@@ -316,12 +317,16 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
-- `#pointsViewOverlay` : panneau `.modal-overlay` ouvert par l'option « 📋 Voir les points »
-  du FAB TRACÉS, avec
-  `.points-view-box` (hauteur `88dvh` max 760 px, `display: flex` en colonne),
-  `.points-view-head` (titre + partage + « Fermer »), `.points-view-body` scrollable et
-  `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer). Les fonds/bordures
-  suivent les tokens ; les boutons de fermeture et partage ont un `focus-visible` vert.
+- **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
+  (marge basse 18 px) :
+  1. `#pointsSection` — en-tête `.points-section-head` (titre + partage `#pointsViewShare`),
+     `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
+     (plus de hauteur contrainte : c'est `.screen` qui défile) et `.points-view-actions` en
+     grille 2 × 2 (GeoJSON, CSV, GPX, Effacer) ;
+  2. liste « PARCELLES / SESSIONS » (`#historyList`).
+  L'ancien panneau `#pointsViewOverlay` (`.points-view-box`, `.points-view-head`,
+  `.points-view-title`, `.points-view-close`) a été supprimé en 3.45 ; les boutons d'action
+  conservent leur `focus-visible` vert.
 - `.btn-edit` / `.btn-del` : boutons ronds de 44 px de la liste POINTS (renommer / supprimer),
   icônes SVG Lucide crayon / corbeille (18 px, `stroke: currentColor`).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
