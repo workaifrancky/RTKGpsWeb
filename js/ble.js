@@ -117,7 +117,6 @@ function getBleIconMarkup() {
 
 function updateTerrainButtons() {
   // Les anciens boutons de la capsule ont été remplacés par le FAB.
-  // On maintient le badge GPS/manuel et l'état du FAB après une connexion.
-  if (typeof updateRecordModeBadge === 'function') updateRecordModeBadge();
+  // On maintient l'état du FAB après une connexion.
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
 }

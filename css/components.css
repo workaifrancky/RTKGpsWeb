@@ -274,6 +274,7 @@
 .trace-fab-item.obstacle:hover { background: var(--color-warning-pale); }
 .trace-fab-item.target:hover { background: var(--color-primary-pale-bg); }
 .trace-fab-item.distance:hover { background: var(--color-info-pale); }
+.trace-fab-item.points:hover { background: var(--color-info-pale); }
 .trace-fab-item-icon { font-size: 18px; line-height: 1; }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */

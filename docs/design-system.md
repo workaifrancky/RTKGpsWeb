@@ -135,7 +135,8 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.bottom-nav .tab-label` : quatre boutons de largeur égale (`flex: 1 1 0`), en colonne
   (icône 20 px au-dessus du libellé), `min-height: 52px`, libellés **visibles** à toutes les
   largeurs (12 px, 11 px ≤ 340 px), couleur inactive `--text3`, fond transparent, sans bordure
-  ni ombre.
+  ni ombre. Les icônes sont des **SVG Lucide inline** (20 px, `stroke: currentColor`) :
+  map-pin, camera, bar-chart et clock.
 - `.bottom-nav .tab-label.active` : texte/icône `--green-dark` et liseré supérieur de 34 × 3 px
   `--color-primary-accent` (`::after`) ; survol sur `--color-primary-pale-bg`.
 - `.tab-label:focus-visible` : contour 3 px `--color-primary-accent`.
@@ -212,8 +213,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
-- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets, tiroir et le bouton
-  `#btnPointsPanel` ; `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
+- `body.map-ui-fullscreen` : masque header, `#fixBar`, onglets et tiroir ;
+  `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
   height: 100dvh; z-index: 900`. Le FAB et les contrôles restent visibles ; le bouton plein
   écran devient `✕`.
 - La cible `#map-crosshair` n'est visible que lorsqu'un mode de tracé est actif
@@ -242,6 +243,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `.trace-fab-item` de 48 px avec icône et libellé. Survol vert / rouge / ambre selon le type.
 - Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
   ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
+- 4ᵉ option « 📋 Voir les points » (`openPointsView()`) : elle remplace l'ancien bouton
+  `POINTS ▾` qui flottait sur la carte.
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
@@ -250,16 +253,17 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   (`--color-primary-light`) et `.distance` (`--color-teal`). En mode actif, le clic principal
   ouvre le sélecteur de cible ou relance la mesure, « ✓ » quitte le mode et l'appui long
   rouvre le menu. Masqué hors onglet CAMÉRA par `syncCameraFabUI()`.
+  Le sélecteur de cible (`#targetSelect`) ne liste **que les points de type `obstacle`**,
+  seuls lieux physiques à rejoindre.
 - **HUD caméra** : `.camera-hud` est une surimpression absolue (`inset: 0`, `z-index: 60`,
   `pointer-events: none`) qui ne consomme aucune hauteur. Elle contient la pastille cible
   `.camera-hud-chip`, les coordonnées/réglages `.camera-hud-settings` et le bouton plein
   écran. Le conteneur vidéo occupe toute la hauteur restante (`flex: 1 1 auto`).
 
-### Badge de type
+### Indicateur de type de tracé
 
-- `.map-trace-badge` : pastille du type actif (`🟢 TONTE`, `🔴 INTERDIT`, `🟡 OBSTACLE`)
-  dans `.map-mode-bar`, masquée avec `[hidden]` quand aucun type n'est actif ; couleurs
-  adaptées en thème nuit dans `theme.css`.
+- Il n'y a plus de badge flottant ni de bandeau « MODE MANUEL » : le type actif est porté par
+  la couleur et le titre du FAB, le bouton « ✓ » et la cible `#map-crosshair`.
 
 ### Cartes et listes
 
@@ -272,7 +276,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   labels 10 px (9 px pour les secondaires).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
-- `#pointsViewOverlay` : panneau `.modal-overlay` ouvert par `#btnPointsPanel`, avec
+- `#pointsViewOverlay` : panneau `.modal-overlay` ouvert par l'option « 📋 Voir les points »
+  du FAB TRACÉS, avec
   `.points-view-box` (hauteur `88dvh` max 760 px, `display: flex` en colonne),
   `.points-view-head` (titre + partage + « Fermer »), `.points-view-body` scrollable et
   `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer). Les fonds/bordures

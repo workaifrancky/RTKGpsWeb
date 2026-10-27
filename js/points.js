@@ -82,8 +82,6 @@ function syncTraceFabUI() {
   const onTracesTab = typeof APP === 'undefined' || APP.currentTab === 'tab-points';
   const visible = hasProject && onTracesTab;
   fab.hidden = !visible;
-  const pointsToggle = document.getElementById('btnPointsPanel');
-  if (pointsToggle) pointsToggle.hidden = !visible;
   if (!visible) {
     closeTraceFabMenu();
     if (!hasProject) return;
@@ -671,8 +669,8 @@ function closePointsView(restoreFocus = true) {
   overlay.setAttribute('aria-hidden', 'true');
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (restoreFocus) {
-    const toggle = document.getElementById('btnPointsPanel');
-    if (toggle) toggle.focus({ preventScroll: true });
+    const fabMain = document.getElementById('traceFabMain');
+    if (fabMain) fabMain.focus({ preventScroll: true });
   }
 }
 

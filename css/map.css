@@ -82,8 +82,6 @@
   color:        white;
 }
 
-#tab-points.mode-lecture .map-mode-hint { visibility: hidden; }
-
 /* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
 body.map-ui-fullscreen header,
 body.map-ui-fullscreen #fixBar,
@@ -106,8 +104,6 @@ body.map-ui-fullscreen #tab-points {
 
 body.map-ui-fullscreen #map-points { height: 100%; min-height: 0; }
 body.map-ui-fullscreen .points-panel { display: none; }
-body.map-ui-fullscreen #btnPointsPanel { display: none; }
-body.map-ui-fullscreen .map-mode-hint { display: none; }
 
 /* Barre de navigation masquée : le FAB se rapproche du bord bas. */
 body.map-ui-fullscreen .trace-fab {
@@ -117,125 +113,6 @@ body.map-ui-fullscreen .trace-fab {
 /* Enveloppe de la carte : support de la cible fixe centrée */
 .map-wrapper {
   position: relative;
-}
-
-/* Bandeau de mode de tracé (GPS / Manuel) en HUD flottant sur la carte.
-   Il ne consomme plus de hauteur : la carte occupe tout l'écran. */
-.map-mode-bar {
-  position:         absolute;
-  top:              10px;
-  left:             62px;   /* à droite du contrôle zoom (10 + 44 + 8) */
-  right:            10px;
-  z-index:          1001;
-  display:          flex;
-  align-items:      center;
-  justify-content:  flex-start;
-  gap:              6px;
-  padding:          0;
-  background:       transparent;
-  border-bottom:    none;
-  pointer-events:   none;
-}
-
-.map-mode-bar > * { pointer-events: auto; }
-
-.map-mode-badge,
-.map-trace-badge,
-.map-panel-toggle {
-  box-shadow: var(--shadow-md);
-}
-
-.map-mode-hint { display: none; }
-
-.map-panel-toggle { margin-left: auto; }
-
-.map-mode-badge {
-  display:        inline-flex;
-  align-items:    center;
-  padding:        4px 10px;
-  border-radius:  999px;
-  background:     var(--color-warning-pale);
-  color:          var(--color-warning-text);
-  font-size:      12px;
-  font-weight:    800;
-  letter-spacing: 0.5px;
-  white-space:    nowrap;
-}
-
-.map-mode-badge.gps {
-  background: var(--color-primary-pale);
-  color:      var(--color-primary-deep);
-}
-
-/* Type de tracé verrouillé (tonte / interdit / obstacle). */
-.map-trace-badge {
-  display:        inline-flex;
-  align-items:    center;
-  gap:            4px;
-  padding:        4px 9px;
-  border:         1px solid var(--border);
-  border-radius:  999px;
-  background:     var(--color-bg-subtle);
-  color:          var(--text2);
-  font-size:      11px;
-  font-weight:    800;
-  white-space:    nowrap;
-}
-
-.map-trace-badge[hidden] { display: none; }
-.map-trace-badge.tonte {
-  color:        var(--color-primary);
-  border-color: var(--color-primary-light);
-}
-.map-trace-badge.interdit {
-  color:        var(--color-danger);
-  border-color: var(--color-danger-strong);
-}
-.map-trace-badge.obstacle {
-  color:        var(--color-warning-text);
-  border-color: var(--color-warning-strong);
-}
-
-.map-mode-hint {
-  font-size:      12px;
-  font-weight:    700;
-  letter-spacing: 0.3px;
-  color:          var(--text3);
-  text-align:     right;
-  margin-left:    auto;
-}
-
-/* Accès rapide à la liste des points : sans lui, la carte plein écran
-   capte la molette (zoom) et le glissement (panoramique). */
-.map-panel-toggle {
-  display:         inline-flex;
-  align-items:     center;
-  gap:             3px;
-  min-height:      44px;
-  padding:         4px 10px;
-  border:          1px solid var(--border);
-  border-radius:   999px;
-  background:      var(--color-white);
-  color:           var(--color-primary-deep);
-  font-family:     var(--font);
-  font-size:       12px;
-  font-weight:     800;
-  letter-spacing:  0.3px;
-  white-space:     nowrap;
-  cursor:          pointer;
-  transition:      var(--transition);
-}
-
-.map-panel-toggle:hover {
-  border-color: var(--color-primary);
-  color:        var(--color-primary);
-  background:   var(--color-primary-pale);
-}
-
-.map-panel-toggle[hidden] { display: none; }
-
-@media (max-width: 360px) {
-  .map-mode-hint { display: none; }
 }
 
 /* Contrôles GPS de la carte (recentrer / suivi) */
@@ -426,19 +303,6 @@ body.map-ui-fullscreen .trace-fab {
   }
 
   .map-floating-controls { top: 110px; }
-
-  /* Textes du bandeau de mode lisibles (map.css charge après main.css). */
-  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
-  .map-mode-hint    { display: none; }
-  .map-panel-toggle { font-size: 12px; }
-}
-
-/* Très petits écrans : le HUD TRACÉS reste sur une seule ligne. */
-@media (max-width: 390px) {
-  .map-mode-bar   { gap: 4px; }
-  .map-mode-badge { font-size: 11px; padding: 5px 8px; }
-  .map-trace-badge { font-size: 10px; padding: 4px 6px; }
-  .map-panel-toggle { font-size: 11px; padding: 4px 8px; }
 }
 
 /* Distances de segments des zones de tonte (leaflet-measure-path).

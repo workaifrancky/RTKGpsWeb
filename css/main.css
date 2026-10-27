@@ -742,10 +742,6 @@ header {
   .tab-text { display: none; }
   .tab-icon { font-size: 18px; line-height: 1; }
 
-  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
-  .map-mode-hint    { display: none; }
-  .map-panel-toggle { min-height: 44px; font-size: 12px; padding: 6px 12px; }
-
   /* Cibles tactiles : 44 px minimum pour tous les boutons. */
   button { min-height: 44px; }
 
@@ -759,10 +755,7 @@ header {
     height: 44px;
   }
 
-  .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
-  .map-mode-hint    { display: none; }
-  .map-panel-toggle { min-height: 44px; font-size: 12px; padding: 6px 12px; }
-
+  /* Textes lisibles (components.css charge après main.css). */
   .zone-badge,
   .point-coords,
   .point-meta,
@@ -862,6 +855,10 @@ header {
 }
 
 .tabs-wrapper.bottom-nav .tab-icon {
+  display:     block;
+  width:       20px;
+  height:      20px;
+  flex-shrink: 0;
   font-size:   20px;
   line-height: 1;
 }

@@ -635,7 +635,8 @@ function populateTargetSelect() {
   // Do not rebuild the dropdown while the user is interacting with it.
   if (isTargetSelectInteracting()) return;
 
-  const pts = getPoints();
+  // Seuls les obstacles sont des lieux physiques à rejoindre.
+  const pts = getPoints().filter(p => p.type === 'obstacle');
   const selectedId = targetPoint ? String(targetPoint.id) : '';
   const signature = `${selectedId}|${pts.map(p => `${p.id}:${p.icon}:${p.type}:${p.index}:${p.fix}`).join('|')}`;
 
@@ -644,8 +645,10 @@ function populateTargetSelect() {
   targetSelectSignature = signature;
   const previousValue = sel.value;
 
-  sel.innerHTML = '<option value="">— Sélectionnez un point cible —</option>' +
+  sel.innerHTML = '<option value="">— Sélectionnez un obstacle —</option>' +
     pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${p.icon} ${p.type} #${p.index} — ${p.fix}</option>`).join('');
+  // Hauteur compacte : une ligne de titre + un obstacle par ligne (3 à 7 max).
+  sel.size = Math.min(Math.max(pts.length + 1, 3), 7);
 
   if (!selectedId && previousValue && pts.some(p => String(p.id) === previousValue)) {
     sel.value = previousValue;
@@ -655,7 +658,7 @@ function populateTargetSelect() {
 }
 
 function selectTargetPoint(pointId) {
-  const pts = getPoints();
+  const pts = getPoints().filter(p => p.type === 'obstacle');
   targetPoint = pts.find(p => p.id === pointId) || null;
   targetSelectSignature = '';
   resetApproachFeedbackState();

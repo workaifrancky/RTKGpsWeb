@@ -82,13 +82,6 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-points" class="screen active">
     <div id="map-points" class="map-wrapper">
-      <div class="map-mode-bar">
-        <span id="recordModeBadge" class="map-mode-badge">✋ MODE MANUEL</span>
-        <span id="traceModeBadge" class="map-trace-badge" hidden aria-hidden="true"></span>
-        <span class="map-mode-hint">Cible : centre</span>
-        <button type="button" class="map-panel-toggle" id="btnPointsPanel"
-          onclick="openPointsView()" title="Ouvrir la vue des points">POINTS ▾</button>
-      </div>
       <div id="map-points-slot">
         <div id="map">
           <div id="map-crosshair" aria-hidden="true">
@@ -105,8 +98,7 @@
         </div>
 
         <!-- Contrôles de fond de carte et plein écran : dans le conteneur de
-             la carte pour être positionnés sous le zoom Leaflet (la barre de
-             mode au-dessus ne doit pas décaler leur `top`). -->
+             la carte, positionnés sous le contrôle zoom Leaflet. -->
         <div class="map-floating-controls">
           <button type="button" id="btnBaseRelief" class="map-float-btn active"
             onclick="setMapBaseLayer('relief')" title="Fond Relief" aria-label="Fond Relief">🗺</button>
@@ -141,6 +133,11 @@
             <span class="trace-fab-item-icon" aria-hidden="true">🟡</span>
             <span>Obstacle</span>
           </button>
+          <button type="button" class="trace-fab-item points" role="menuitem"
+            onclick="openPointsView()">
+            <span class="trace-fab-item-icon" aria-hidden="true">📋</span>
+            <span>Voir les points</span>
+          </button>
         </div>
 
         <button type="button" id="traceFabSecondary" class="trace-fab-secondary"
@@ -169,8 +166,8 @@
               🎯 <span id="cameraTargetLabel">—</span> <span aria-hidden="true">▾</span>
             </button>
             <div id="cameraTargetMenu" class="camera-picker-menu">
-              <select id="targetSelect" class="camera-picker-select" size="7" onchange="selectTargetPoint(parseInt(this.value, 10))">
-                <option value="">— Sélectionnez un point cible —</option>
+              <select id="targetSelect" class="camera-picker-select" size="3" onchange="selectTargetPoint(parseInt(this.value, 10))">
+                <option value="">— Sélectionnez un obstacle —</option>
               </select>
             </div>
           </div>
@@ -309,10 +306,26 @@
 <!-- NAVIGATION BASSE                                            -->
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div id="bottomNav" class="tabs-wrapper bottom-nav" role="navigation" aria-label="Navigation principale">
-  <button type="button" class="tab-label active" data-tab="tab-points" title="TRACÉS" aria-label="TRACÉS" aria-current="page" onclick="showTab('tab-points')"><span class="tab-icon" aria-hidden="true">📍</span><span class="tab-text">TRACÉS</span></button>
-  <button type="button" class="tab-label" data-tab="tab-camera" title="CAMÉRA" aria-label="CAMÉRA" onclick="showTab('tab-camera')"><span class="tab-icon" aria-hidden="true">📷</span><span class="tab-text">CAMÉRA</span></button>
-  <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ" aria-label="RELEVÉ" onclick="showTab('tab-stats')"><span class="tab-icon" aria-hidden="true">📊</span><span class="tab-text">RELEVÉ</span></button>
-  <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE" aria-label="HISTORIQUE" onclick="showTab('tab-history')"><span class="tab-icon" aria-hidden="true">🕐</span><span class="tab-text">HISTORIQUE</span></button>
+  <button type="button" class="tab-label active" data-tab="tab-points" title="TRACÉS"
+    aria-label="TRACÉS" aria-current="page" onclick="showTab('tab-points')">
+    <svg class="tab-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span class="tab-text">TRACÉS</span>
+  </button>
+  <button type="button" class="tab-label" data-tab="tab-camera" title="CAMÉRA"
+    aria-label="CAMÉRA" onclick="showTab('tab-camera')">
+    <svg class="tab-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+    <span class="tab-text">CAMÉRA</span>
+  </button>
+  <button type="button" class="tab-label" data-tab="tab-stats" title="RELEVÉ"
+    aria-label="RELEVÉ" onclick="showTab('tab-stats')">
+    <svg class="tab-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    <span class="tab-text">RELEVÉ</span>
+  </button>
+  <button type="button" class="tab-label" data-tab="tab-history" title="HISTORIQUE"
+    aria-label="HISTORIQUE" onclick="showTab('tab-history')">
+    <svg class="tab-icon" aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span class="tab-text">HISTORIQUE</span>
+  </button>
 </div>
   <!-- ═══════════════════════════════════════════════════════════ -->
   <!-- VERROUILLAGE ÉCRAN                                          -->

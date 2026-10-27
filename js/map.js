@@ -430,7 +430,6 @@ function updateLivePosition(data) {
   else livePolyline = L.polyline(liveTrail,{color:COLORS.live,weight:2,opacity:0.5}).addTo(map);
 
   if (followGps) map.panTo(pos, { animate: false });
-  updateRecordModeBadge();
 }
 
 // ─── CIBLE, MODE GPS / MANUEL ET SUIVI ──────────────────────
@@ -482,7 +481,6 @@ function centerMapOnGps() {
   }
 
   map.setView([pos.lat, pos.lon], map.getZoom(), { animate: false });
-  updateRecordModeBadge();
 }
 
 function toggleGpsFollow() {
@@ -578,7 +576,6 @@ function mountMapForTab(tabId) {
     if (tabId === 'tab-points') {
       renderMap();
       syncTracesModeUI();
-      updateRecordModeBadge();
       if (followGps && getGpsPositionForMap()) centerMapOnGps();
     }
   }, 60);
@@ -641,38 +638,8 @@ function exitMapFullscreen() {
   if (mapUiFullscreen) setMapFullscreen(false);
 }
 
-// Badge de mode : GPS dès qu'une position RTK valide est disponible,
-// sinon mode manuel (cible au centre de la carte).
-function updateRecordModeBadge() {
-  const badge = document.getElementById('recordModeBadge');
-  if (!badge) return;
-
-  const gpsMode = typeof APP !== 'undefined' && APP.bleConnected
-    && typeof isPositionValid === 'function' && isPositionValid(lastGpsData);
-
-  badge.textContent = gpsMode ? '🛰 MODE GPS' : '✋ MODE MANUEL';
-  badge.classList.toggle('gps', gpsMode);
-}
-
-// Type de tracé actif : badge dédié + anneau sur le bouton correspondant.
+// Type de tracé actif : la couleur et le titre du FAB suffisent désormais.
 function updateTraceTypeUI() {
-  if (typeof APP === 'undefined') return;
-  const type = APP.currentTraceMode || null;
-  const meta = {
-    tonte:    { icon:'🟢', label:'TONTE' },
-    interdit: { icon:'🔴', label:'INTERDIT' },
-    obstacle: { icon:'🟡', label:'OBSTACLE' },
-  };
-  const info = meta[type] || null;
-
-  const badge = document.getElementById('traceModeBadge');
-  if (badge) {
-    badge.hidden = !info;
-    badge.textContent = info ? `${info.icon} ${info.label}` : '';
-    badge.className = 'map-trace-badge' + (info ? ` ${type}` : '');
-    badge.setAttribute('aria-hidden', info ? 'false' : 'true');
-  }
-
   syncCrosshairVisibility(typeof APP !== 'undefined' ? APP.currentTab : 'tab-points');
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
 }

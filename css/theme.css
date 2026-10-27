@@ -22,20 +22,6 @@
   background:   var(--color-bg-subtle);
 }
 
-/* Badges de type de tracé lisibles sur fond sombre. */
-[data-theme="dark"] .map-trace-badge.tonte {
-  color:        var(--color-primary-accent);
-  border-color: var(--color-primary-accent);
-}
-[data-theme="dark"] .map-trace-badge.interdit {
-  color:        var(--color-danger-strong);
-  border-color: var(--color-danger-strong);
-}
-[data-theme="dark"] .map-trace-badge.obstacle {
-  color:        var(--color-warning-strong);
-  border-color: var(--color-warning-strong);
-}
-
 /* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
    sombre et --green-dark (#052e16) y serait illisible. Les pills inactives
    passent donc en texte vert clair, et la pill active en fond vert clair avec
@@ -92,26 +78,6 @@
   box-shadow:   none;
   color:        var(--color-primary-accent);
   opacity:      1;
-}
-
-/* Lisibilité en thème nuit des contrôles du bandeau de mode. */
-[data-theme="dark"] .map-mode-badge {
-  background:   transparent;
-  border:       1px solid var(--color-warning-strong);
-  color:        var(--color-warning-strong);
-}
-
-/* Bouton « POINTS » du bandeau de mode (carte TRACÉS) */
-[data-theme="dark"] .map-panel-toggle {
-  background:   var(--color-white);
-  border-color: var(--border2);
-  color:        var(--color-primary-accent);
-}
-
-[data-theme="dark"] .map-panel-toggle:hover {
-  background:   var(--color-bg-muted);
-  border-color: var(--color-primary-accent);
-  color:        var(--color-primary-accent);
 }
 
 [data-theme="dark"] .data-card,

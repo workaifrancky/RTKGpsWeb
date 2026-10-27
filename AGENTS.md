@@ -178,11 +178,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
   `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
   `version_app` / `source` ajoutées à **toutes** les features.
-- **Vue POINTS** : `#btnPointsPanel` ouvre `#pointsViewOverlay` (`openPointsView()`,
-  `closePointsView()`, `togglePointsView()` dans `js/points.js`) au lieu de faire défiler
-  la page. Le panneau contient `#pointsList`, `#zoneBadge`, le compteur, les exports
-  GeoJSON/CSV/GPX, le partage et « Effacer ». Il se ferme par « Fermer », au clic sur le
-  voile, avec Échap et au changement d'onglet. `scrollToPointsPanel()` reste un alias.
+- **Vue POINTS** : l'option « 📋 Voir les points » du menu FAB TRACÉS ouvre
+  `#pointsViewOverlay` (`openPointsView()`, `closePointsView()`, `togglePointsView()` dans
+  `js/points.js`) au lieu de faire défiler la page. Le panneau contient `#pointsList`,
+  `#zoneBadge`, le compteur, les exports GeoJSON/CSV/GPX, le partage et « Effacer ». Il se
+  ferme par « Fermer », au clic sur le voile, avec Échap et au changement d'onglet ; le focus
+  revient alors au FAB. `scrollToPointsPanel()` reste un alias.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
@@ -203,8 +204,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
   `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
   Le header (`#btnProjectDrawer`) permet de choisir ou créer une parcelle. Tant qu'aucune
-  parcelle n'est sélectionnée, `#traceFab` et `#btnPointsPanel` restent masqués et la carte
-  est vide.
+  parcelle n'est sélectionnée, `#traceFab` reste masqué et la carte est vide.
 - **Modes lecture / création** : `APP.tracesMode` reste un état interne (`lecture` au
   chargement, `creation` pendant un tracé). Il n'y a plus de bouton `#btnTracesMode` :
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
@@ -212,18 +212,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
 - **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, centré en
   bas à 80 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
-  `#traceFabMenu` (tonte / interdit / obstacle) ; `beginTraceMode()` fixe
-  `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute un point
-  (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
+  `#traceFabMenu` (tonte / interdit / obstacle / « 📋 Voir les points ») ;
+  `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute
+  un point (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
   `#traceFabSecondary` (« ✓ ») termine la zone : sous 3 points, `customConfirm()` demande
   « Zone incomplète (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur
   « ✓ » rouvre le menu. Après un obstacle, le FAB redevient neutre et le mode est remis à
-  `null`. `#traceModeBadge` indique le type actif.
+  `null`. Le type actif est indiqué par la couleur/titre du FAB et la cible `#map-crosshair`
+  (plus de badge flottant).
 - **Toasts de création** : `recordTonte()`, `recordInterdit()` et `recordObstacle()`
   n'affichent plus de toast de succès ; seules les erreurs (position indisponible, mode
   lecture, stockage) et les actions de gestion (suppression, renommage…) en produisent.
 - **Plein écran carte** : `toggleMapFullscreen()` / `exitMapFullscreen()` (`js/map.js`),
-  classe `body.map-ui-fullscreen` (header, onglets, tiroir et bouton POINTS masqués ;
+  classe `body.map-ui-fullscreen` (header, onglets et tiroir masqués ;
   `#tab-points` fixé plein écran). Fermeture au changement d'onglet.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
@@ -581,6 +582,15 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   secondaire « ✓ » pour quitter et appui long pour rouvrir le menu. `cameraMode` démarre à
   `null`. Le plein écran caméra masque header + barre GPS comme la carte et rapproche le FAB
   du bord bas (24 px) ; `syncCameraFabUI()` est appelée par `showTab()`.
+
+- **3.38 — Nettoyage IHM (cibles obstacles, carte plein cadre, FAB, SVG)** : le sélecteur de
+  cible CAMÉRA ne liste plus que les points `obstacle` (`populateTargetSelect()`) et adapte sa
+  hauteur au nombre d'obstacles (3 à 7 lignes). Le bandeau `.map-mode-bar` (MODE MANUEL /
+  Cible : centre / POINTS) est supprimé, ainsi que le code mort `recordModeBadge`,
+  `traceModeBadge` et `updateRecordModeBadge()`. Le bouton POINTS devient la 4ᵉ option
+  « 📋 Voir les points » du menu FAB TRACÉS (`openPointsView()`) ; à la fermeture de la vue,
+  le focus revient au FAB. La navigation basse utilise des **SVG Lucide inline** (map-pin,
+  camera, bar-chart, clock) en `currentColor`, avec les libellés conservés.
 
 ## 9. Langue et communication
 
