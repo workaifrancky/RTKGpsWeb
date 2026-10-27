@@ -77,6 +77,7 @@ function showTab(tabId) {
   if (typeof exitMapFullscreen === 'function') exitMapFullscreen();
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+  if (typeof syncCameraFabUI === 'function') syncCameraFabUI();
   if (typeof closeExportMenu === 'function') closeExportMenu();
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeObstacleMenu === 'function') closeObstacleMenu();

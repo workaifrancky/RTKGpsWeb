@@ -196,7 +196,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
 | ≥ 481 px | Header sur deux lignes (logo + actions, puis parcelle), onglets avec libellés, FAB 56 px. |
-| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
+| ≤ 480 px | Header compact sur une ligne : logo 14 px sans « v2 », thème, BLE en icône seule (`.ble-icon-container`, `.ble-label` masqué), bouton parcelle (libellé « Parcelle : » masqué, nom dans le `title`). **Barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
 | ≤ 360 px | Logo 13 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. Parcelle sur sa propre ligne si nécessaire (320 px). |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
@@ -222,7 +222,7 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   « 🗑 » (`renameZone()`, `deleteZone()`) ; le nom personnalisé est affiché par
   `getZoneDisplayName()` (stocké dans `project.zoneNames`).
 
-### FAB de tracé
+### FAB de tracé et FAB caméra
 
 - `.trace-fab` : conteneur **`position: fixed`**, centré en bas (`left: 50%`,
   `transform: translateX(-50%)`, `bottom: calc(80px + env(safe-area-inset-bottom, 0px))`,
@@ -245,6 +245,15 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
+- **FAB CAMÉRA** (`#cameraFab`, même composant `.trace-fab`) : menu « 🎯 Rejoindre un point »
+  / « 📏 Mesurer une distance », variantes `.trace-fab-main.target`
+  (`--color-primary-light`) et `.distance` (`--color-teal`). En mode actif, le clic principal
+  ouvre le sélecteur de cible ou relance la mesure, « ✓ » quitte le mode et l'appui long
+  rouvre le menu. Masqué hors onglet CAMÉRA par `syncCameraFabUI()`.
+- **HUD caméra** : `.camera-hud` est une surimpression absolue (`inset: 0`, `z-index: 60`,
+  `pointer-events: none`) qui ne consomme aucune hauteur. Elle contient la pastille cible
+  `.camera-hud-chip`, les coordonnées/réglages `.camera-hud-settings` et le bouton plein
+  écran. Le conteneur vidéo occupe toute la hauteur restante (`flex: 1 1 auto`).
 
 ### Badge de type
 

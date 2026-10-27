@@ -6,7 +6,7 @@
 let cameraStream = null;
 let currentPos = null;
 let targetPoint = null;
-let cameraMode = 'target';
+let cameraMode = null;
 let compassHeading = null;
 let compassPermissionState = 'unknown';
 let compassReady = false;
@@ -15,6 +15,7 @@ let targetSelectSignature = '';
 let targetSelectLocked = false;
 let cameraSelectListenersBound = false;
 let cameraPickerListenersBound = false;
+let cameraFabListenersBound = false;
 let cameraFullscreenListenersBound = false;
 let cameraUiFullscreen = false;
 let gpsFrameLastTimestampMs = null;
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
+  initCameraFab();
 });
 
 function bindTargetSelectStabilityHandlers() {
@@ -106,10 +108,166 @@ function toggleCameraTargetMenu() {
   menu.classList.toggle('show', willShow);
 
   if (willShow) {
+    closeCameraFabMenu();
     populateTargetSelect();
     const sel = document.getElementById('targetSelect');
     if (sel) sel.focus();
   }
+}
+
+// ─── FAB CAMÉRA (composant partagé avec TRACÉS) ─────────────
+// Même gestuelle : neutre = menu, coloré = action du mode, « ✓ » = quitter,
+// appui long = rouvrir le menu. Aucun contrôle ne consomme de hauteur.
+const CAMERA_MODE_LABELS = {
+  target:   'Rejoindre un point',
+  distance: 'Mesurer une distance',
+};
+
+function syncCameraFabUI() {
+  const fab = document.getElementById('cameraFab');
+  if (!fab) return;
+
+  const onCameraTab = typeof APP !== 'undefined' && APP.currentTab === 'tab-camera';
+  fab.hidden = !onCameraTab;
+  if (!onCameraTab) {
+    closeCameraFabMenu();
+    return;
+  }
+
+  const main = document.getElementById('cameraFabMain');
+  const secondary = document.getElementById('cameraFabSecondary');
+
+  if (main) {
+    main.className = `trace-fab-main ${cameraMode || 'neutral'}`;
+    main.textContent = cameraMode === 'target' ? '🎯' : cameraMode === 'distance' ? '📏' : '＋';
+    main.title = cameraMode
+      ? `${CAMERA_MODE_LABELS[cameraMode]} (appui long : menu)`
+      : 'Choisir un mode caméra';
+    main.setAttribute('aria-label', main.title);
+  }
+
+  if (secondary) {
+    secondary.hidden = !cameraMode;
+    secondary.title = 'Quitter le mode caméra (appui long : menu)';
+    secondary.setAttribute('aria-label', 'Quitter le mode caméra');
+  }
+}
+
+function openCameraFabMenu() {
+  const menu = document.getElementById('cameraFabMenu');
+  const main = document.getElementById('cameraFabMain');
+  if (!menu) return;
+  closeCameraMenus();
+  menu.classList.add('show');
+  menu.setAttribute('aria-hidden', 'false');
+  if (main) main.setAttribute('aria-expanded', 'true');
+}
+
+function closeCameraFabMenu() {
+  const menu = document.getElementById('cameraFabMenu');
+  const main = document.getElementById('cameraFabMain');
+  if (menu) {
+    menu.classList.remove('show');
+    menu.setAttribute('aria-hidden', 'true');
+  }
+  if (main) main.setAttribute('aria-expanded', 'false');
+}
+
+function toggleCameraFabMenu() {
+  const menu = document.getElementById('cameraFabMenu');
+  if (!menu) return;
+  if (menu.classList.contains('show')) closeCameraFabMenu();
+  else openCameraFabMenu();
+}
+
+function chooseCameraMode(mode) {
+  setMode(mode);
+}
+
+function exitCameraMode() {
+  if (!cameraMode) return;
+  cameraMode = null;
+  resetApproachFeedbackState();
+  closeCameraFabMenu();
+  closeCameraMenus();
+  refreshCameraModeUI();
+  updateCameraOverlay();
+}
+
+function onCameraFabMainClick() {
+  const menu = document.getElementById('cameraFabMenu');
+  if (menu && menu.classList.contains('show')) {
+    closeCameraFabMenu();
+    return;
+  }
+
+  if (!cameraMode) {
+    openCameraFabMenu();
+    return;
+  }
+
+  if (cameraMode === 'target') {
+    closeCameraMenus();
+    toggleCameraTargetMenu();
+    return;
+  }
+
+  if (cameraMode === 'distance') restartDistanceMeasurement();
+}
+
+function initCameraFab() {
+  if (cameraFabListenersBound) return;
+  const main = document.getElementById('cameraFabMain');
+  const secondary = document.getElementById('cameraFabSecondary');
+  if (!main || !secondary) return;
+  cameraFabListenersBound = true;
+
+  const bindLongPress = (el, longAction, clickAction) => {
+    let timer = null;
+    let longFired = false;
+
+    const clear = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    el.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      longFired = false;
+      clear();
+      timer = setTimeout(() => {
+        timer = null;
+        longFired = true;
+        longAction();
+      }, 550);
+    });
+
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
+      el.addEventListener(evt, clear);
+    });
+
+    el.addEventListener('click', event => {
+      if (longFired) {
+        longFired = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      clickAction();
+    });
+  };
+
+  bindLongPress(main, openCameraFabMenu, onCameraFabMainClick);
+  bindLongPress(secondary, openCameraFabMenu, exitCameraMode);
+
+  document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    if (!event.target.closest('#cameraFab')) closeCameraFabMenu();
+  });
+
+  syncCameraFabUI();
 }
 
 function setCameraFullscreen(enabled) {
@@ -140,12 +298,9 @@ function syncCameraFullscreenForTab() {
 }
 
 function updateCameraFullscreenOffset() {
-  const header = document.querySelector('header');
-  const fixBar = document.getElementById('fixBar');
-  const headerHeight = header ? header.offsetHeight : 0;
-  const fixHeight = fixBar ? fixBar.offsetHeight : 0;
-  const offset = headerHeight + fixHeight;
-  document.documentElement.style.setProperty('--camera-fs-top-offset', `${offset}px`);
+  // Le plein écran caméra masque aussi le header et la barre GPS : la
+  // caméra démarre donc tout en haut de la fenêtre (comme la carte).
+  document.documentElement.style.setProperty('--camera-fs-top-offset', '0px');
 }
 
 function bindCameraFullscreenResizeHandler() {
@@ -169,10 +324,12 @@ async function startCamera() {
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
   bindCameraFullscreenResizeHandler();
+  initCameraFab();
   populateTargetSelect();
   updateCameraPickerLabels();
   refreshCameraModeUI();
   syncCameraFullscreenForTab();
+  syncCameraFabUI();
 
   if (cameraStream) {
     updateCameraOverlay();
@@ -194,6 +351,7 @@ async function startCamera() {
 
 function stopCamera() {
   closeCameraMenus();
+  closeCameraFabMenu();
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
@@ -277,6 +435,8 @@ function getCameraSceneTransform(baseTilt) {
 function setMode(mode) {
   cameraMode = mode === 'distance' ? 'distance' : 'target';
   resetApproachFeedbackState();
+  closeCameraFabMenu();
+  if (cameraMode !== 'target') closeCameraMenus();
 
   if (cameraMode === 'distance') {
     startDistanceMeasurement();
@@ -287,18 +447,16 @@ function setMode(mode) {
 }
 
 function refreshCameraModeUI() {
-  const targetBtn = document.getElementById('btnCameraTargetMode');
-  const distanceBtn = document.getElementById('btnCameraDistanceMode');
   const targetCard = document.getElementById('cameraTargetCard');
   const settingsCard = document.getElementById('cameraModeSettings');
 
-  if (targetBtn) targetBtn.classList.toggle('active', cameraMode === 'target');
-  if (distanceBtn) distanceBtn.classList.toggle('active', cameraMode === 'distance');
-  if (targetCard) targetCard.style.display = 'block';
-  if (settingsCard) settingsCard.style.display = 'block';
+  // La cible n'est utile qu'en mode « Rejoindre un point ».
+  if (targetCard) targetCard.hidden = cameraMode !== 'target';
+  if (settingsCard) settingsCard.hidden = false;
 
   updateCameraPickerLabels();
   renderCameraModeSettings();
+  syncCameraFabUI();
 }
 
 function renderCameraModeSettings() {
@@ -307,10 +465,9 @@ function renderCameraModeSettings() {
 
   const compactCompassRow = getCompassAndCoordsRowHtml();
 
-  if (cameraMode === 'target') {
-    container.innerHTML = `
-      ${compactCompassRow}
-    `;
+  // Mode inactif ou guidage : le HUD n'affiche que boussole + coordonnées.
+  if (!cameraMode || cameraMode === 'target') {
+    container.innerHTML = compactCompassRow;
     return;
   }
 
@@ -572,6 +729,11 @@ function updateCameraOverlay() {
 
   if (!currentPos || !currentPos.lat || !currentPos.lon) {
     overlay.innerHTML = '<div class="cam-message">En attente du signal GPS...</div>';
+    return;
+  }
+
+  if (!cameraMode) {
+    overlay.innerHTML = '<div class="cam-message">Choisissez un mode avec le bouton ＋<br>🎯 Rejoindre un point · 📏 Mesurer une distance</div>';
     return;
   }
 

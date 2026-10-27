@@ -162,26 +162,6 @@
 [data-theme="dark"] .stat-value { color: #4ade80; }
 
 /* ─── CAMÉRA ────────────────────────────────────────────────── */
-.camera-mode-bar {
-  display:       flex;
-  gap:           8px;
-  padding:       12px 12px 0;
-  flex-wrap:     wrap;
-}
-
-.camera-top {
-  display:       flex;
-  flex-direction: column;
-  gap:           10px;
-  padding:       10px 10px 0;
-}
-
-.camera-pickers-row {
-  display:        grid;
-  grid-template-columns: 1fr;
-  gap:            8px;
-}
-
 .camera-picker-card {
   position: relative;
   padding:  8px;
@@ -248,10 +228,106 @@
 .camera-container {
   position:      relative;
   width:         100%;
-  height:        calc(100dvh - 240px);
-  min-height:    420px;
+  flex:          1 1 auto;
+  height:        auto;      /* remplit toute la hauteur de l'onglet */
+  min-height:    0;
   background:    #000;
   overflow:      hidden;
+}
+
+/* ─── HUD CAMÉRA (surimpression, sans consommation de hauteur) ─ */
+.camera-hud {
+  position:        absolute;
+  inset:           0;
+  z-index:         60;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     flex-start;
+  gap:             8px;
+  padding:         10px;
+  pointer-events:  none;
+}
+
+.camera-hud-top {
+  display:         flex;
+  align-items:     flex-start;
+  justify-content: space-between;
+  gap:             8px;
+  width:           100%;
+  pointer-events:  none;
+}
+
+.camera-hud-card {
+  position:      relative;
+  max-width:     100%;
+  min-width:     0;
+  padding:       0;
+  border:        none;
+  background:    transparent;
+  box-shadow:    none;
+  pointer-events: auto;
+}
+
+.camera-hud-card[hidden] { display: none !important; }
+
+.camera-hud-chip {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             6px;
+  max-width:       100%;
+  min-height:      44px;
+  padding:         8px 14px;
+  border:          1px solid rgba(255,255,255,0.45);
+  border-radius:   999px;
+  background:      rgba(0,0,0,0.5);
+  color:           #fff;
+  font-family:     var(--font);
+  font-size:       12px;
+  font-weight:     800;
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+  cursor:          pointer;
+  backdrop-filter: blur(4px);
+}
+
+.camera-hud-chip:hover { background: rgba(0,0,0,0.68); }
+
+.camera-hud-chip #cameraTargetLabel {
+  max-width:     150px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.camera-hud .camera-picker-menu {
+  left:  0;
+  right: auto;
+  width: min(320px, calc(100vw - 40px));
+  z-index: 80;
+}
+
+.camera-hud-settings {
+  width:         min(320px, 100%);
+  padding:       8px;
+  border:        none;
+  background:    rgba(0,0,0,0.42);
+  color:         #fff;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+}
+
+.camera-hud-settings .card-key {
+  color: rgba(255,255,255,0.72);
+}
+
+.camera-hud-settings .camera-target-line {
+  color: rgba(255,255,255,0.85);
+}
+
+.camera-hud-settings .btn-map-tool {
+  border-color: rgba(255,255,255,0.4);
+  background:   rgba(255,255,255,0.14);
+  color:        #fff;
 }
 
 #tab-camera {
@@ -268,12 +344,11 @@
 }
 
 .camera-fullscreen-btn {
-  position:       absolute;
-  top:            10px;
-  right:          10px;
-  z-index:        50;
+  flex:           0 0 auto;
+  margin-left:    auto;
   width:          42px;
   height:         42px;
+  padding:        0;
   border-radius:  50%;
   border:         2px solid rgba(255,255,255,0.65);
   background:     rgba(0,0,0,0.45);
@@ -281,6 +356,7 @@
   font-size:      20px;
   font-weight:    800;
   cursor:         pointer;
+  pointer-events: auto;
   backdrop-filter: blur(3px);
 }
 
@@ -288,6 +364,8 @@
   background: rgba(0,0,0,0.65);
 }
 
+body.camera-ui-fullscreen header,
+body.camera-ui-fullscreen #fixBar,
 body.camera-ui-fullscreen #projectDrawer,
 body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
@@ -311,38 +389,15 @@ body.camera-ui-fullscreen #tab-camera {
   background: #000;
 }
 
-body.camera-ui-fullscreen #tab-camera .camera-top {
-  display: none;
-}
-
-body.camera-ui-fullscreen #tab-camera .camera-mode-bar {
-  position:       absolute;
-  top:            10px;
-  left:           10px;
-  right:          62px;
-  z-index:        520;
-  display:        flex;
-  padding:        6px;
-  border-radius:  12px;
-  background:     rgba(0,0,0,0.42);
-  backdrop-filter: blur(4px);
-}
-
-body.camera-ui-fullscreen #tab-camera .camera-mode-bar .btn-map-tool {
-  border-color: rgba(255,255,255,0.45);
-  background:   rgba(0,0,0,0.35);
-  color:        #fff;
-}
-
-body.camera-ui-fullscreen #tab-camera .camera-mode-bar .btn-map-tool.active {
-  background:   rgba(22,163,74,0.92);
-  border-color: rgba(74,222,128,0.95);
-  color:        #fff;
-}
-
+/* Plein écran : la caméra occupe toute la fenêtre (header et barre GPS
+   masqués, comme pour la carte). Le HUD et le FAB restent accessibles. */
 body.camera-ui-fullscreen #tab-camera .camera-container {
   height:     100%;
   min-height: 100%;
+}
+
+body.camera-ui-fullscreen .camera-fab {
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 #cameraVideo {
@@ -354,6 +409,7 @@ body.camera-ui-fullscreen #tab-camera .camera-container {
 #cameraOverlay {
   position:       absolute;
   inset:          0;
+  z-index:        10;
   pointer-events: none;
   display:        flex;
   align-items:    center;
@@ -755,7 +811,6 @@ button.cam-compass-inline {
 
 /* ─── RESPONSIVE ────────────────────────────────────────────── */
 @media (max-width: 360px) {
-  .camera-pickers-row { grid-template-columns: 1fr; }
   .cam-arrow-target { width: 28px; height: 86px; }
   .cam-arrow-target .cam-arrow-head { border-left-width: 10px; border-right-width: 10px; border-bottom-width: 14px; }
   .cam-arrow-target .cam-arrow-shaft { width: 5px; height: 64px; }

@@ -109,22 +109,45 @@ body.map-ui-fullscreen .points-panel { display: none; }
 body.map-ui-fullscreen #btnPointsPanel { display: none; }
 body.map-ui-fullscreen .map-mode-hint { display: none; }
 
+/* Barre de navigation masquée : le FAB se rapproche du bord bas. */
+body.map-ui-fullscreen .trace-fab {
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
 /* Enveloppe de la carte : support de la cible fixe centrée */
 .map-wrapper {
   position: relative;
 }
 
-/* Bandeau de mode de tracé (GPS / Manuel) au-dessus de la carte TRACÉS */
+/* Bandeau de mode de tracé (GPS / Manuel) en HUD flottant sur la carte.
+   Il ne consomme plus de hauteur : la carte occupe tout l'écran. */
 .map-mode-bar {
-  flex:            0 0 auto;
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  gap:             8px;
-  padding:         8px 12px;
-  background:      var(--color-bg-muted);
-  border-bottom:   1px solid var(--border);
+  position:         absolute;
+  top:              10px;
+  left:             62px;   /* à droite du contrôle zoom (10 + 44 + 8) */
+  right:            10px;
+  z-index:          1001;
+  display:          flex;
+  align-items:      center;
+  justify-content:  flex-start;
+  gap:              6px;
+  padding:          0;
+  background:       transparent;
+  border-bottom:    none;
+  pointer-events:   none;
 }
+
+.map-mode-bar > * { pointer-events: auto; }
+
+.map-mode-badge,
+.map-trace-badge,
+.map-panel-toggle {
+  box-shadow: var(--shadow-md);
+}
+
+.map-mode-hint { display: none; }
+
+.map-panel-toggle { margin-left: auto; }
 
 .map-mode-badge {
   display:        inline-flex;
@@ -408,6 +431,14 @@ body.map-ui-fullscreen .map-mode-hint { display: none; }
   .map-mode-badge   { font-size: 12px; padding: 6px 12px; }
   .map-mode-hint    { display: none; }
   .map-panel-toggle { font-size: 12px; }
+}
+
+/* Très petits écrans : le HUD TRACÉS reste sur une seule ligne. */
+@media (max-width: 390px) {
+  .map-mode-bar   { gap: 4px; }
+  .map-mode-badge { font-size: 11px; padding: 5px 8px; }
+  .map-trace-badge { font-size: 10px; padding: 4px 6px; }
+  .map-panel-toggle { font-size: 11px; padding: 4px 8px; }
 }
 
 /* Distances de segments des zones de tonte (leaflet-measure-path).

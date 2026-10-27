@@ -28,7 +28,15 @@
         <button type="button" id="btnTheme" onclick="toggleTheme()" title="Thème" aria-label="Changer de thème">🌙</button>
         <button id="btnBle" class="disconnected" onclick="toggleBle()" title="Connecter le module BLE"
           aria-label="Connecter le module BLE">
-          <span class="ble-icon" aria-hidden="true"><span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-icon-tails"></span></span><span class="ble-label">CONNECTER BLE</span>
+          <div class="ble-icon-container" aria-hidden="true">
+            <div class="ble-waves"></div>
+            <div class="ble-waves"></div>
+            <div class="ble-waves"></div>
+            <svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m7 7 10 10-5 5V2l5 5L7 17"/>
+            </svg>
+          </div>
+          <span class="ble-label">CONNECTER BLE</span>
         </button>
       </div>
     </div>
@@ -149,29 +157,52 @@
   <!-- ONGLET 4 : CAMÉRA                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <div id="tab-camera" class="screen">
-    <div class="camera-mode-bar">
-      <button id="btnCameraTargetMode" class="btn-map-tool active" onclick="setMode('target')">🎯 Rejoindre un point</button>
-      <button id="btnCameraDistanceMode" class="btn-map-tool" onclick="setMode('distance')">📏 Mesurer une distance</button>
-    </div>
-    <div class="camera-top">
-      <div class="camera-pickers-row">
-        <div class="camera-card camera-picker-card" id="cameraTargetCard">
-          <button id="btnCameraTargetPicker" class="btn-map-tool camera-picker-btn" onclick="toggleCameraTargetMenu()">🎯 Point cible: <span id="cameraTargetLabel">—</span></button>
-          <div id="cameraTargetMenu" class="camera-picker-menu">
-            <select id="targetSelect" class="camera-picker-select" size="7" onchange="selectTargetPoint(parseInt(this.value, 10))">
-              <option value="">— Sélectionnez un point cible —</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="camera-card" id="cameraModeSettings"></div>
-    </div>
     <div class="camera-container">
-      <button id="btnCameraFullscreen" class="camera-fullscreen-btn" onclick="toggleCameraFullscreen()" title="Basculer plein écran">⛶</button>
       <video id="cameraVideo" autoplay playsinline muted></video>
+
+      <!-- HUD flottant : cible, coordonnées et réglages du mode.
+           Il ne consomme aucune hauteur : la caméra occupe tout l'écran. -->
+      <div class="camera-hud">
+        <div class="camera-hud-top">
+          <div class="camera-card camera-picker-card camera-hud-card" id="cameraTargetCard" hidden>
+            <button id="btnCameraTargetPicker" class="camera-picker-btn camera-hud-chip" onclick="toggleCameraTargetMenu()">
+              🎯 <span id="cameraTargetLabel">—</span> <span aria-hidden="true">▾</span>
+            </button>
+            <div id="cameraTargetMenu" class="camera-picker-menu">
+              <select id="targetSelect" class="camera-picker-select" size="7" onchange="selectTargetPoint(parseInt(this.value, 10))">
+                <option value="">— Sélectionnez un point cible —</option>
+              </select>
+            </div>
+          </div>
+          <button id="btnCameraFullscreen" class="camera-fullscreen-btn" onclick="toggleCameraFullscreen()" title="Basculer plein écran">⛶</button>
+        </div>
+        <div class="camera-card camera-hud-settings" id="cameraModeSettings"></div>
+      </div>
+
       <div id="cameraOverlay">
         <div class="cam-message">Sélectionnez un point cible<br>puis activez l'onglet CAMÉRA</div>
       </div>
+    </div>
+
+    <!-- FAB unique CAMÉRA : même composant et même gestuelle que TRACÉS. -->
+    <div id="cameraFab" class="trace-fab camera-fab" hidden>
+      <div id="cameraFabMenu" class="trace-fab-menu" role="menu" aria-hidden="true">
+        <button type="button" class="trace-fab-item target" role="menuitem"
+          onclick="chooseCameraMode('target')">
+          <span class="trace-fab-item-icon" aria-hidden="true">🎯</span>
+          <span>Rejoindre un point</span>
+        </button>
+        <button type="button" class="trace-fab-item distance" role="menuitem"
+          onclick="chooseCameraMode('distance')">
+          <span class="trace-fab-item-icon" aria-hidden="true">📏</span>
+          <span>Mesurer une distance</span>
+        </button>
+      </div>
+      <button type="button" id="cameraFabSecondary" class="trace-fab-secondary"
+        hidden title="Quitter le mode (appui long : menu)" aria-label="Quitter le mode">✓</button>
+      <button type="button" id="cameraFabMain" class="trace-fab-main neutral"
+        aria-haspopup="menu" aria-expanded="false"
+        title="Choisir un mode caméra" aria-label="Choisir un mode caméra">＋</button>
     </div>
   </div>
 

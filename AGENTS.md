@@ -570,6 +570,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   header « Aucune », tiroir vide, FAB masqué et carte vidée. Le bouton 🗑 reste actif et
   indique « Supprimer la parcelle (même la dernière) ».
 
+- **3.37 — Icône BLE SVG et FAB unifiés (TRACÉS / CAMÉRA)** : l'icône Bluetooth est un SVG
+  Lucide (`m7 7 10 10-5 5V2l5 5L7 17`) dans `.ble-icon-container`, entouré de trois
+  `.ble-waves` animées ; état bleu `--color-ble-disconnected`, état vert
+  `--color-ble-connected`. Le bandeau `.map-mode-bar` devient un **HUD flottant** sur la carte
+  (`position: absolute`, `top: 10px`, `left: 62px`, `pointer-events: none`), ce qui rend ~44 px
+  à la carte. L'onglet CAMÉRA perd `camera-mode-bar` et `camera-top` : la cible et les
+  coordonnées passent dans le HUD `.camera-hud`, et un **FAB identique à TRACÉS**
+  (`#cameraFab`) propose « Rejoindre un point » / « Mesurer une distance », avec bouton
+  secondaire « ✓ » pour quitter et appui long pour rouvrir le menu. `cameraMode` démarre à
+  `null`. Le plein écran caméra masque header + barre GPS comme la carte et rapproche le FAB
+  du bord bas (24 px) ; `syncCameraFabUI()` est appelée par `showTab()`.
+
 ## 9. Langue et communication
 
 - Écrire en **français** (interface, commentaires, documentation, messages de commit).

@@ -178,6 +178,19 @@
   color:        var(--color-warning-text);
 }
 
+/* Variantes CAMÉRA : mêmes formes/couleurs que les modes de tracé. */
+.trace-fab-main.target {
+  background:   var(--color-primary-light);
+  border-color: var(--color-primary-light);
+  color:        white;
+}
+
+.trace-fab-main.distance {
+  background:   var(--color-teal);
+  border-color: var(--color-teal);
+  color:        white;
+}
+
 .trace-fab-secondary {
   position:        absolute;
   right:           calc(100% + 10px);
@@ -259,6 +272,8 @@
 .trace-fab-item:hover { background: var(--color-primary-pale-bg); }
 .trace-fab-item.interdit:hover { background: var(--color-danger-pale); }
 .trace-fab-item.obstacle:hover { background: var(--color-warning-pale); }
+.trace-fab-item.target:hover { background: var(--color-primary-pale-bg); }
+.trace-fab-item.distance:hover { background: var(--color-info-pale); }
 .trace-fab-item-icon { font-size: 18px; line-height: 1; }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
@@ -1386,87 +1401,38 @@ body.locked .lock-overlay {
   background: var(--color-primary-accent);
 }
 
-/* ─── ICÔNE BLE ANIMÉE (bouton header) ─────────────────────── */
-/* Bluetooth dessiné en CSS pur : tige verticale (::before), boucle haute
-   (::after), croisillons bas (.ble-icon-tails) et trois ondes BLE.
-   La couleur vient de `color` du bouton (états connected / disconnected). */
-.ble-icon {
-  position:      relative;
-  flex-shrink:   0;
-  width:         20px;
-  height:        32px;
-  display:       inline-block;
-  margin-right:  6px;
+/* ─── ICÔNE BLE SVG ANIMÉE (bouton header) ─────────────────── */
+/* Icône Lucide « bluetooth » en SVG inline (trait fin, currentColor),
+   entourée de trois ondes animées. La couleur vient de `color` du bouton
+   (états connected / disconnected). */
+.ble-icon-container {
+  position:        relative;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  width:           28px;
+  height:          28px;
 }
 
-.ble-icon::before {
-  content:          '';
-  position:         absolute;
-  left:             50%;
-  top:              0;
-  width:            2px;
-  height:           100%;
-  background-color: currentColor;
-  transform:        translateX(-50%);
-}
-
-.ble-icon::after {
-  content:          '';
-  position:         absolute;
-  left:             50%;
-  top:              0;
-  width:            12px;
-  height:           15px;
-  border-top:       2px solid currentColor;
-  border-right:     2px solid currentColor;
-  border-bottom:    2px solid currentColor;
-  box-sizing:       border-box;
-  transform:        translateX(-50%) rotate(45deg);
-  transform-origin: left top;
-}
-
-.ble-icon-tails {
-  position: absolute;
-  width:    100%;
-  height:   100%;
-  top:      0;
-  left:     0;
-}
-
-.ble-icon-tails::before,
-.ble-icon-tails::after {
-  content:          '';
-  position:         absolute;
-  left:             50%;
-  width:            14px;
-  height:           2px;
-  background-color: currentColor;
-}
-
-.ble-icon-tails::before {
-  top:              7px;
-  transform:        translateX(-100%) rotate(45deg);
-  transform-origin: right center;
-}
-
-.ble-icon-tails::after {
-  bottom:           7px;
-  transform:        translateX(-100%) rotate(-45deg);
-  transform-origin: right center;
+.ble-svg {
+  position:   relative;
+  z-index:    2;
+  display:    block;
+  width:      20px;
+  height:     20px;
+  color:      currentColor;
 }
 
 /* Ondes BLE */
 .ble-waves {
   position:      absolute;
-  top:           0;
-  left:          0;
-  width:         100%;
-  height:        100%;
+  inset:         0;
   border-radius: 50%;
   border:        1.5px solid currentColor;
   animation:     pulse 2s infinite ease-out;
   box-sizing:    border-box;
-  opacity:       0.5;
+  opacity:       0;
   pointer-events: none;
 }
 

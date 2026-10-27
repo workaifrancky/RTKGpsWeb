@@ -106,11 +106,13 @@ function setBleStatus(status) {
   if (statusText) statusText.textContent=s.text;
 }
 
-// Markup de l'icône Bluetooth (tige, boucle, croisillons et ondes BLE).
+// Markup de l'icône Bluetooth : SVG Lucide + trois ondes animées.
 function getBleIconMarkup() {
-  return '<span class="ble-icon" aria-hidden="true">'
-    + '<span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-waves"></span>'
-    + '<span class="ble-icon-tails"></span></span>';
+  return '<div class="ble-icon-container" aria-hidden="true">'
+    + '<div class="ble-waves"></div><div class="ble-waves"></div><div class="ble-waves"></div>'
+    + '<svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
+    + ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg></div>';
 }
 
 function updateTerrainButtons() {
