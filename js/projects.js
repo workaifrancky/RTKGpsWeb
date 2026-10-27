@@ -430,6 +430,27 @@ function toggleProjectDrawer() {
   else openProjectDrawer();
 }
 
+// ─── ICÔNES DES ACTIONS DU TIROIR (SVG Lucide) ──────────────
+// SVG inline plutôt que des emoji : rendu identique sur toutes les
+// plateformes. `stroke: currentColor` laisse la couleur au bouton
+// (gris neutre pour Renommer, rouge pour Supprimer).
+const ICON_PENCIL = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+  <path d="m15 5 4 4"/>
+</svg>`;
+
+const ICON_TRASH = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M3 6h18"/>
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+  <line x1="10" x2="10" y1="11" y2="17"/>
+  <line x1="14" x2="14" y1="11" y2="17"/>
+</svg>`;
+
 // ─── RENDU DU TIROIR ET DU LIBELLÉ HEADER ───────────────────
 function renderProjectList() {
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
@@ -466,10 +487,10 @@ function renderProjectList() {
         </button>
         <div class="drawer-project-actions">
           <button type="button" onclick="renameProject('${id}')"
-            title="Renommer la parcelle" aria-label="Renommer ${name}">✏️</button>
+            title="Renommer la parcelle" aria-label="Renommer ${name}">${ICON_PENCIL}</button>
           <button type="button" class="danger" onclick="deleteProject('${id}')"
             title="Supprimer la parcelle (même la dernière)"
-            aria-label="Supprimer ${name}">🗑</button>
+            aria-label="Supprimer ${name}">${ICON_TRASH}</button>
         </div>
       </div>`;
   }).join('');

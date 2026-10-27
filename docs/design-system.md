@@ -197,7 +197,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   et les toasts (1200).
 - `.drawer-header` : bandeau `--color-primary`, titre 15 px / 800, bouton `✕` blanc.
 - `.drawer-project` : ligne = bouton principal (nom 13 px / 800, méta `N point(s) · Zone #N`)
-  + deux actions rondes 44 px (`✏️`, `🗑`). Ligne active : fond `--color-primary-pale` et nom
+  + deux actions rondes 44 px avec **icônes SVG Lucide** (pencil pour renommer, trash pour
+  supprimer, 18 px, `stroke: currentColor`, centrées en `inline-flex`) — plus d'emoji.
+  Ligne active : fond `--color-primary-pale` et nom
   `--color-primary-deep` ; en nuit, fond `--color-bg-muted` et nom `--color-primary-accent`.
 - `.drawer-new` : bouton plein `--color-primary` en bas du panneau.
 - Accessibilité : `role="dialog"`, `aria-modal="true"`, `aria-expanded` sur le bouton du

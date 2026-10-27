@@ -1210,18 +1210,26 @@
   gap:         4px;
 }
 
+/* Actions rondes du tiroir : icônes SVG Lucide (18 px), centrées dans
+   l'anneau de 44 px. La couleur du bouton pilote le tracé (currentColor). */
 .drawer-project-actions button {
-  width:         44px;
-  height:        44px;
-  padding:       0;
-  background:    transparent;
-  border:        1px solid var(--border);
-  border-radius: 50%;
-  color:         var(--text);
-  font-size:     13px;
-  line-height:   1;
-  cursor:        pointer;
-  transition:    var(--transition);
+  width:           44px;
+  height:          44px;
+  padding:         0;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  background:      transparent;
+  border:          1px solid var(--border);
+  border-radius:   50%;
+  color:           var(--text);
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.drawer-project-actions button svg {
+  display:        block;
+  pointer-events: none;
 }
 
 .drawer-project-actions button:hover { background: var(--color-bg-muted); }

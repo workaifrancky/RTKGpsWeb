@@ -631,6 +631,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `font-family` / `line-height`. `menu-test.html` (page de démonstration versionnée) reçoit la
   même icône ; `#headerMenu` / `#headerMenuOverlay` sont explicitement masqués en plein écran
   carte (`map.css`) et caméra (`theme.css`).
+- **3.41 — Icônes SVG Lucide des actions du tiroir Parcelles** : les emoji `✏️` (renommer) et
+  `🗑` (supprimer) générés par `renderProjectList()` (`js/projects.js`) sont remplacés par deux
+  constantes de markup SVG Lucide (`ICON_PENCIL`, `ICON_TRASH` : 18 px, `fill: none`,
+  `stroke: currentColor`, `aria-hidden="true"`, `focusable="false"`).
+  `.drawer-project-actions button` passe en `inline-flex` centré (les `font-size` / `line-height`
+  devenus inutiles sont retirés) et `.drawer-project-actions button svg` en `display: block` /
+  `pointer-events: none` : trait neutre (`--text`) pour le crayon, rouge (`--color-danger`) pour
+  la corbeille. Aucun changement de comportement (`renameProject`, `deleteProject`).
 
 ## 9. Langue et communication
 

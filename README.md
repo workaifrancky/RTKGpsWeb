@@ -85,8 +85,9 @@ peut être isolé.
    l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
 2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
    reste masqué. Le bouton `📍 <nom> ▾` (2ᵉ ligne du menu du header) ouvre le tiroir
-   « Parcelles » ; chaque ligne permet de changer de parcelle (`clic`), la renommer (`✏️`) ou
-   la supprimer (`🗑`). Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
+   « Parcelles » ; chaque ligne permet de changer de parcelle (`clic`), la renommer (icône
+   crayon) ou la supprimer (icône corbeille). Le bouton `＋ Nouvelle parcelle` ouvre la modale
+   de création.
    Sélectionner éventuellement une station NTRIP de référence, dans la 1ʳᵉ ligne du menu.
 3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
    au centre en bas de la carte. Il ouvre un menu vertical :
