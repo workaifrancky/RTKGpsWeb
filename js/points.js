@@ -59,7 +59,7 @@ function canRecordPoints() {
     return false;
   }
   if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
-    showToast('Mode lecture — ✏️ Modifier pour tracer', 'info');
+    showToast('Mode lecture — menu FAB pour tracer', 'info');
     return false;
   }
   return true;
@@ -761,8 +761,8 @@ function renderPointItem(p, zoneIndex = null) {
         <span class="point-date">${date}</span>
         <span class="point-time">${time}</span>
         <div class="point-item-actions">
-          <button class="btn-edit" onclick="renamePoint(${p.id})" title="Renommer">✏️</button>
-          <button class="btn-del" onclick="deletePoint(${p.id})" title="Supprimer">✕</button>
+          <button class="btn-edit" onclick="renamePoint(${p.id})" title="Renommer">${ICON_PENCIL}</button>
+          <button class="btn-del" onclick="deletePoint(${p.id})" title="Supprimer">${ICON_TRASH}</button>
         </div>
       </div>
     </div>`;

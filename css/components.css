@@ -275,7 +275,29 @@
 .trace-fab-item.target:hover { background: var(--color-primary-pale-bg); }
 .trace-fab-item.distance:hover { background: var(--color-info-pale); }
 .trace-fab-item.points:hover { background: var(--color-info-pale); }
-.trace-fab-item-icon { font-size: 18px; line-height: 1; }
+/* Icône d'un type de tracé : SVG Lucide (pastille pleine pour tonte /
+   interdit / obstacle, trait pour les actions). La couleur est portée par
+   la classe de type, jamais par le markup. */
+.trace-fab-item-icon {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           18px;
+  height:          18px;
+  flex-shrink:     0;
+  font-size:       18px;
+  line-height:     1;
+}
+
+.trace-fab-item-icon svg {
+  display: block;
+}
+
+.trace-fab-item-icon.tonte    { color: var(--color-primary-light); }
+.trace-fab-item-icon.interdit { color: var(--color-danger); }
+.trace-fab-item-icon.obstacle { color: var(--color-warning); }
+.trace-fab-item-icon.target   { color: var(--color-primary); }
+.trace-fab-item-icon.distance { color: var(--color-teal); }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
 .obstacle-grid {
@@ -405,10 +427,21 @@
 .points-view-actions .action-button,
 .points-view-actions .action-button-danger,
 .points-view-actions .export-primary {
-  width:     100%;
-  min-width: 0;
-  padding:   10px 8px;
-  font-size: 13px;
+  width:           100%;
+  min-width:       0;
+  padding:         10px 8px;
+  font-size:       13px;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+}
+
+/* Icône SVG de « Effacer » (corbeille) : centrée avec le libellé. */
+.points-view-actions svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
 }
 
 
@@ -764,6 +797,14 @@
   background:   var(--color-danger-pale);
 }
 
+/* Icônes SVG Lucide des actions (crayon / corbeille) : centrées par le flex
+   du bouton, jamais cliquables individuellement. */
+.btn-edit svg,
+.btn-del svg {
+  display:        block;
+  pointer-events: none;
+}
+
 /* Colonne date/heure + actions de chaque point */
 .point-item-side {
   display:        flex;
@@ -951,9 +992,13 @@
 }
 
 .btn-action-bar {
-  flex:           1;
+  flex:            1;
   min-width:      80px;
   padding:        11px 8px;
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  gap:            5px;
   border-radius:  var(--radius-xl);
   border:         2px solid var(--border);
   background:     var(--color-white);
@@ -965,6 +1010,12 @@
   transition:     var(--transition);
   text-align:     center;
   letter-spacing: 0.3px;
+}
+
+.btn-action-bar svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
 }
 
 .btn-action-bar:hover { border-color: var(--color-primary-light); color: var(--color-primary-light); }

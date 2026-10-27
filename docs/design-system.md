@@ -132,9 +132,11 @@ Overrides de lisibilité :
   verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé sous le header
   (`top: calc(env(safe-area-inset-top) + 62px)`), largeur `min(340px, 100vw - 20px)`,
   fond `--color-white`, `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- Deux lignes `.menu-row` : (1) thème `.menu-icon-btn` (🌙), BLE `.menu-ble-btn` (icône seule,
-  SVG + ondes) et station `.menu-ntrip-select` ; (2) `Parcelle :` + `#btnProjectDrawer`
-  (`.menu-project-btn`) et l'indicateur de sauvegarde `#saveIndicator`.
+- Deux lignes `.menu-row` : (1) thème `.menu-icon-btn` (icône SVG **lune / soleil** injectée par
+  `applyTheme()` : `ICON_MOON` / `ICON_SUN`), BLE `.menu-ble-btn` (icône seule, SVG + ondes) et
+  station `.menu-ntrip-select` ; (2) `Parcelle :` + `#btnProjectDrawer` (`.menu-project-btn`,
+  **map-pin** SVG de 16 px en `.menu-project-icon`) et l'indicateur de sauvegarde
+  `#saveIndicator`.
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` (`js/app.js`) : Échap, clic
   hors du menu (délégation sur `document`) ou sur le voile referment et rendent le focus au
   bouton ; l'ouverture est refusée pendant le verrouillage d'écran.
@@ -246,9 +248,11 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   écran devient `✕`.
 - La cible `#map-crosshair` n'est visible que lorsqu'un mode de tracé est actif
   (`APP.currentTraceMode` non nul), sur l'onglet TRACÉS.
-- La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose « ✏️ Renommer » et
-  « 🗑 » (`renameZone()`, `deleteZone()`) ; le nom personnalisé est affiché par
-  `getZoneDisplayName()` (stocké dans `project.zoneNames`).
+- La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose l'icône crayon +
+  « Renommer » et l'icône corbeille (`renameZone()`, `deleteZone()`) ; le nom personnalisé est
+  affiché par `getZoneDisplayName()` (stocké dans `project.zoneNames`).
+- `.leaflet-popup-content .popup-btn` est en `inline-flex` (gap 4 px) pour aligner l'icône SVG
+  et le libellé ; `svg { pointer-events: none }` pour que le clic atteigne toujours le bouton.
 
 ### FAB de tracé et FAB caméra
 
@@ -268,16 +272,22 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `transform: translateX(-50%)`, `bottom: calc(100% + 12px)`), fond `--color-white`,
   rayon `--radius-lg`, ombre `--shadow-xl`, largeur minimale 232 px ; options
   `.trace-fab-item` de 48 px avec icône et libellé. Survol vert / rouge / ambre selon le type.
+- `.trace-fab-item-icon` : conteneur de 18 px avec **SVG Lucide** — pastille pleine `<circle>`
+  pour les types de tracé (couleur portée par `.tonte` / `.interdit` / `.obstacle`), et icônes
+  en trait pour les actions (`clipboard-list` pour la vue POINTS, `crosshair` pour la cible,
+  `ruler` pour la mesure), toujours en `stroke: currentColor`.
 - Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
   ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
-- 4ᵉ option « 📋 Voir les points » (`openPointsView()`) : elle remplace l'ancien bouton
-  `POINTS ▾` qui flottait sur la carte.
+- 4ᵉ option « Voir les points » (icône `clipboard-list`, `openPointsView()`) : elle remplace
+  l'ancien bouton `POINTS ▾` qui flottait sur la carte.
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
-- **FAB CAMÉRA** (`#cameraFab`, même composant `.trace-fab`) : menu « 🎯 Rejoindre un point »
-  / « 📏 Mesurer une distance », variantes `.trace-fab-main.target`
-  (`--color-primary-light`) et `.distance` (`--color-teal`). En mode actif, le clic principal
+- **FAB CAMÉRA** (`#cameraFab`, même composant `.trace-fab`) : menu « Rejoindre un point »
+  (icône `crosshair`) / « Mesurer une distance » (icône `ruler`), variantes
+  `.trace-fab-main.target` (`--color-primary-light`) et `.distance` (`--color-teal`) ;
+  `syncCameraFabUI()` injecte `ICON_CROSSHAIR` / `ICON_RULER` (26 px) dans le bouton principal,
+  « ＋ » au repos. En mode actif, le clic principal
   ouvre le sélecteur de cible ou relance la mesure, « ✓ » quitte le mode et l'appui long
   rouvre le menu. Masqué hors onglet CAMÉRA par `syncCameraFabUI()`.
   Le sélecteur de cible (`#targetSelect`) ne liste **que les points de type `obstacle`**,
@@ -309,7 +319,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `.points-view-head` (titre + partage + « Fermer »), `.points-view-body` scrollable et
   `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer). Les fonds/bordures
   suivent les tokens ; les boutons de fermeture et partage ont un `focus-visible` vert.
-- `.btn-edit` / `.btn-del` : boutons ronds de 30 px de la liste POINTS (renommer / supprimer).
+- `.btn-edit` / `.btn-del` : boutons ronds de 44 px de la liste POINTS (renommer / supprimer),
+  icônes SVG Lucide crayon / corbeille (18 px, `stroke: currentColor`).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.
 - `.zone-badge` : badge « Zone #N » de l'onglet TRACÉS (fond pâle, bordure verte, override nuit).

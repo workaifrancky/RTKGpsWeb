@@ -30,7 +30,7 @@ function loadHistory() {
       <div class="session-actions">
         <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-points')">📂 Ouvrir</button>
         <button class="btn-action-bar" onclick="exportProjectCSV('${p.id}')">⬇ CSV</button>
-        <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">🗑 Suppr.</button>
+        <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">${ICON_TRASH} Suppr.</button>
       </div>
     </div>`;
   }).reverse().join('');

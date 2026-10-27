@@ -102,22 +102,48 @@
         <div id="traceFabMenu" class="trace-fab-menu" role="menu" aria-hidden="true">
           <button type="button" class="trace-fab-item tonte" role="menuitem"
             onclick="chooseTraceMode('tonte')">
-            <span class="trace-fab-item-icon" aria-hidden="true">🟢</span>
+            <span class="trace-fab-item-icon tonte" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="currentColor" stroke="none" focusable="false">
+                <circle cx="12" cy="12" r="8"/>
+              </svg>
+            </span>
             <span>Nouvelle zone de tonte</span>
           </button>
           <button type="button" class="trace-fab-item interdit" role="menuitem"
             onclick="chooseTraceMode('interdit')">
-            <span class="trace-fab-item-icon" aria-hidden="true">🔴</span>
+            <span class="trace-fab-item-icon interdit" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="currentColor" stroke="none" focusable="false">
+                <circle cx="12" cy="12" r="8"/>
+              </svg>
+            </span>
             <span>Nouvelle zone interdite</span>
           </button>
           <button type="button" class="trace-fab-item obstacle" role="menuitem"
             onclick="chooseTraceMode('obstacle')">
-            <span class="trace-fab-item-icon" aria-hidden="true">🟡</span>
+            <span class="trace-fab-item-icon obstacle" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="currentColor" stroke="none" focusable="false">
+                <circle cx="12" cy="12" r="8"/>
+              </svg>
+            </span>
             <span>Obstacle</span>
           </button>
           <button type="button" class="trace-fab-item points" role="menuitem"
             onclick="openPointsView()">
-            <span class="trace-fab-item-icon" aria-hidden="true">📋</span>
+            <span class="trace-fab-item-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" focusable="false">
+                <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                <path d="M12 11h4"/>
+                <path d="M12 16h4"/>
+                <path d="M8 11h.01"/>
+                <path d="M8 16h.01"/>
+              </svg>
+            </span>
             <span>Voir les points</span>
           </button>
         </div>
@@ -145,7 +171,16 @@
         <div class="camera-hud-top">
           <div class="camera-card camera-picker-card camera-hud-card" id="cameraTargetCard" hidden>
             <button id="btnCameraTargetPicker" class="camera-picker-btn camera-hud-chip" onclick="toggleCameraTargetMenu()">
-              🎯 <span id="cameraTargetLabel">—</span> <span aria-hidden="true">▾</span>
+              <svg class="camera-picker-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="22" x2="18" y1="12" y2="12"/>
+                <line x1="6" x2="2" y1="12" y2="12"/>
+                <line x1="12" x2="12" y1="6" y2="2"/>
+                <line x1="12" x2="12" y1="22" y2="18"/>
+              </svg>
+              <span id="cameraTargetLabel">—</span> <span aria-hidden="true">▾</span>
             </button>
             <div id="cameraTargetMenu" class="camera-picker-menu">
               <select id="targetSelect" class="camera-picker-select" size="3" onchange="selectTargetPoint(parseInt(this.value, 10))">
@@ -168,12 +203,32 @@
       <div id="cameraFabMenu" class="trace-fab-menu" role="menu" aria-hidden="true">
         <button type="button" class="trace-fab-item target" role="menuitem"
           onclick="chooseCameraMode('target')">
-          <span class="trace-fab-item-icon" aria-hidden="true">🎯</span>
+          <span class="trace-fab-item-icon target" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" focusable="false">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="22" x2="18" y1="12" y2="12"/>
+              <line x1="6" x2="2" y1="12" y2="12"/>
+              <line x1="12" x2="12" y1="6" y2="2"/>
+              <line x1="12" x2="12" y1="22" y2="18"/>
+            </svg>
+          </span>
           <span>Rejoindre un point</span>
         </button>
         <button type="button" class="trace-fab-item distance" role="menuitem"
           onclick="chooseCameraMode('distance')">
-          <span class="trace-fab-item-icon" aria-hidden="true">📏</span>
+          <span class="trace-fab-item-icon distance" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" focusable="false">
+              <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/>
+              <path d="m14.5 12.5 2-2"/>
+              <path d="m11.5 9.5 2-2"/>
+              <path d="m8.5 6.5 2-2"/>
+              <path d="m17.5 15.5 2-2"/>
+            </svg>
+          </span>
           <span>Mesurer une distance</span>
         </button>
       </div>
@@ -296,7 +351,13 @@
     <div class="menu-row menu-row-tools">
       <button type="button" id="btnTheme" class="menu-icon-btn" onclick="toggleTheme()"
         title="Thème sombre" aria-label="Thème sombre">
-        <span class="theme-icon" aria-hidden="true">🌙</span>
+        <span class="theme-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" focusable="false">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+        </span>
       </button>
       <button id="btnBle" class="menu-ble-btn disconnected" onclick="toggleBle()"
         title="Connecter le module BLE" aria-label="Connecter le module BLE">
@@ -319,7 +380,12 @@
       <button type="button" id="btnProjectDrawer" class="menu-project-btn" onclick="toggleProjectDrawer()"
         aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
         title="Choisir une parcelle">
-        <span aria-hidden="true">📍</span>
+        <svg class="menu-project-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
         <span id="currentProjectName">Aucune</span>
         <span class="header-project-caret" aria-hidden="true">▾</span>
       </button>
@@ -462,7 +528,18 @@
       <button class="action-button" onclick="exportGPX()"
         title="Exporter en GPX">⬇ GPX</button>
       <button class="action-button-danger" onclick="clearAllPoints()"
-        title="Effacer tous les points de la parcelle">🗑 Effacer</button>
+        title="Effacer tous les points de la parcelle">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M3 6h18"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          <line x1="10" x2="10" y1="11" y2="17"/>
+          <line x1="14" x2="14" y1="11" y2="17"/>
+        </svg>
+        Effacer
+      </button>
     </div>
   </div>
 </div>

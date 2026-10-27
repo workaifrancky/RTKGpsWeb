@@ -210,6 +210,9 @@ body.map-ui-fullscreen .trace-fab {
 }
 
 .leaflet-popup-content .popup-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
   background:    transparent;
   color:         var(--text);
   border:        1px solid var(--border);
@@ -220,6 +223,12 @@ body.map-ui-fullscreen .trace-fab {
   font-weight:   700;
   cursor:        pointer;
   transition:    var(--transition);
+}
+
+.leaflet-popup-content .popup-btn svg {
+  display:     block;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .leaflet-popup-content .popup-btn:hover {

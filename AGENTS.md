@@ -163,6 +163,17 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   explicitement en plein écran (`body.map-ui-fullscreen` dans `map.css`,
   `body.camera-ui-fullscreen` dans `theme.css`). `js/projects.js` rend le focus à
   `#btnHeaderMenu` à la fermeture du tiroir.
+- **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
+  (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
+  `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
+  `ICON_RULER` — fichier chargé **avant** `projects/points/map/history/camera` : ne pas
+  redéclarer ces constantes ailleurs (`SyntaxError` de redéclaration dans le scope global).
+  Les icônes statiques (header, menus FAB, boutons de la vue POINTS) sont écrites dans
+  `index.html` **et** `menu-test.html`. Toujours `fill: none` + `stroke: currentColor` (ou
+  `fill: currentColor` pour une pastille), conteneur `inline-flex` centré et
+  `svg { display: block; pointer-events: none }`. Les emoji **de données** (`point.icon`, icône
+  du type d'obstacle, libellés statistiques) sont conservés : ils font partie du modèle stocké
+  et des textes, pas des boutons.
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (nom de la
   parcelle courante) est le bouton `.menu-project-btn` de la **2ᵉ ligne du menu du header**
   (voir point « Header et menu ») ; il ouvre `#projectDrawer`
@@ -639,6 +650,21 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   devenus inutiles sont retirés) et `.drawer-project-actions button svg` en `display: block` /
   `pointer-events: none` : trait neutre (`--text`) pour le crayon, rouge (`--color-danger`) pour
   la corbeille. Aucun changement de comportement (`renameProject`, `deleteProject`).
+- **3.42 — Icônes SVG Lucide dans tous les boutons d'action** : les emoji d'action restants sont
+  remplacés par des SVG Lucide. `js/app.js` centralise `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`,
+  `ICON_SUN`, `ICON_CROSSHAIR` et `ICON_RULER` (les constantes du tiroir quittent
+  `js/projects.js`). Migrés : `.btn-edit` / `.btn-del` de la liste POINTS (✏️ et ✕ → crayon /
+  corbeille), `pointPopup()` et `zonePopup()` (`js/map.js`), bouton « Suppr. » de
+  `js/history.js`, bouton « Effacer » de la vue POINTS, FAB CAMÉRA (`syncCameraFabUI()`),
+  bascule de thème lune / soleil (`applyTheme()`), bouton Parcelle (map-pin), menus FAB TRACÉS
+  (pastilles `<circle>` colorées par `.trace-fab-item-icon.tonte/interdit/obstacle` et
+  `clipboard-list`) et CAMÉRA (`crosshair`, `ruler`), sélecteur de cible caméra. CSS :
+  conteneurs `inline-flex` centrés, `.popup-btn` et `.btn-action-bar` en `inline-flex` avec
+  `gap`, `svg { pointer-events: none }`. Les toasts « Mode lecture — ✏️ Modifier… » sont
+  reformulés sans emoji. Restent volontairement en emoji : les icônes **de données**
+  (`point.icon`, types d'obstacles), les libellés statistiques (🟡 obstacles, 🔴 zones
+  interdites) et les boutons hors périmètre (🗺 🛰 ⛶ 🔒 de la carte, ⬇ des exports, 📤 du
+  partage, 📂 / ⬇ de l'historique, ＋ ✓ ✕ ⋮).
 
 ## 9. Langue et communication
 

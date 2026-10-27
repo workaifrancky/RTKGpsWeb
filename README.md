@@ -84,20 +84,20 @@ peut être isolé.
 1. **Connecter le BLE** : bouton menu `☰` du header → icône Bluetooth, puis sélectionner
    l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
 2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
-   reste masqué. Le bouton `📍 <nom> ▾` (2ᵉ ligne du menu du header) ouvre le tiroir
-   « Parcelles » ; chaque ligne permet de changer de parcelle (`clic`), la renommer (icône
-   crayon) ou la supprimer (icône corbeille). Le bouton `＋ Nouvelle parcelle` ouvre la modale
-   de création.
+   reste masqué. Le bouton `<nom> ▾` (icône d'épingle, 2ᵉ ligne du menu du header) ouvre le
+   tiroir « Parcelles » ; chaque ligne permet de changer de parcelle (`clic`), la renommer
+   (icône crayon) ou la supprimer (icône corbeille). Le bouton `＋ Nouvelle parcelle` ouvre la
+   modale de création.
    Sélectionner éventuellement une station NTRIP de référence, dans la 1ʳᵉ ligne du menu.
 3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
    au centre en bas de la carte. Il ouvre un menu vertical :
-   - `🟢 Nouvelle zone de tonte` : FAB vert, chaque clic ajoute un point de tonte ;
-   - `🔴 Nouvelle zone interdite` : FAB rouge, chaque clic ajoute un point interdit ;
-   - `🟡 Obstacle` : FAB jaune, un clic ouvre le choix du type d'obstacle et crée un point
-     ponctuel.
+   - `Nouvelle zone de tonte` (pastille verte) : FAB vert, chaque clic ajoute un point de tonte ;
+   - `Nouvelle zone interdite` (pastille rouge) : FAB rouge, chaque clic ajoute un point interdit ;
+   - `Obstacle` (pastille ambre) : FAB jaune, un clic ouvre le choix du type d'obstacle et crée
+     un point ponctuel.
    Le bouton `✓` à gauche du FAB termine la zone (confirmation si elle a moins de 3 points).
-   Un appui long sur le FAB ou sur `✓` rouvre le menu. `✏️` sur une ligne de la vue POINTS ou
-   dans la popup carte permet de renommer un point.
+   Un appui long sur le FAB ou sur `✓` rouvre le menu. L'icône crayon d'une ligne de la vue
+   POINTS ou d'une popup carte permet de renommer un point.
 4. **Consulter** : `POINTS` ouvre la vue dédiée avec la liste, les exports et « Effacer ».
    `⛶` affiche la carte en plein écran. Cliquer sur une zone (tonte ou interdite) permet de la
    renommer ou de la supprimer. Le relevé est dans l'onglet RELEVÉ, l'historique dans

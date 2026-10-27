@@ -14,6 +14,70 @@ const APP = {
   lastUpdate:   null,
 };
 
+// ─── ICÔNES D'INTERFACE (SVG Lucide partagés) ────────────────
+// Déclarées dans app.js, chargé avant projects.js / points.js / map.js :
+// les autres scripts y accèdent directement (scope global des scripts
+// classiques). `stroke: currentColor` : la couleur vient toujours du bouton
+// ou du conteneur, jamais du markup. Ne jamais réintroduire d'emoji dans
+// les boutons d'action : le rendu varie selon la plateforme.
+const ICON_PENCIL = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+  <path d="m15 5 4 4"/>
+</svg>`;
+
+const ICON_TRASH = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M3 6h18"/>
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+  <line x1="10" x2="10" y1="11" y2="17"/>
+  <line x1="14" x2="14" y1="11" y2="17"/>
+</svg>`;
+
+const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+</svg>`;
+
+const ICON_SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="4"/>
+  <path d="M12 2v2"/>
+  <path d="M12 20v2"/>
+  <path d="m4.93 4.93 1.41 1.41"/>
+  <path d="m17.66 17.66 1.41 1.41"/>
+  <path d="M2 12h2"/>
+  <path d="M20 12h2"/>
+  <path d="m6.34 17.66-1.41 1.41"/>
+  <path d="m19.07 4.93-1.41 1.41"/>
+</svg>`;
+
+// Icônes du FAB CAMÉRA (bouton principal, 26 px).
+const ICON_CROSSHAIR = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="10"/>
+  <line x1="22" x2="18" y1="12" y2="12"/>
+  <line x1="6" x2="2" y1="12" y2="12"/>
+  <line x1="12" x2="12" y1="6" y2="2"/>
+  <line x1="12" x2="12" y1="22" y2="18"/>
+</svg>`;
+
+const ICON_RULER = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/>
+  <path d="m14.5 12.5 2-2"/>
+  <path d="m11.5 9.5 2-2"/>
+  <path d="m8.5 6.5 2-2"/>
+  <path d="m17.5 15.5 2-2"/>
+</svg>`;
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
@@ -43,8 +107,8 @@ function applyTheme(theme) {
   if (btn) {
     const isDark = theme === 'dark';
     const icon = btn.querySelector('.theme-icon');
-    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
-    else btn.textContent = isDark ? '☀️' : '🌙';
+    if (icon) icon.innerHTML = isDark ? ICON_SUN : ICON_MOON;
+    else btn.innerHTML = isDark ? ICON_SUN : ICON_MOON;
     const label = isDark ? 'Thème clair' : 'Thème sombre';
     btn.title = label;
     btn.setAttribute('aria-label', label);
@@ -223,7 +287,7 @@ function hideAlert() {
 // ─── MODAL OBSTACLE ──────────────────────────────────────────
 function openObstacleMenu() {
   if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
-    showToast('Mode lecture — ✏️ Modifier pour ajouter', 'info');
+    showToast('Mode lecture — menu FAB pour ajouter', 'info');
     return;
   }
   const activeType = typeof APP !== 'undefined' ? (APP.currentTraceMode || null) : null;

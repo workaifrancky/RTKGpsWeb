@@ -143,6 +143,11 @@
   font-size:      12px;
 }
 
+.camera-picker-icon {
+  flex-shrink: 0;
+  display:     block;
+}
+
 .camera-picker-menu {
   display:        none;
   position:       absolute;

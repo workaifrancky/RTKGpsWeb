@@ -139,7 +139,9 @@ function syncCameraFabUI() {
 
   if (main) {
     main.className = `trace-fab-main ${cameraMode || 'neutral'}`;
-    main.textContent = cameraMode === 'target' ? '🎯' : cameraMode === 'distance' ? '📏' : '＋';
+    main.innerHTML = cameraMode === 'target' ? ICON_CROSSHAIR
+      : cameraMode === 'distance' ? ICON_RULER
+      : '＋';
     main.title = cameraMode
       ? `${CAMERA_MODE_LABELS[cameraMode]} (appui long : menu)`
       : 'Choisir un mode caméra';

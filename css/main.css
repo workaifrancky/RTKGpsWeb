@@ -349,9 +349,18 @@ header {
 .menu-ble-btn .ble-icon-container { width: 24px; height: 24px; }
 .menu-ble-btn .ble-svg             { width: 18px; height: 18px; }
 
+/* Icône de thème : SVG Lucide (lune / soleil) injecté par applyTheme().
+   Le centrage est porté par le conteneur, plus par la taille de police. */
 .theme-icon {
-  font-size:   18px;
-  line-height: 1;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       18px;
+  line-height:     1;
+}
+
+.theme-icon svg {
+  display: block;
 }
 
 .menu-ntrip-select {
@@ -421,6 +430,12 @@ header {
   flex-shrink: 0;
   font-size:   10px;
   opacity:     0.7;
+}
+
+/* Icône map-pin du bouton Parcelle (SVG Lucide inline) */
+.menu-project-icon {
+  flex-shrink: 0;
+  display:     block;
 }
 
 .menu-save-indicator {

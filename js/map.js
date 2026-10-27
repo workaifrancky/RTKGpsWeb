@@ -348,8 +348,8 @@ function pointPopup(p, idx) {
     : '';
   const actions = `
     <div class="popup-actions">
-      <button class="popup-btn" onclick="renamePoint(${p.id})" title="Renommer ce point">✏️ Renommer</button>
-      <button class="popup-btn popup-btn-danger" onclick="deletePoint(${p.id})" title="Supprimer ce point">🗑</button>
+      <button class="popup-btn" onclick="renamePoint(${p.id})" title="Renommer ce point">${ICON_PENCIL} Renommer</button>
+      <button class="popup-btn popup-btn-danger" onclick="deletePoint(${p.id})" title="Supprimer ce point">${ICON_TRASH}</button>
     </div>`;
   return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}${actions}`;
 }
@@ -362,8 +362,8 @@ function zonePopup(type, zoneId, area) {
   const surface = Number(area) > 0 ? `<br>Surface : ${formatArea(area)}` : '';
   return `<b>${name}</b>${surface}
     <div class="popup-actions">
-      <button class="popup-btn" onclick="renameZone('${type}', ${zoneId})" title="Renommer cette zone">✏️ Renommer</button>
-      <button class="popup-btn popup-btn-danger" onclick="deleteZone('${type}', ${zoneId})" title="Supprimer cette zone">🗑</button>
+      <button class="popup-btn" onclick="renameZone('${type}', ${zoneId})" title="Renommer cette zone">${ICON_PENCIL} Renommer</button>
+      <button class="popup-btn popup-btn-danger" onclick="deleteZone('${type}', ${zoneId})" title="Supprimer cette zone">${ICON_TRASH}</button>
     </div>`;
 }
 
