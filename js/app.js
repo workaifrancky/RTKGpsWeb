@@ -108,7 +108,13 @@ function checkBleSupport() {
   if (!navigator.bluetooth) {
     showAlert('⚠️ Web Bluetooth non supporté — utilisez Chrome sur Android', 'danger', 0);
     const btn = document.getElementById('btnBle');
-    if (btn) { btn.disabled = true; btn.textContent = '⬡ Non supporté'; }
+    if (btn) {
+      const icon = typeof getBleIconMarkup === 'function' ? getBleIconMarkup() : '';
+      btn.className = 'disconnected';
+      btn.disabled = true;
+      btn.innerHTML = `${icon}<span class="ble-label">NON SUPPORTÉ</span>`;
+      btn.setAttribute('aria-label', 'Web Bluetooth non supporté');
+    }
   }
 }
 

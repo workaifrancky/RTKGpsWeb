@@ -87,21 +87,30 @@ function setBleStatus(status) {
   const btn=document.getElementById('btnBle');
   const dot=document.getElementById('fixDot');
   const statusText=document.getElementById('statusText');
+  // L'icône est dessinée en CSS (components.css) : ondes animées dans tous
+  // les états, la classe du bouton pilote la couleur (bleu / vert).
   const states = {
-    disconnected:{ icon:'⬡', label:'CONNECTER BLE', dot:'none', text:'Non connecté',            btnCls:'off' },
-    scanning:    { icon:'⏳', label:'Scan...',       dot:'none', text:'Recherche RTK_Mower...',  btnCls:'off' },
-    connecting:  { icon:'⏳', label:'Connexion...',  dot:'none', text:'Connexion en cours...',   btnCls:'off' },
-    connected:   { icon:'✓',  label:'CONNECTÉ',     dot:'',     text:'Connecté à RTK_Mower',    btnCls:'' },
+    disconnected:{ label:'CONNECTER BLE', dot:'none', text:'Non connecté',            btnCls:'disconnected' },
+    scanning:    { label:'Scan...',       dot:'none', text:'Recherche RTK_Mower...',  btnCls:'disconnected' },
+    connecting:  { label:'Connexion...',  dot:'none', text:'Connexion en cours...',   btnCls:'disconnected' },
+    connected:   { label:'BLE CONNECTÉ',  dot:'',     text:'Connecté à RTK_Mower',    btnCls:'connected' },
   };
   const s = states[status] || states.disconnected;
   if (btn) {
-    // Icône et libellé séparés : sur mobile seul « ⬡ » reste visible.
-    btn.innerHTML = `<span class="ble-icon" aria-hidden="true">${s.icon}</span><span class="ble-label">${s.label}</span>`;
+    // Icône et libellé séparés : sur mobile seul le pictogramme reste visible.
+    btn.innerHTML = `${getBleIconMarkup()}<span class="ble-label">${s.label}</span>`;
     btn.className = s.btnCls;
     btn.title = s.label;
     btn.setAttribute('aria-label', s.label);
   }
   if (statusText) statusText.textContent=s.text;
+}
+
+// Markup de l'icône Bluetooth (tige, boucle, croisillons et ondes BLE).
+function getBleIconMarkup() {
+  return '<span class="ble-icon" aria-hidden="true">'
+    + '<span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-waves"></span>'
+    + '<span class="ble-icon-tails"></span></span>';
 }
 
 function updateTerrainButtons() {

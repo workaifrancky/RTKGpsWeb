@@ -14,6 +14,9 @@
   --color-danger: #d32f2f;
   --color-info: #1976d2;
   --color-teal: #00897b;
+  /* Icône Bluetooth du header (déconnecté / connecté) */
+  --color-ble-disconnected: #0082fc;
+  --color-ble-connected:    #16a34a;
   --color-white: #ffffff;
   --color-bg-subtle: #f5f7f5;
   --color-bg-muted: #e0e4e0;

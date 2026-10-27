@@ -261,13 +261,9 @@ header {
 }
 
 #btnBle:hover    { background: var(--color-primary-pale); }
-#btnBle.off      {
-  background:   transparent;
-  color:        rgba(255,255,255,0.7);
-  border:       2px solid rgba(255,255,255,0.4);
-}
-#btnBle.off:hover { border-color: white; color: white; }
 #btnBle:disabled  { opacity: 0.5; cursor: not-allowed; }
+/* Les couleurs des états connected / disconnected sont définies dans
+   components.css (icône Bluetooth dessinée en CSS). */
 
 /* ─── BOUTON THÈME ──────────────────────────────────────────── */
 #btnTheme {
@@ -717,7 +713,6 @@ header {
   }
 
   .ble-label { display: none; }
-  .ble-icon  { font-size: 17px; line-height: 1; }
 
   #btnProjectDrawer {
     flex:       1 1 120px;

@@ -26,8 +26,9 @@
       <div class="logo">🌾 RTK Mower <span class="logo-sub">v2</span></div>
       <div class="header-actions">
         <button type="button" id="btnTheme" onclick="toggleTheme()" title="Thème" aria-label="Changer de thème">🌙</button>
-        <button id="btnBle" class="off" onclick="toggleBle()" title="Connecter le module BLE">
-          <span class="ble-icon" aria-hidden="true">⬡</span><span class="ble-label">CONNECTER BLE</span>
+        <button id="btnBle" class="disconnected" onclick="toggleBle()" title="Connecter le module BLE"
+          aria-label="Connecter le module BLE">
+          <span class="ble-icon" aria-hidden="true"><span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-waves"></span><span class="ble-icon-tails"></span></span><span class="ble-label">CONNECTER BLE</span>
         </button>
       </div>
     </div>
