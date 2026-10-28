@@ -26,7 +26,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 |---|---|
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
-| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), section POINTS de l'onglet HISTORIQUE (`openPointsView()`), renommage (`renamePoint()`), liste des points |
+| `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), liste des points (`renderPointsList()`), renommage (`renamePoint()`) |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, badge GPS/manuel |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |
@@ -65,10 +65,12 @@ brique doit être insérée **après ses dépendances**.
 - Partages et exports : `buildGeoJSON()` est la source unique (export fichier ou
   `navigator.share({ files })`) ; les propriétés portent `date_creation`, `version_app` et
   `source`.
-- Le bandeau `#projectBar` a été supprimé : le header contient `#btnProjectDrawer` (nom de la
-  parcelle courante) qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
+- Le bandeau `#projectBar` a été supprimé : le menu FAB de TRACÉS contient `#btnProjectDrawer`
+  (« Parcelle : <nom> ») qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
   tiroir liste les parcelles (`#projectListContainer`), permet de changer, renommer,
-  supprimer et d'en créer une. `saveProjects()` met à jour la liste et le libellé du header.
+  supprimer et d'en créer une. `saveProjects()` met à jour la liste et le libellé du bouton.
+  Sans parcelle (FAB masqué), le panneau Connexion expose `#menuEmptyProjectRow` pour créer la
+  première parcelle.
 
 ## État et persistance
 

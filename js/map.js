@@ -11,10 +11,19 @@ let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
 // Métré temporaire du segment en cours de tracé (zone de tonte à 2 points).
 let tempMeasureLine = null;
-// Labels permanents de surface (ZT1 : … m² / ZI1 : … m²), visibles à partir
-// du zoom ZONE_LABEL_MIN_ZOOM pour ne pas surcharger la carte.
+// Labels permanents de zone (ZT1, ZT2, ZI1…), visibles à partir du zoom
+// ZONE_LABEL_MIN_ZOOM pour ne pas surcharger la carte. La surface n'est plus
+// écrite sur la carte : elle reste dans la popup de la zone.
 let zoneLabelLayer = null;
 const ZONE_LABEL_MIN_ZOOM = 18;
+
+// Numéros des points sur la carte : option d'affichage désactivée par défaut,
+// persistée dans localStorage et pilotée par le switch du panneau Connexion.
+const POINT_NUMBERS_KEY = 'rtkShowPointNumbers';
+let showPointNumbers = false;
+try {
+  showPointNumbers = localStorage.getItem(POINT_NUMBERS_KEY) === '1';
+} catch { /* stockage indisponible : option désactivée */ }
 
 // Mode de tracé : suivi GPS, position connue et état de la vue TRACÉS.
 let followGps = true;
@@ -200,7 +209,7 @@ function renderMap() {
         .addTo(layerTonte)
         .bindPopup(zonePopup('tonte', zoneId, area));
 
-      addZoneSurfaceLabel('tonte', zoneId, zonePts, area);
+      addZoneLabel('tonte', zoneId, zonePts);
     }
 
     // Zone en cours de tracé (2 points) : une ligne seule n'est pas mesurée par
@@ -218,17 +227,15 @@ function renderMap() {
       }
     }
 
-    // Marqueurs des points de la zone, numérotés de 1 à N dans l'ordre de création.
+    // Marqueurs des points de la zone, numérotés de 1 à N dans l'ordre de
+    // création. Le numéro permanent dépend de l'option « Numéros des points ».
     zonePts.forEach((p, index) => {
-      L.circleMarker([p.lat, p.lon], {
+      const marker = L.circleMarker([p.lat, p.lon], {
         radius: 8, fillColor: palette.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
       })
         .addTo(layerTonte)
-        .bindPopup(pointPopup(p, index + 1))
-        .bindTooltip(String(index + 1), {
-          permanent: true, direction: 'right', offset: [8, 0],
-          className: 'point-number-label', interactive: false,
-        });
+        .bindPopup(pointPopup(p, index + 1));
+      bindPointNumberTooltip(marker, index + 1);
     });
   });
 
@@ -249,20 +256,17 @@ function renderMap() {
         .addTo(layerInterdit)
         .bindPopup(zonePopup('interdit', zoneId, area));
 
-      addZoneSurfaceLabel('interdit', zoneId, zonePts, area);
+      addZoneLabel('interdit', zoneId, zonePts);
     }
 
     // Points numérotés de 1 à N dans leur zone interdite.
     zonePts.forEach((p, index) => {
-      L.circleMarker([p.lat, p.lon], {
+      const marker = L.circleMarker([p.lat, p.lon], {
         radius: 8, fillColor: COLORS.interdit.stroke, color: 'white', weight: 2, fillOpacity: 0.95,
       })
         .addTo(layerInterdit)
-        .bindPopup(pointPopup(p, index + 1))
-        .bindTooltip(String(index + 1), {
-          permanent: true, direction: 'right', offset: [8, 0],
-          className: 'point-number-label', interactive: false,
-        });
+        .bindPopup(pointPopup(p, index + 1));
+      bindPointNumberTooltip(marker, index + 1);
     });
   });
 
@@ -272,9 +276,10 @@ function renderMap() {
       html:`<div style="background:${COLORS.obstacle.stroke};width:16px;height:16px;border-radius:50%;border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:9px"></div>`,
       iconSize:[16,16], iconAnchor:[8,8], className:'',
     });
-    L.marker([p.lat,p.lon],{icon})
+    const marker = L.marker([p.lat,p.lon],{icon})
       .addTo(layerObstacle)
       .bindPopup(pointPopup(p,i+1));
+    bindPointNumberTooltip(marker, i+1);
   });
 
   // TRACÉS : cadrage uniquement à l'initialisation ou au changement de parcelle,
@@ -306,8 +311,10 @@ function getZoneCenter(zonePts) {
   return center;
 }
 
-// Ajoute un label permanent « ZT1 : 123 m² » / « ZI1 : 45 m² » au centre de la zone.
-function addZoneSurfaceLabel(type, zoneId, zonePts, area) {
+// Ajoute un label permanent « ZT1 » / « ZI1 » au centre de la zone.
+// La surface n'est volontairement plus affichée sur la carte : elle reste
+// accessible dans la popup de la zone (zonePopup) et dans l'export GeoJSON.
+function addZoneLabel(type, zoneId, zonePts) {
   if (!map || !zoneLabelLayer) return;
   const center = getZoneCenter(zonePts);
   const code = typeof getZoneCode === 'function'
@@ -317,17 +324,50 @@ function addZoneSurfaceLabel(type, zoneId, zonePts, area) {
   const label = L.tooltip({
     permanent: true,
     direction: 'center',
-    className: 'zone-surface-label',
+    className: 'zone-name-label',
     opacity: 1,
     interactive: false,
   })
     .setLatLng([center.lat, center.lon])
-    .setContent(`${code} : ${formatArea(area)}`);
+    .setContent(code);
 
   zoneLabelLayer.addLayer(label);
 }
 
-// Les labels de surface ne sont visibles qu'à partir du zoom 18.
+// Numéro permanent d'un point sur la carte, uniquement si l'option
+// « Numéros des points » est active (switch du panneau Connexion).
+function bindPointNumberTooltip(marker, number) {
+  if (!marker || !showPointNumbers) return marker;
+  return marker.bindTooltip(String(number), {
+    permanent: true, direction: 'right', offset: [8, 0],
+    className: 'point-number-label', interactive: false,
+  });
+}
+
+// Reflète l'état de l'option sur le switch du panneau Connexion.
+function syncPointNumbersSwitch() {
+  const btn = document.getElementById('btnPointNumbers');
+  if (!btn) return;
+  // L'état visuel du switch est entièrement porté par aria-checked (CSS).
+  btn.setAttribute('aria-checked', showPointNumbers ? 'true' : 'false');
+}
+
+// Bascule l'affichage des numéros et persiste le choix.
+function togglePointNumbers() {
+  showPointNumbers = !showPointNumbers;
+  try {
+    localStorage.setItem(POINT_NUMBERS_KEY, showPointNumbers ? '1' : '0');
+  } catch { /* stockage indisponible : l'option reste valable pour la session */ }
+  syncPointNumbersSwitch();
+  if (typeof renderMap === 'function') renderMap();
+  if (typeof showToast === 'function') {
+    showToast(showPointNumbers ? 'Numéros des points affichés' : 'Numéros des points masqués', 'info');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', syncPointNumbersSwitch);
+
+// Les labels de zone ne sont visibles qu'à partir du zoom 18.
 function syncZoneLabelVisibility() {
   if (!map || !zoneLabelLayer) return;
   const shouldShow = map.getZoom() >= ZONE_LABEL_MIN_ZOOM;

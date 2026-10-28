@@ -247,8 +247,9 @@ body.map-ui-fullscreen .trace-fab {
   color:      var(--color-danger-text);
 }
 
-/* ─── LABELS DE SURFACE ET NUMÉROS DE POINTS SUR LA CARTE ───── */
-.zone-surface-label {
+/* ─── LABELS DE ZONE ET NUMÉROS DE POINTS SUR LA CARTE ──────── */
+/* Label permanent de zone (ZT1, ZT2, ZI1…) : le nom seul, sans surface. */
+.zone-name-label {
   background:    rgba(255, 255, 255, 0.94);
   color:         var(--color-primary-deep);
   border:        1px solid var(--color-primary-light);
@@ -263,7 +264,7 @@ body.map-ui-fullscreen .trace-fab {
   white-space:   nowrap;
 }
 
-.zone-surface-label::before { display: none; }
+.zone-name-label::before { display: none; }
 
 .point-number-label {
   background:    rgba(255, 255, 255, 0.94);
@@ -280,7 +281,7 @@ body.map-ui-fullscreen .trace-fab {
 
 .point-number-label::before { display: none; }
 
-[data-theme="dark"] .zone-surface-label,
+[data-theme="dark"] .zone-name-label,
 [data-theme="dark"] .point-number-label {
   background: rgba(15, 17, 23, 0.92);
   color:      var(--color-primary-light);

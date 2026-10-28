@@ -137,9 +137,12 @@ Overrides de lisibilité :
   par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
   de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
   `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- Deux lignes `.menu-row` : (1) libellé `NTRIP` + station `.menu-ntrip-select` ; (2)
-  `Parcelle :` + `#btnProjectDrawer` (`.menu-project-btn`, **map-pin** SVG de 16 px en
-  `.menu-project-icon`) et l'indicateur de sauvegarde `#saveIndicator`.
+- Deux lignes `.menu-row` : (1) libellé `NTRIP` + station `.menu-ntrip-select` +
+  `#saveIndicator` ; (2) libellé `Affichage` + switch `#btnPointNumbers`
+  (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px, pastille
+  `.menu-switch-knob`, état porté par `aria-checked`). La parcelle n'est **plus** dans ce
+  panneau : elle est dans le menu FAB de TRACÉS. Repli `#menuEmptyProjectRow`
+  (`.menu-create-project`), visible uniquement sans parcelle, pour créer la première.
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
   (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
   Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le
@@ -192,9 +195,10 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 
 ### Tiroir Parcelles
 
-- `#btnProjectDrawer` (`main.css`) : bouton `.menu-project-btn` de la 2ᵉ ligne du menu du
-  header (sous `Parcelle :`), hauteur 44 px, nom ellipsé (`#currentProjectName`) et chevron
-  `▾`. Il ouvre le tiroir et reçoit `aria-expanded` (`aria-controls="projectDrawer"`).
+- `#btnProjectDrawer` (`components.css`) : 4ᵉ option `.trace-fab-item.project` du menu FAB de
+  TRACÉS, libellé `Parcelle : <nom>` (`#currentProjectName`) avec ellipse
+  (`.trace-fab-item-text` et icône map-pin `--color-primary`). Il ouvre le tiroir et reçoit
+  `aria-expanded` (`aria-controls="projectDrawer"`).
 - `.drawer-overlay` : voile `rgba(0,0,0,0.5)` en position absolue dans `.app-wrapper`,
   `opacity` 0 → 1 via `.show`, `z-index: 1040`.
 - `.drawer` : panneau latéral droit `min(320px, 86%)`, fond `--color-white`, bordure
@@ -278,12 +282,13 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `.trace-fab-item` de 48 px avec icône et libellé. Survol vert / rouge / ambre selon le type.
 - `.trace-fab-item-icon` : conteneur de 18 px avec **SVG Lucide** — pastille pleine `<circle>`
   pour les types de tracé (couleur portée par `.tonte` / `.interdit` / `.obstacle`), et icônes
-  en trait pour les actions (`clock` pour l'accès à l'historique, `crosshair` pour la cible,
+  en trait pour les actions (`map-pin` pour la parcelle, `crosshair` pour la cible,
   `ruler` pour la mesure), toujours en `stroke: currentColor`.
 - Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
   ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
-- 4ᵉ option « Historique » (icône `clock`, `openPointsView()`) : elle ouvre l'onglet
-  HISTORIQUE sur sa section POINTS (elle remplaçait l'ancien bouton `POINTS ▾` de la carte).
+- 4ᵉ option « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
+  tiroir des parcelles. Le menu ne contient **que** les tracés et la parcelle ; l'accès aux
+  points se fait par l'onglet HISTORIQUE de la navigation basse.
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.

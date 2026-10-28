@@ -420,29 +420,20 @@ body.camera-ui-fullscreen .camera-fab {
   padding:        8px 10px;
 }
 
+/* Boussole du HUD caméra : icône nue, sans cercle ni fond.
+   La cible tactile (34 px) et la taille du glyphe sont conservées. */
 .cam-compass-inline {
   display:        inline-flex;
   align-items:    center;
   justify-content: center;
   width:          34px;
   height:         34px;
-  border-radius:  50%;
-  border:         2px solid transparent;
-  background:     rgba(0,0,0,0.2);
   font-size:      18px;
   line-height:    1;
 }
 
 button.cam-compass-inline {
   cursor: pointer;
-}
-
-.cam-compass-inline.ok {
-  border-color: rgba(74,222,128,0.95);
-}
-
-.cam-compass-inline.warn {
-  border-color: rgba(251,191,36,0.95);
 }
 
 .cam-coords-inline {

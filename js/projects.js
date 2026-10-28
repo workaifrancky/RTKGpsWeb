@@ -386,8 +386,8 @@ function clearCurrentProjectPoints() {
 }
 
 // ─── TIROIR PARCELLES ────────────────────────────────────────
-// Le bandeau #projectBar est remplacé par un bouton compact dans le menu du
-// header, qui ouvre ce tiroir latéral (liste + actions par parcelle).
+// Le bouton « Parcelle : … » du menu FAB TRACÉS (#btnProjectDrawer) ouvre ce
+// tiroir latéral (liste + actions par parcelle).
 function openProjectDrawer() {
   const drawer = document.getElementById('projectDrawer');
   const overlay = document.getElementById('projectDrawerOverlay');
@@ -395,6 +395,7 @@ function openProjectDrawer() {
   if (!drawer) return;
 
   if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
+  if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
 
   renderProjectList();
   drawer.classList.add('open');
@@ -417,10 +418,14 @@ function closeProjectDrawer() {
   if (overlay) overlay.classList.remove('show');
   if (toggle) toggle.setAttribute('aria-expanded', 'false');
 
-  // Le bouton Parcelle est dans le panneau « Connexion », refermé à
-  // l'ouverture du tiroir : on rend le focus au déclencheur, toujours visible.
-  const trigger = document.getElementById('btnConnectionSettings')
-    || document.getElementById('btnHeaderMenu');
+  // Le déclencheur est le bouton « Parcelle : … » du menu FAB, masqué avec lui
+  // hors TRACÉS ou sans parcelle : dans ce cas on rend le focus au bouton
+  // « Connexion » du header, toujours visible.
+  const fab = document.getElementById('traceFab');
+  const fabTrigger = document.getElementById('btnProjectDrawer');
+  const trigger = (fabTrigger && fab && !fab.hidden)
+    ? fabTrigger
+    : (document.getElementById('btnConnectionSettings') || document.getElementById('btnHeaderMenu'));
   if (trigger && typeof trigger.focus === 'function') trigger.focus();
 }
 
@@ -445,6 +450,12 @@ function renderProjectList() {
       ? `Parcelle : ${currentProject.name} — choisir une parcelle`
       : 'Aucune parcelle — en créer une';
   }
+
+  // Sans parcelle, le FAB (et donc son bouton Parcelle) est masqué : le
+  // panneau Connexion expose alors un bouton de création pour que le premier
+  // lancement conserve un point d'entrée.
+  const emptyRow = document.getElementById('menuEmptyProjectRow');
+  if (emptyRow) emptyRow.hidden = !!currentProject;
 
   if (!container) return;
   if (!projects.length) {

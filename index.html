@@ -153,17 +153,22 @@
             </span>
             <span>Obstacle</span>
           </button>
-          <button type="button" class="trace-fab-item points" role="menuitem"
-            onclick="openPointsView()">
-            <span class="trace-fab-item-icon" aria-hidden="true">
+          <!-- Parcelle courante : ouvre le tiroir des parcelles (sélection,
+               renommage, suppression, création). Le nom est tenu à jour par
+               renderProjectList() via #currentProjectName. -->
+          <button type="button" id="btnProjectDrawer" class="trace-fab-item project" role="menuitem"
+            onclick="openProjectDrawer()"
+            aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
+            title="Choisir une parcelle">
+            <span class="trace-fab-item-icon project" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" focusable="false">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
               </svg>
             </span>
-            <span>Historique</span>
+            <span class="trace-fab-item-text">Parcelle : <span id="currentProjectName">Aucune</span></span>
           </button>
         </div>
 
@@ -420,26 +425,34 @@
       <select id="ntripSelect" class="menu-ntrip-select" onchange="selectNtripStation(this.value)"
         aria-label="Station NTRIP">
       </select>
-    </div>
-
-    <div class="menu-row menu-row-context">
-      <span class="menu-label">Parcelle :</span>
-      <button type="button" id="btnProjectDrawer" class="menu-project-btn" onclick="toggleProjectDrawer()"
-        aria-haspopup="dialog" aria-expanded="false" aria-controls="projectDrawer"
-        title="Choisir une parcelle">
-        <svg class="menu-project-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-        <span id="currentProjectName">Aucune</span>
-        <span class="header-project-caret" aria-hidden="true">▾</span>
-      </button>
       <span id="saveIndicator" class="save-indicator menu-save-indicator"
         title="Sauvegardé localement" aria-live="polite">
         <span class="save-icon" aria-hidden="true">💾</span>
       </span>
+    </div>
+
+    <!-- Réglages d'affichage de la carte. La parcelle n'est plus ici : elle
+         est choisie depuis le menu FAB de l'onglet TRACÉS. -->
+    <div class="menu-row menu-row-context">
+      <span class="menu-label">Affichage</span>
+      <button type="button" id="btnPointNumbers" class="menu-switch" role="switch"
+        aria-checked="false" onclick="togglePointNumbers()"
+        title="Afficher les numéros des points sur la carte">
+        <span class="menu-switch-track" aria-hidden="true">
+          <span class="menu-switch-knob"></span>
+        </span>
+        <span class="menu-switch-label">Numéros des points</span>
+      </button>
+    </div>
+
+    <!-- Repli du premier lancement : sans parcelle, le FAB est masqué. Ce
+         bouton n'apparaît que dans ce cas (voir renderProjectList()). -->
+    <div class="menu-row menu-row-context" id="menuEmptyProjectRow" hidden>
+      <span class="menu-label">Parcelle</span>
+      <button type="button" class="menu-switch menu-create-project" onclick="openNewProjectModal()"
+        title="Créer une parcelle">
+        <span class="menu-switch-label">＋ Créer une parcelle</span>
+      </button>
     </div>
   </div>
 </div>

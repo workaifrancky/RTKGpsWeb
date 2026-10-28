@@ -484,10 +484,7 @@ function startNewZone() {
 // ─── CHOIX DU TYPE DE NOUVELLE ZONE ─────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      closeTraceFabMenu();
-      closePointsView();
-    }
+    if (event.key === 'Escape') closeTraceFabMenu();
   });
 });
 
@@ -629,45 +626,9 @@ async function clearAllPoints() {
   showToast('Points effacés', 'info');
 }
 
-// ─── SECTION POINTS DE L'ONGLET HISTORIQUE ───────────────────
-// La vue des points n'est plus un panneau flottant : la liste, la zone, le
-// compteur, les exports, le partage et « Effacer » vivent dans la section
-// #pointsSection de l'onglet HISTORIQUE. `openPointsView()` y amène l'utilisateur.
-function openPointsView() {
-  if (!currentProject) return;
-
-  closeTraceFabMenu();
-  if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
-  if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
-  if (typeof closeExportMenu === 'function') closeExportMenu();
-
-  renderPointsList();
-  if (typeof loadHistory === 'function') loadHistory();
-  if (typeof showTab === 'function') showTab('tab-history');
-
-  // Amène la section « POINTS ENREGISTRÉS » en haut de l'onglet.
-  setTimeout(() => {
-    const section = document.getElementById('pointsSection');
-    if (section && typeof section.scrollIntoView === 'function') {
-      section.scrollIntoView({ block: 'start' });
-    }
-    const share = document.getElementById('pointsViewShare');
-    if (share && typeof share.focus === 'function') share.focus({ preventScroll: true });
-  }, 60);
-}
-
-// Compatibilité : l'ancien panneau a été supprimé (fusion dans HISTORIQUE).
-// `showTab()` et `openHeaderMenu()` continuent d'appeler cette fonction.
-function closePointsView() {}
-
-// Conservés pour les appels historiques : ouvrent la section points.
-function togglePointsView() {
-  openPointsView();
-}
-
-function scrollToPointsPanel() {
-  openPointsView();
-}
+// La section POINTS ENREGISTRÉS reste accessible par l'onglet HISTORIQUE
+// (bouton de navigation basse). Elle n'a plus de raccourci depuis le menu FAB
+// de TRACÉS, qui ne contient que les tracés et la parcelle courante.
 
 // ─── RENDU LISTE ─────────────────────────────────────────────
 function renderPointsList() {

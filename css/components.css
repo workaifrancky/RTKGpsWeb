@@ -274,7 +274,16 @@
 .trace-fab-item.obstacle:hover { background: var(--color-warning-pale); }
 .trace-fab-item.target:hover { background: var(--color-primary-pale-bg); }
 .trace-fab-item.distance:hover { background: var(--color-info-pale); }
-.trace-fab-item.points:hover { background: var(--color-info-pale); }
+.trace-fab-item.project:hover { background: var(--color-primary-pale-bg); }
+
+/* Libellé long (nom de parcelle) : ellipse plutôt que débordement du menu. */
+.trace-fab-item-text {
+  flex:          1 1 auto;
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
 /* Icône d'un type de tracé : SVG Lucide (pastille pleine pour tonte /
    interdit / obstacle, trait pour les actions). La couleur est portée par
    la classe de type, jamais par le markup. */
@@ -298,6 +307,7 @@
 .trace-fab-item-icon.obstacle { color: var(--color-warning); }
 .trace-fab-item-icon.target   { color: var(--color-primary); }
 .trace-fab-item-icon.distance { color: var(--color-teal); }
+.trace-fab-item-icon.project  { color: var(--color-primary); }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
 .obstacle-grid {

@@ -368,8 +368,9 @@ header {
 }
 
 /* Le menu ne contient plus que les paramètres de connexion :
-   station NTRIP (ligne 1) puis parcelle courante + sauvegarde (ligne 2).
-   Les actions thème / Bluetooth sont dans le header. */
+   station NTRIP + indicateur de sauvegarde (ligne 1) puis réglages
+   d'affichage de la carte (ligne 2). Les actions thème / Bluetooth sont dans
+   le header, la parcelle courante dans le menu FAB de l'onglet TRACÉS. */
 
 /* Icônes SVG des boutons du header (thème, futur contenu) : le centrage est
    porté par `.header-icon-btn` (inline-flex), l'icône n'intercepte pas le clic. */
@@ -399,7 +400,7 @@ header {
   outline-offset: 2px;
 }
 
-/* Ligne 2 : parcelle */
+/* Ligne 2 : réglages d'affichage */
 .menu-label {
   flex:          0 0 auto;
   font-size:     12px;
@@ -408,33 +409,61 @@ header {
   white-space:   nowrap;
 }
 
-.menu-project-btn {
+/* Switch d'affichage (numéros des points) : bouton + piste + pastille.
+   L'état est porté par aria-checked, jamais par une classe de couleur. */
+.menu-switch {
   flex:          1 1 auto;
   min-width:     0;
-  height:        44px;
-  display:       flex;
+  min-height:    44px;
+  display:       inline-flex;
   align-items:   center;
-  gap:           6px;
+  gap:           10px;
   padding:       0 12px;
   border:        1px solid var(--border);
   border-radius: var(--radius-md);
   background:    var(--color-bg-subtle);
   color:         var(--text);
   font-family:   var(--font);
-  font-size:     13px;
-  font-weight:   800;
+  font-size:     12px;
+  font-weight:   700;
   text-align:    left;
   cursor:        pointer;
   transition:    var(--transition);
 }
 
-.menu-project-btn:hover {
-  border-color: var(--color-primary);
-  color:        var(--color-primary);
-  background:   var(--color-primary-pale);
+.menu-switch:hover { border-color: var(--color-primary-light); }
+
+.menu-switch-track {
+  position:      relative;
+  flex:          0 0 auto;
+  width:         40px;
+  height:        22px;
+  border-radius: 999px;
+  background:    var(--color-bg-muted);
+  transition:    background-color 0.18s ease;
 }
 
-#currentProjectName {
+.menu-switch-knob {
+  position:      absolute;
+  top:           3px;
+  left:          3px;
+  width:         16px;
+  height:        16px;
+  border-radius: 50%;
+  background:    var(--color-white);
+  box-shadow:    var(--shadow-sm);
+  transition:    transform 0.18s ease;
+}
+
+.menu-switch[aria-checked="true"] .menu-switch-track {
+  background: var(--color-primary-light);
+}
+
+.menu-switch[aria-checked="true"] .menu-switch-knob {
+  transform: translateX(18px);
+}
+
+.menu-switch-label {
   flex:          1 1 auto;
   min-width:     0;
   overflow:      hidden;
@@ -442,16 +471,18 @@ header {
   white-space:   nowrap;
 }
 
-.header-project-caret {
-  flex-shrink: 0;
-  font-size:   10px;
-  opacity:     0.7;
+.menu-switch:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
 }
 
-/* Icône map-pin du bouton Parcelle (SVG Lucide inline) */
-.menu-project-icon {
-  flex-shrink: 0;
-  display:     block;
+/* Repli du premier lancement : simple bouton de création */
+.menu-create-project { justify-content: center; }
+
+/* Thème nuit : --color-white devient une surface sombre, la pastille du
+   switch reprend donc la couleur de texte principale pour rester visible. */
+[data-theme="dark"] .menu-switch-knob {
+  background: var(--color-text-primary);
 }
 
 .menu-save-indicator {

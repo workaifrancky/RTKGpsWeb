@@ -40,7 +40,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 | UI | Vanilla JS, CSS pur (pas de framework, pas de Tailwind) |
 | Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
 | Bluetooth | Web Bluetooth API |
-| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, …) |
+| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
 | Serveur | `serve-http.cjs` (Node, sans dépendance) + `start-public.ps1` (localtunnel) |
 
@@ -158,8 +158,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
   `toggleConnectionPanel()` → `toggleHeaderMenu()` — ne contient plus que la station NTRIP
-  (ligne 1) puis `Parcelle :` + `#btnProjectDrawer` + `#saveIndicator` (ligne 2) : le thème et
-  le BLE sont **dans le header**, ne pas les remettre dans le menu (doublons d'ID interdits).
+  avec `#saveIndicator` (ligne 1) puis le switch `#btnPointNumbers` « Numéros des points »
+  (ligne 2, `role="switch"` + `aria-checked`) : le thème et le BLE sont **dans le header**, la
+  parcelle courante **dans le menu FAB de TRACÉS**, ne pas les remettre dans le menu (doublons
+  d'ID interdits). Seule exception : `#menuEmptyProjectRow` (bouton « ＋ Créer une parcelle »)
+  n'apparaît que si `currentProject` est `null`, sinon le premier lancement n'aurait aucun
+  point d'entrée (FAB masqué sans parcelle) ; `renderProjectList()` pilote son `hidden`.
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
   breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
@@ -168,7 +172,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   au-dessus du verrouillage écran (3000) et des FAB (1002) : ne pas les replacer dans
   `<header>` (contexte d'empilement `z-index: 200`) et les masquer explicitement en plein écran
   (`body.map-ui-fullscreen` dans `map.css`, `body.camera-ui-fullscreen` dans `theme.css`).
-  `js/projects.js` rend le focus à `#btnConnectionSettings` à la fermeture du tiroir.
+  `js/projects.js` rend le focus au déclencheur du tiroir (`#btnProjectDrawer` s'il est visible,
+  sinon `#btnConnectionSettings`).
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
@@ -180,14 +185,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `svg { display: block; pointer-events: none }`. Les emoji **de données** (`point.icon`, icône
   du type d'obstacle, libellés statistiques) sont conservés : ils font partie du modèle stocké
   et des textes, pas des boutons.
-- **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (nom de la
-  parcelle courante) est le bouton `.menu-project-btn` de la **2ᵉ ligne du menu du header**
-  (voir point « Header et menu ») ; il ouvre `#projectDrawer`
+- **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
+  « Parcelle : <nom> », `.trace-fab-item.project` avec `#currentProjectName`) est la **4ᵉ
+  option du menu FAB de TRACÉS** ; il ouvre `#projectDrawer`
   (`openProjectDrawer()` / `closeProjectDrawer()` / `toggleProjectDrawer()` dans
   `js/projects.js`). La liste (`renderProjectList()`) affiche une ligne par parcelle avec
   `switchProject(id)`, `renameProject(id)` et `deleteProject(id)` ; `saveProjects()` rafraîchit
-  la liste **et** le libellé du header. Fermeture au clic sur l'overlay, avec Échap et au
-  changement d'onglet.
+  la liste **et** le libellé du bouton FAB. Fermeture au clic sur l'overlay, avec Échap et au
+  changement d'onglet. Comme le FAB est masqué sans parcelle, le panneau Connexion expose
+  `#menuEmptyProjectRow` (bouton de création) uniquement dans ce cas.
 - **Base globale des obstacles** : `rtkGlobalObstacles` (tableau `{ id, name, subtype, icon,
   lat, lon, alt, rayon, createdAt, projectId }`) est chargée au démarrage dans
   `globalObstacles` (`js/projects.js`) et **amorcée depuis les parcelles** si la clé est
@@ -213,11 +219,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (`#pointsViewOverlay` supprimé). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
   `#pointsList`, le partage `#pointsViewShare`, les exports GeoJSON/CSV/GPX et « Effacer » ;
   elle précède la section « PARCELLES / SESSIONS » (`#historyList`, `loadHistory()`).
-  L'option « Historique » du menu FAB TRACÉS appelle `openPointsView()` (`js/points.js`), qui
-  rafraîchit la liste, appelle `showTab('tab-history')` puis amène la section en haut
-  (`scrollIntoView`). `closePointsView()` ne fait plus rien (compatibilité des appels de
-  `showTab()` / `openHeaderMenu()`) ; `togglePointsView()` et `scrollToPointsPanel()` restent
-  des alias. `showTab('tab-history')` appelle `renderPointsList()` **et** `loadHistory()`.
+  Accès : **uniquement** le bouton HISTORIQUE de la navigation basse
+  (`showTab('tab-history')`, qui appelle `renderPointsList()` **et** `loadHistory()`).
+  Le menu FAB TRACÉS ne contient plus d'option « Historique » : `openPointsView()` et ses
+  alias (`closePointsView()`, `togglePointsView()`, `scrollToPointsPanel()`) sont supprimés —
+  ne pas les réintroduire.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
@@ -232,13 +238,22 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
   `renderMap()` crée une `L.polyline` temporaire (`tempMeasureLine`) mesurée, supprimée dès
   le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
+- **Labels de zone et numéros de points** : `addZoneLabel(type, zoneId, zonePts)` pose un
+  `L.tooltip` permanent au centre de chaque zone, **avec le code seul** (`ZT1`, `ZT2`, `ZI1`…,
+  classe `.zone-name-label`, zoom ≥ `ZONE_LABEL_MIN_ZOOM = 18`). La **surface n'est jamais
+  écrite sur la carte** : elle reste dans `zonePopup()` (`Surface : …`) et dans l'export
+  (`surface_m2`). Les numéros des points (`bindPointNumberTooltip()`) ne sont affichés que si
+  l'option `rtkShowPointNumbers` vaut `'1'` (`showPointNumbers`, `js/map.js`, **désactivée par
+  défaut**), pilotée par le switch `#btnPointNumbers` du panneau Connexion
+  (`togglePointNumbers()` → persistance + `renderMap()`).
 - **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
   Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
   Effacer sont dans la section POINTS de l'onglet HISTORIQUE (`#pointsSection`).
 - **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
   `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
-  Le header (`#btnProjectDrawer`) permet de choisir ou créer une parcelle. Tant qu'aucune
-  parcelle n'est sélectionnée, `#traceFab` reste masqué et la carte est vide.
+  Le bouton « Connexion » → `#menuEmptyProjectRow` (« ＋ Créer une parcelle ») permet de créer
+  la première parcelle ; ensuite `#btnProjectDrawer` du menu FAB choisit ou crée une parcelle.
+  Tant qu'aucune parcelle n'est sélectionnée, `#traceFab` reste masqué et la carte est vide.
 - **Modes lecture / création** : `APP.tracesMode` reste un état interne (`lecture` au
   chargement, `creation` pendant un tracé). Il n'y a plus de bouton `#btnTracesMode` :
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
@@ -246,7 +261,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
 - **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, centré en
   bas à 80 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
-  `#traceFabMenu` (tonte / interdit / obstacle / « 📋 Voir les points ») ;
+  `#traceFabMenu` (**4 options seulement** : tonte / interdit / obstacle / « Parcelle : … ») ;
   `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute
   un point (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
   `#traceFabSecondary` (« ✓ ») termine la zone : sous 3 points, `customConfirm()` demande
@@ -707,6 +722,20 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   remplacent `.points-view-box`, `.points-view-head`, `.points-view-title` et
   `.points-view-close` ; `.points-view-body` n'a plus de hauteur contrainte (c'est `.screen`
   qui défile). `index.html` et `menu-test.html` alignés.
+- **3.46 — Allègement carte / caméra et parcelle dans le FAB** : le menu FAB TRACÉS perd
+  l'option « Historique » (`openPointsView()` et ses alias supprimés : l'onglet HISTORIQUE
+  reste le seul accès) et gagne la 4ᵉ option « Parcelle : <nom> »
+  (`#btnProjectDrawer`, `.trace-fab-item.project`, `openProjectDrawer()`, libellé mis à jour
+  par `renderProjectList()`). Le panneau Connexion ne contient plus la parcelle : station
+  NTRIP + `#saveIndicator` puis switch `#btnPointNumbers` « Numéros des points »
+  (`rtkShowPointNumbers`, désactivé par défaut, `togglePointNumbers()` / `renderMap()`), avec
+  un repli `#menuEmptyProjectRow` (« ＋ Créer une parcelle ») visible seulement sans parcelle
+  pour ne pas perdre l'accès à la création au premier lancement. Les labels de zone
+  (`addZoneLabel()`, classe `.zone-name-label`) n'affichent plus que le code `ZT1` / `ZI1`
+  (surface conservée dans `zonePopup()` et l'export). La boussole du HUD caméra
+  (`.cam-compass-inline`) perd son cercle (plus de `border`, `border-radius`, `background` ni
+  d'états `.ok` / `.warn` colorés). `index.html` et `menu-test.html` alignés ; banc Node de
+  non-régression (17 vérifications) au vert.
 
 ## 9. Langue et communication
 
