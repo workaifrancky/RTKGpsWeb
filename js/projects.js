@@ -292,7 +292,8 @@ async function renameProject(projectId) {
     confirmText: 'Renommer',
   });
   if (input === null) return;                       // annulation
-  const name = input.trim();
+  // Nom toujours stocké en MAJUSCULES (même règle que la création).
+  const name = input.trim().toUpperCase();
   if (!name) {
     showToast('Le nom de la parcelle ne peut pas être vide', 'error');
     return;
@@ -450,6 +451,9 @@ function renderProjectList() {
       ? `Parcelle : ${currentProject.name} — choisir une parcelle`
       : 'Aucune parcelle — en créer une';
   }
+
+  // Même nom dans l'en-tête de la section POINTS de l'onglet HISTORIQUE.
+  if (typeof updateHistoryProjectName === 'function') updateHistoryProjectName();
 
   if (!container) return;
   if (!projects.length) {

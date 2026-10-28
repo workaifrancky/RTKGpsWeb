@@ -3,7 +3,19 @@
 // RTKGpsWeb v2
 // ============================================================
 
+// Nom de la parcelle courante dans l'en-tête de la section POINTS
+// (« Parcelle : <NOM> »). Appelée par loadHistory() et renderProjectList().
+function updateHistoryProjectName() {
+  const el = document.getElementById('historyProjectName');
+  if (!el) return;
+  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+  el.textContent = project ? project.name : '—';
+  el.title = project ? `Parcelle : ${project.name}` : 'Aucune parcelle';
+}
+
 function loadHistory() {
+  updateHistoryProjectName();
+
   const container=document.getElementById('historyList');
   if (!container) return;
   const projects=loadProjects();

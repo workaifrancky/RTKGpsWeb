@@ -99,10 +99,11 @@ Overrides de lisibilité :
 
 ### Indicateur de sauvegarde et verrouillage
 
-- `#saveIndicator` (`.save-indicator`) : indicateur discret de la 2ᵉ ligne du menu du header
-  (à droite du bouton Parcelle), icône `💾` ; `flashSaveIndicator()` relance
-  l'animation `saveFlash` (0,9 s) à chaque écriture locale et met le `title` à l'heure de
-  sauvegarde. L'écriture réelle est centralisée par `persistProjectStorage()` /
+- `#saveIndicator` (`.save-indicator`) : indicateur discret de la 1re ligne du panneau
+  Connexion (à droite de la station NTRIP), icône Lucide `save` de 14 px, `title` /
+  `aria-label` = « Sauvegarde locale automatique ». `flashSaveIndicator()` relance
+  l'animation `saveFlash` (0,9 s) à chaque écriture locale et complète le `title` avec l'heure
+  de la dernière sauvegarde. L'écriture réelle est centralisée par `persistProjectStorage()` /
   `flushProjectStorage()`.
 - `#lockOverlay` (`.lock-overlay`) : voile plein écran `z-index: 3000` (au-dessus de la barre
   basse, du tiroir, des modales et des toasts), fond sombre + `backdrop-filter`. Affiché par
@@ -124,10 +125,11 @@ Overrides de lisibilité :
   - `.header-top-row` : logo (🌾 + « RTK Mower ») + bouton `#btnConnectionSettings` ;
   - `.header-bottom-row` : pastille `#headerGpsStatus` (`.gps-status-pill`,
     `flex: 1 1 auto`) + `.header-actions-group` (thème `#btnTheme`, BLE `#btnBle`).
-- `.header-connection-btn` : pastille translucide de 36 px (rayon 999 px, bordure et fond
-  `rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`, survol `0.22`), icône **SVG Lucide
-  `settings`** de 16 px + libellé « Connexion » (12 px / 800, 11 px ≤ 360 px). L'état ouvert
-  est porté par `aria-expanded` ; l'emoji `⚙️` n'est pas utilisé.
+- `.header-connection-btn` : bouton **rond** translucide de 36 px (34 px ≤ 480 px, bordure et
+  fond `rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`, survol `0.22`), **icône seule**
+  SVG Lucide `settings` de 18 px — plus aucun libellé texte : le sens est porté par `title` /
+  `aria-label` = « Connexion ». L'état ouvert est porté par `aria-expanded` ; l'emoji `⚙️`
+  n'est pas utilisé.
 - `.header-icon-btn` : carrés de 40 px (38 px ≤ 480 px), translucides et centrés
   (`inline-flex`). Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans
   `#btnTheme` par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
@@ -257,7 +259,7 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 |---|---|
 | Toutes largeurs | Cibles tactiles ≥ 44 px : `button { min-height: 44px }`, zoom Leaflet 44 px, contrôles flottants 44 px. |
 | ≥ 481 px | Header sur deux lignes (logo + « Connexion », puis pastille GPS + thème + BLE) ; le panneau Connexion porte la station NTRIP, la parcelle et la sauvegarde ; onglets avec libellés, FAB 56 px. |
-| ≤ 480 px | Header sur deux lignes : logo 15 px sans « v2 », bouton Connexion 34 px (11 px), pastille GPS 30 px, boutons icône 38 px ; libellés d'onglets masqués (`.tab-text`), **barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
+| ≤ 480 px | Header sur deux lignes : logo 15 px sans « v2 », bouton Connexion rond 34 px, pastille GPS 30 px, boutons icône 38 px ; libellés d'onglets masqués (`.tab-text`), **barre de navigation basse** avec libellés visibles (12 px), FAB à 12 px des bords (bas 14 px), menu 220 px. Badge/POINTS à 12 px, hint masqué. |
 | ≤ 360 px | Logo 14 px, bouton Connexion 34 px, boutons icône 38 px, **libellés de la barre basse à 12 px** (11 px ≤ 340 px), FAB et menu toujours accessibles. |
 
 Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne déborde plus à
@@ -370,7 +372,9 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
-  1. `#pointsSection` — en-tête `.points-section-head` (titre + `#btnTransfer`),
+  1. `#pointsSection` — en-tête `.points-section-head` : `« Parcelle : »`
+     (`.section-title` sans filet) + `#historyProjectName` (`.history-project-name`, 12 px /
+     800, vert foncé, ellipse) puis `#btnTransfer`,
      `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
      (plus de hauteur contrainte : c'est `.screen` qui défile) et `.points-view-actions` en
      grille 2 × 2 (GeoJSON, CSV, GPX, Effacer) ;

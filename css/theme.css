@@ -23,7 +23,8 @@
 
 /* Nom de parcelle de l'en-tête RELEVÉ : --color-primary-deep devient très
    sombre en thème nuit, on repasse sur le vert clair lisible. */
-[data-theme="dark"] .stat-project-name-inline {
+[data-theme="dark"] .stat-project-name-inline,
+[data-theme="dark"] .history-project-name {
   color: var(--color-primary-light);
 }
 

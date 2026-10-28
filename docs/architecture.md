@@ -69,8 +69,9 @@ brique doit être insérée **après ses dépendances**.
   (« Parcelle : <nom> ») qui ouvre le tiroir `#projectDrawer` (overlay + panneau latéral). Le
   tiroir liste les parcelles (`#projectListContainer`), permet de changer, renommer,
   supprimer et d'en créer une. `saveProjects()` met à jour la liste et le libellé du bouton.
-  Sans parcelle (FAB masqué), le panneau Connexion expose `#menuEmptyProjectRow` pour créer la
-  première parcelle.
+  Sans parcelle, `#traceFab` reste visible sur TRACÉS : son clic principal ouvre le tiroir
+  (création de la première parcelle) et `chooseTraceMode()` affiche « Créez d'abord une
+  parcelle ». Le panneau Connexion ne contient plus aucune ligne Parcelle.
 
 ## État et persistance
 

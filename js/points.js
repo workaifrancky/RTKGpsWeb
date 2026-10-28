@@ -191,6 +191,20 @@ function chooseTraceMode(type) {
     if (typeof openProjectDrawer === 'function') openProjectDrawer();
     return;
   }
+
+  // Le menu FAB disparaît immédiatement (avant toute confirmation éventuelle).
+  closeTraceFabMenu();
+
+  // Obstacle : type ponctuel. Dès que le mode est validé (aucune confirmation
+  // s'il n'y a pas d'autre tracé en cours), on ouvre DIRECTEMENT la modale
+  // « Type d'obstacle » : pas besoin d'un second clic sur le FAB.
+  if (type === 'obstacle') {
+    Promise.resolve(beginTraceMode('obstacle')).then(started => {
+      if (started && typeof openObstacleMenu === 'function') openObstacleMenu();
+    });
+    return;
+  }
+
   // Appelée depuis le menu : la promesse n'a pas besoin d'être attendue.
   beginTraceMode(type);
 }

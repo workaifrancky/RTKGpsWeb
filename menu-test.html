@@ -32,15 +32,14 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         <span class="logo-text">RTK Mower</span>
       </div>
       <button type="button" id="btnConnectionSettings" class="header-connection-btn"
-        onclick="toggleConnectionPanel()" title="Paramètres de connexion (Parcelle, NTRIP)"
+        onclick="toggleConnectionPanel()" title="Connexion" aria-label="Connexion"
         aria-haspopup="true" aria-expanded="false" aria-controls="headerMenu">
-        <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+        <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
-        <span class="connection-label">Connexion</span>
       </button>
     </div>
 
@@ -437,9 +436,10 @@ localStorage.setItem("rtkCurrentProject","proj_test");
     <div class="history-screen">
 
       <!-- Section 1 : points de la parcelle courante (ex-vue POINTS) -->
-      <section id="pointsSection" class="history-section" aria-labelledby="pointsSectionTitle">
+      <section id="pointsSection" class="history-section" aria-label="Points de la parcelle courante">
         <div class="points-section-head">
-          <div class="section-title" id="pointsSectionTitle">POINTS ENREGISTRÉS</div>
+          <span class="section-title">Parcelle :</span>
+          <span id="historyProjectName" class="history-project-name">—</span>
           <div class="points-view-head-actions">
             <button type="button" id="btnTransfer" class="transfer-trigger"
               onclick="openTransferModal()" title="Transférer le GeoJSON"
@@ -575,7 +575,8 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         aria-label="Station NTRIP">
       </select>
       <span id="saveIndicator" class="save-indicator menu-save-indicator"
-        title="Sauvegardé localement" aria-live="polite">
+        title="Sauvegarde locale automatique" aria-label="Sauvegarde locale automatique"
+        aria-live="polite">
         <svg class="save-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">

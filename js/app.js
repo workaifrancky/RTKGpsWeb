@@ -440,7 +440,9 @@ function closeProjectModal() {
 
 function createProject() {
   const input = document.getElementById('projectNameInput');
-  const name  = input ? input.value.trim() : '';
+  // Nom toujours stocké en MAJUSCULES (affichage uniforme partout : header,
+  // FAB, tiroir, RELEVÉ, HISTORIQUE, exports).
+  const name  = input ? input.value.trim().toUpperCase() : '';
   if (!name) { showToast('Entrez un nom de parcelle', 'error'); return; }
 
   const importIds = typeof getSelectedGlobalObstacleIds === 'function'
@@ -766,7 +768,8 @@ function flashSaveIndicator() {
   if (!el) return;
 
   const time = new Date().toLocaleTimeString('fr-FR');
-  el.title = `Sauvegardé localement à ${time}`;
+  // Le libellé de base (« Sauvegarde locale automatique ») reste explicite.
+  el.title = `Sauvegarde locale automatique — dernière sauvegarde à ${time}`;
   el.setAttribute('aria-label', el.title);
 
   el.classList.remove('flash');

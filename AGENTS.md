@@ -67,11 +67,16 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 ```js
 {
   id: 'proj_<timestamp>',        // identifiant unique
-  name: 'Jardin Nord',
+  name: 'JARDIN NORD',           // toujours en MAJUSCULES (createProject / renameProject)
   createdAt: '2026-10-23T08:00:00.000Z',
   points: [ /* Point[] */ ]
 }
 ```
+
+`createProject()` (`js/app.js`) et `renameProject()` (`js/projects.js`) convertissent le nom
+saisi avec `toUpperCase()` : l'affichage est uniforme partout (FAB, tiroir, RELEVÉ,
+HISTORIQUE, exports). Les parcelles plus anciennes conservent leur casse jusqu'au prochain
+renommage.
 
 Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet courant dans
 `rtkCurrentProject`. L'accès passe par `getPoints()` et `getCurrentProjectData()`.
@@ -143,7 +148,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   courante. `recordInterdit()` s'appuie sur `buildPoint()`, qui lit
   `getCurrentInterditZoneId()`. Carte et export produisent un polygone / une Feature
   `zone_interdite` **par zone** (`zone_id`), sans fusion. La création d'obstacle passe par
-  l'option « Obstacle » du même menu, mais reste un point ponctuel.
+  l'option « Obstacle » du même menu : elle **ouvre directement la modale « Type d'obstacle »**
+  (`chooseTraceMode('obstacle')` → `beginTraceMode()` puis `openObstacleMenu()`), sans second
+  clic sur le FAB ; l'obstacle reste un point ponctuel.
 - **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
   `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
   les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
@@ -151,8 +158,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
 - **Header et menu** : le header tient sur **deux lignes** :
-  1. logo `🌾 RTK Mower` + bouton `#btnConnectionSettings` (`.header-connection-btn`, icône
-     SVG Lucide `settings` + libellé « Connexion ») qui ouvre le panneau de connexion ;
+  1. logo `🌾 RTK Mower` + bouton `#btnConnectionSettings` (`.header-connection-btn`,
+     **icône seule** SVG Lucide `settings` dans un rond de 36 px / 34 px ≤ 480 px ; le sens est
+     porté par `title` / `aria-label` = « Connexion », **aucun libellé texte**) qui ouvre le
+     panneau de connexion ;
   2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`) + `.header-actions-group` contenant
      le bouton thème `#btnTheme` et le bouton BLE `#btnBle` (tous deux `.header-icon-btn`).
 
@@ -168,7 +177,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
   breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
-  (`settings`) et non un emoji `⚙️` : ne pas revenir à un caractère texte. Le menu et son voile
+  (`settings`) et non un emoji `⚙️` : ne pas revenir à un caractère texte ni à un libellé
+  visible. Le menu et son voile
   `#headerMenuOverlay` sont **hors de `.app-wrapper`** (z-index 4000 / 3999) pour passer
   au-dessus du verrouillage écran (3000) et des FAB (1002) : ne pas les replacer dans
   `<header>` (contexte d'empilement `z-index: 200`) et les masquer explicitement en plein écran
@@ -236,8 +246,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège de focus et retour du focus
   sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
 - **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
-  (`#pointsViewOverlay` supprimé). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
-  `#pointsList`, `#btnTransfer` (hub de transfert), les exports GeoJSON/CSV/GPX et « Effacer » ;
+  (`#pointsViewOverlay` supprimé). L'en-tête `.points-section-head` affiche
+  `« Parcelle : <NOM> »` (`<span class="section-title">Parcelle :</span>` +
+  `#historyProjectName`, classe `.history-project-name`, mis à jour par
+  `updateHistoryProjectName()` — appelée par `loadHistory()` et `renderProjectList()`), puis
+  `#btnTransfer` (hub de transfert). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
+  `#pointsList`, `#btnTransfer`, les exports GeoJSON/CSV/GPX et « Effacer » ;
   elle précède la section « PARCELLES / SESSIONS » (`#historyList`, `loadHistory()`).
   Accès : **uniquement** le bouton HISTORIQUE de la navigation basse
   (`showTab('tab-history')`, qui appelle `renderPointsList()` **et** `loadHistory()`).
@@ -249,7 +263,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
   l'enregistrement ; le FAB est sous le voile `z-index: 3000`.
 - **Sauvegarde locale** : `saveProjects()` écrit via `persistProjectStorage()` ; l'indicateur
-  `#saveIndicator` clignote (`flashSaveIndicator()`). `autosaveInterval` réécrit toutes les
+  `#saveIndicator` clignote (`flashSaveIndicator()`) et porte
+  `title` / `aria-label` = « Sauvegarde locale automatique » (complété par l'heure de la
+  dernière sauvegarde au moment du flash). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
@@ -834,6 +850,19 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `--header-height: 104px`. L'onglet RELEVÉ gagne `.stats-header` (titre + `#statProjectName`
   aligné à droite, filet commun, ellipse, `--color-primary-light` en thème nuit), rempli par
   `updateStatsDisplay()` (`js/stats.js`) : `statProjectName="Jardin Repro"` vérifié en capture.
+- **3.50 — Icône Connexion seule, obstacle direct, majuscules et nom dans HISTORIQUE** :
+  `#btnConnectionSettings` perd son libellé « Connexion » (bouton rond de 36 px / 34 px ≤ 480 px,
+  icône `settings` 18 px, `title` + `aria-label` = « Connexion »). `chooseTraceMode('obstacle')`
+  ferme le menu FAB puis ouvre **directement** la modale « Type d'obstacle »
+  (`beginTraceMode()` → `openObstacleMenu()`), sans second clic sur le FAB.
+  `#saveIndicator` expose `title` / `aria-label` = « Sauvegarde locale automatique »
+  (complété par l'heure dans `flashSaveIndicator()`). Les noms de parcelle sont stockés en
+  majuscules (`createProject()` dans `js/app.js`, `renameProject()` dans `js/projects.js`).
+  L'en-tête de la section POINTS de HISTORIQUE affiche `Parcelle : <NOM>`
+  (`#historyProjectName` + `.history-project-name`, rempli par `updateHistoryProjectName()`
+  depuis `loadHistory()` et `renderProjectList()`). `index.html` et `menu-test.html` alignés ;
+  vérifié par captures Chrome headless (bouton 36×36 sans texte, modale obstacle ouverte,
+  « Parcelle : JARDIN REPRO ») et banc Node (7 vérifications au vert).
 
 ## 9. Langue et communication
 

@@ -408,6 +408,27 @@
   margin-bottom:   4px;
 }
 
+/* Le titre « Parcelle : » ne garde ni filet ni marge interne dans cet en-tête. */
+.points-section-head .section-title {
+  margin:         0;
+  padding:        0;
+  border-bottom:  none;
+  white-space:    nowrap;
+}
+
+/* Nom de la parcelle courante, à la suite du titre (ellipse si trop long). */
+.history-project-name {
+  flex:            1 1 auto;
+  min-width:       0;
+  font-size:       12px;
+  font-weight:     800;
+  letter-spacing:  0;
+  color:           var(--color-primary-deep);
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+}
+
 .points-view-head-actions {
   display:     flex;
   align-items: center;
