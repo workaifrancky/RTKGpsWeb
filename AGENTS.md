@@ -211,13 +211,26 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir `deleteProject()` ailleurs
   (doublon historique supprimé de `js/history.js`).
 - **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la section POINTS de
-  l'onglet HISTORIQUE (`#pointsSection`) ; le bouton `📤` partage le **même GeoJSON** via
-  `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
-  `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
-  `version_app` / `source` ajoutées à **toutes** les features.
+  l'onglet HISTORIQUE (`#pointsSection`), avec l'icône Lucide `download`. `buildGeoJSON()`
+  centralise la construction et les métadonnées `date_creation` / `version_app` / `source`
+  ajoutées à **toutes** les features. Le partage natif passe par `shareGeoJSON()` /
+  `navigator.share({ files })` (fallback toast sur desktop).
+- **Hub de transfert** : `#btnTransfer` (`.transfer-trigger`, icône `share-2` + « Transférer »)
+  ouvre `#transferModal` (`js/export.js`), qui propose **quatre canaux redondants** :
+  1. `transferViaNativeShare()` → `shareGeoJSON()` (Quick Share, Gmail…) ;
+  2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
+     par **`GET /api/local-info`** (`serve-http.cjs`, `os.networkInterfaces()`, IPv4 non
+     internes) et un bouton « Copier » (`copyTransferLocalUrl()`) ; le **QR code** est un
+     placeholder « Bientôt » ;
+  3. `transferViaCloud()` → `shareGeoJSON()` (le menu Android propose Drive) ;
+  4. `transferOpenDownloads()` → ferme la modale, ramène `.points-view-actions` à l'écran et
+     le met en surbrillance (`is-highlight`, animation `transfer-highlight`).
+  La modale se ferme au voile, avec Échap (prioritaire sur le menu d'export) et au changement
+  d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège de focus et retour du focus
+  sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
 - **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
   (`#pointsViewOverlay` supprimé). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
-  `#pointsList`, le partage `#pointsViewShare`, les exports GeoJSON/CSV/GPX et « Effacer » ;
+  `#pointsList`, `#btnTransfer` (hub de transfert), les exports GeoJSON/CSV/GPX et « Effacer » ;
   elle précède la section « PARCELLES / SESSIONS » (`#historyList`, `loadHistory()`).
   Accès : **uniquement** le bouton HISTORIQUE de la navigation basse
   (`showTab('tab-history')`, qui appelle `renderPointsList()` **et** `loadHistory()`).
@@ -301,6 +314,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Ordre des scripts** : `index.html` charge les JS dans un ordre précis ; une nouvelle
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
   et `map.js`, avant `export.js`).
+- **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
+  servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
+  local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
 - **Pas de cache** : `serve-http.cjs` envoie `Cache-Control: no-store` ; ne pas le retirer
   pendant les phases de test terrain.
 - **Outils de simulation** : `ENABLE_SIMULATION = false` dans `js/simulation.js` et boutons
@@ -736,6 +752,22 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`.cam-compass-inline`) perd son cercle (plus de `border`, `border-radius`, `background` ni
   d'états `.ok` / `.warn` colorés). `index.html` et `menu-test.html` alignés ; banc Node de
   non-régression (17 vérifications) au vert.
+- **3.47 — Hub de transfert et icônes Lucide d'export** : le bouton `📤` de la section POINTS
+  devient `#btnTransfer` (« Transférer », icône Lucide `share-2`, `.transfer-trigger`) et ouvre
+  la modale `#transferModal` (`js/export.js`) à quatre canaux : partage natif
+  (`transferViaNativeShare()` → `shareGeoJSON()`), mode serveur local
+  (`transferViaLocalServer()` : adresse LAN via `GET /api/local-info` de `serve-http.cjs`,
+  bouton « Copier », QR code en placeholder « Bientôt »), cloud (`transferViaCloud()` →
+  `navigator.share`, Drive proposé par Android) et téléchargement
+  (`transferOpenDownloads()` → surbrillance `.points-view-actions`). Fermeture au voile, avec
+  Échap (prioritaire sur le menu d'export) et au changement d'onglet, piège de focus et retour
+  du focus sur `#btnTransfer` ; sans point, toast « Aucun point à transférer ». Les icônes `⬇`
+  des exports GeoJSON/CSV/GPX ainsi que `⬇ CSV` / `📂` de l'historique passent en SVG Lucide
+  (`download`, `folder-open`) ; `.points-view-icon` (bouton `📤` supprimé) est retiré du CSS.
+  CSS : `.transfer-option` (survol `translateY(-1px)`, bordure verte, ombre), pastilles d'icône
+  colorées par canal (`share`/`local`/`cloud`/`download`), overrides nuit, animation
+  `transfer-highlight` (désactivée en `prefers-reduced-motion`). Banc Node : 23 vérifications
+  au vert (ouverture, 4 canaux, `navigator.share`, adresses locales, presse-papiers).
 
 ## 9. Langue et communication
 

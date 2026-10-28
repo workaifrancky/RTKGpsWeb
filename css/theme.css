@@ -21,6 +21,22 @@
   background:   var(--color-bg-subtle);
 }
 
+/* Hub de transfert : --color-primary-pale-bg reste un vert très clair, on
+   utilise donc une surface sombre au survol et pour les pastilles d'icône. */
+[data-theme="dark"] .transfer-option:hover {
+  background:   var(--color-bg-muted);
+}
+
+[data-theme="dark"] .transfer-option-icon {
+  background:   var(--color-bg-subtle);
+  border-color: var(--border2);
+}
+
+[data-theme="dark"] .transfer-local-url {
+  color:        var(--color-primary-accent);
+  border-color: var(--border2);
+}
+
 /* Bandeau d'onglets (pills) : en thème nuit, --color-white devient une surface
    sombre et --green-dark (#052e16) y serait illisible. Les pills inactives
    passent donc en texte vert clair, et la pill active en fond vert clair avec

@@ -86,8 +86,10 @@ Overrides de lisibilité :
   Effacer), boutons pleine largeur.
 - `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
   hover `--color-primary-deep`, utilisé pour GeoJSON.
-- `#pointsViewShare` / `.points-view-icon` : bouton 44 px de partage du GeoJSON dans l'en-tête
-  de la vue POINTS ; icône `📤`, partage natif (`navigator.share({ files })`).
+- `.transfer-trigger` (`#btnTransfer`) : bouton pleine pastille de l'en-tête de la vue POINTS
+  (44 px, fond `--color-primary`, texte blanc, 13 px / 800) avec l'icône Lucide `share-2` et le
+  libellé « Transférer » ; hover `--color-primary-deep`, `active` à 0,98. Il ouvre le hub de
+  transfert (voir plus bas).
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
   **Inutilisé** : les boutons de simulation sont retirés de l'interface terrain, la classe est
   conservée pour une réactivation (voir [simulation.md](simulation.md)).
@@ -192,6 +194,26 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   `.modal-message` (14 px), `.modal-error` (13 px, `--color-danger-text`) et `.modal-actions`
   (deux boutons de largeur égale, 44 px min). Fermeture par Annuler, Échap ou clic sur le
   voile ; focus piégé et restauré, nom vide refusé sans fermer la modale.
+
+### Hub de transfert (`components.css`)
+
+- `#transferModal` réutilise `.modal-overlay` / `.modal-box` (z-index 1100) avec
+  `.transfer-box` en colonne. En-tête `.transfer-head` : titre + `.transfer-subtitle`
+  (« Parcelle : … ») et `.transfer-close` (38 px, rond, icône Lucide `x`).
+- `.transfer-options` : quatre `.transfer-option` (min-height 66 px) composées de
+  `.transfer-option-icon` (42 px, `--color-white`, couleur par canal : `share` vert,
+  `local` teal, `cloud` bleu info, `download` vert foncé), `.transfer-option-text`
+  (titre 13 px / 800 + description 11 px `--text3`) et `.transfer-option-chevron`
+  (Lucide `chevron-right`).
+- Survol « pro » : `translateY(-1px)`, bordure `--color-primary-light`, fond
+  `--color-primary-pale-bg`, ombre `--shadow-md` et chevron décalé de 3 px ; `active` à 0,99.
+  Thème nuit : fond `--color-bg-muted`, pastilles `--color-bg-subtle` + `--border2`.
+- `.transfer-local` (vue « mode serveur local ») : `.transfer-badge` (« Bientôt », ambre),
+  `.transfer-local-url` (encadré pointillé, URL en 13 px / 800), `.transfer-local-hint` et
+  deux `.btn-secondary` de largeur égale (« Copier », « Retour »).
+- `.points-view-actions.is-highlight` : animation `transfer-highlight` (halo
+  `--color-primary-accent`, 2 × 0,9 s) déclenchée par l'option « Télécharger » du hub ;
+  remplacée par un contour fixe en `prefers-reduced-motion: reduce`.
 
 ### Tiroir Parcelles
 
@@ -324,7 +346,7 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
-  1. `#pointsSection` — en-tête `.points-section-head` (titre + partage `#pointsViewShare`),
+  1. `#pointsSection` — en-tête `.points-section-head` (titre + `#btnTransfer`),
      `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
      (plus de hauteur contrainte : c'est `.screen` qui défile) et `.points-view-actions` en
      grille 2 × 2 (GeoJSON, CSV, GPX, Effacer) ;

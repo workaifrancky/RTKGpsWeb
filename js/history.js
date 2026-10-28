@@ -28,8 +28,24 @@ function loadHistory() {
         🟡 ${obstacle} obstacle(s)
       </div>
       <div class="session-actions">
-        <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-points')">📂 Ouvrir</button>
-        <button class="btn-action-bar" onclick="exportProjectCSV('${p.id}')">⬇ CSV</button>
+        <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-points')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Ouvrir
+        </button>
+        <button class="btn-action-bar" onclick="exportProjectCSV('${p.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+          CSV
+        </button>
         <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">${ICON_TRASH} Suppr.</button>
       </div>
     </div>`;

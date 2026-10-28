@@ -33,7 +33,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones (distances de segments via `leaflet-measure-path`), marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
 | `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
 | `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
-| `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
+| `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), hub de transfert (`#transferModal`, 4 canaux), partage natif, construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
 | `js/ui.js` | Bandeau Fix (fix, précision) et alertes GPS à partir des trames |
@@ -149,6 +149,12 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
 - `computeStats()` travaille sur tous les points du projet.
 - `exportGeoJSON()` construit les features dans l'ordre domaine → zone 1..N (une par `zoneId`)
   → zone interdite → obstacles ; le domaine est l'enveloppe convexe de tous les points.
+- **Hub de transfert** (`js/export.js`, `#transferModal`) : quatre canaux redondants pour le
+  même GeoJSON — partage natif (`shareGeoJSON()`), mode serveur local (adresse LAN lue via
+  `GET /api/local-info` exposé par `serve-http.cjs`, QR code à venir), cloud (même
+  `navigator.share`, Drive proposé par Android) et téléchargement direct (boutons CSV / GPX /
+  GeoJSON de `#pointsSection`, mis en surbrillance). Aucun canal ne reconstruit le GeoJSON :
+  `buildGeoJSON()` reste la source unique.
 - Voir [format-geojson.md](format-geojson.md).
 
 ## Mode simulation

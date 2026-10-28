@@ -372,23 +372,6 @@
   gap:         8px;
 }
 
-.points-view-icon {
-  width:       44px;
-  min-width:   44px;
-  padding:     0;
-  border:      1px solid var(--border);
-  border-radius: var(--radius-md);
-  background:  var(--color-white);
-  color:       var(--text);
-  font-size:   18px;
-  cursor:      pointer;
-}
-
-.points-view-icon:focus-visible {
-  outline:        3px solid var(--color-primary-accent);
-  outline-offset: 2px;
-}
-
 .points-view-meta {
   flex-shrink:  0;
   margin:       4px 0 8px;
@@ -426,6 +409,296 @@
 .points-view-actions svg {
   display:        block;
   flex-shrink:    0;
+  pointer-events: none;
+}
+
+/* Surbrillance temporaire des exports (option « Télécharger » du hub). */
+@keyframes transfer-highlight {
+  0%, 100% { box-shadow: none; }
+  40%      { box-shadow: 0 0 0 3px var(--color-primary-accent); }
+}
+
+.points-view-actions.is-highlight {
+  border-radius: var(--radius-md);
+  animation:     transfer-highlight 0.9s ease 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .points-view-actions.is-highlight {
+    animation:      none;
+    outline:        3px solid var(--color-primary-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ─── HUB DE TRANSFERT (#transferModal) ────────────────────── */
+/* Déclencheur : bouton « Transférer » de la section POINTS. */
+.transfer-trigger {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+  min-height:      44px;
+  padding:         0 14px;
+  border:          1px solid var(--color-primary);
+  border-radius:   var(--radius-md);
+  background:      var(--color-primary);
+  color:           white; /* texte + icône sur fond vert, y compris en thème nuit */
+  font-family:     var(--font);
+  font-size:       13px;
+  font-weight:     800;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.transfer-trigger:hover  { background: var(--color-primary-deep); }
+.transfer-trigger:active { transform: scale(0.98); }
+
+.transfer-trigger:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.transfer-trigger svg {
+  display:     block;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.transfer-box {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+}
+
+.transfer-head {
+  display:         flex;
+  align-items:     flex-start;
+  justify-content: space-between;
+  gap:             10px;
+}
+
+.transfer-head-text { min-width: 0; }
+
+.transfer-head .modal-title { margin-bottom: 2px; }
+
+.transfer-subtitle {
+  font-size:   12px;
+  font-weight: 700;
+  color:       var(--text3);
+}
+
+.transfer-close {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           44px;   /* cible tactile minimale (règle globale button) */
+  height:          44px;
+  min-width:       44px;
+  padding:         0;
+  border:          1px solid var(--border);
+  border-radius:   50%;
+  background:      var(--color-bg-subtle);
+  color:           var(--text2);
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.transfer-close:hover {
+  border-color: var(--color-primary-light);
+  color:        var(--color-primary);
+}
+
+.transfer-close svg {
+  display:     block;
+  pointer-events: none;
+}
+
+.transfer-options {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+}
+
+.transfer-options[hidden],
+.transfer-local[hidden] { display: none; }
+
+.transfer-option {
+  display:       flex;
+  align-items:   center;
+  gap:           12px;
+  width:         100%;
+  min-height:    66px;
+  padding:       10px 12px;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:    var(--color-bg-subtle);
+  color:         var(--text);
+  font-family:   var(--font);
+  text-align:    left;
+  cursor:        pointer;
+  transition:    transform 0.16s ease, border-color 0.16s ease,
+                 background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.transfer-option:hover {
+  border-color: var(--color-primary-light);
+  background:   var(--color-primary-pale-bg);
+  box-shadow:   var(--shadow-md);
+  transform:    translateY(-1px);
+}
+
+.transfer-option:active { transform: translateY(0) scale(0.99); }
+
+.transfer-option:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.transfer-option-icon {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           42px;
+  height:          42px;
+  flex-shrink:     0;
+  border:          1px solid var(--border);
+  border-radius:   var(--radius-lg);
+  background:      var(--color-white);
+  color:           var(--color-primary);
+}
+
+.transfer-option.local    .transfer-option-icon { color: var(--color-teal); }
+.transfer-option.cloud    .transfer-option-icon { color: var(--color-info); }
+.transfer-option.download .transfer-option-icon { color: var(--color-primary-deep); }
+
+.transfer-option-icon svg {
+  display:     block;
+  pointer-events: none;
+}
+
+.transfer-option-text {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  flex:           1 1 auto;
+  min-width:      0;
+}
+
+.transfer-option-title {
+  font-size:   13px;
+  font-weight: 800;
+}
+
+.transfer-option-desc {
+  font-size:   11px;
+  font-weight: 600;
+  color:       var(--text3);
+}
+
+.transfer-option-chevron {
+  display:     inline-flex;
+  flex-shrink: 0;
+  color:       var(--text3);
+  transition:  transform 0.16s ease, color 0.16s ease;
+}
+
+.transfer-option:hover .transfer-option-chevron {
+  color:     var(--color-primary);
+  transform: translateX(3px);
+}
+
+.transfer-option-chevron svg {
+  display:     block;
+  pointer-events: none;
+}
+
+/* Vue « mode serveur local » (QR code à venir) */
+.transfer-local {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+}
+
+.transfer-local-head {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.transfer-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            4px;
+  padding:        2px 8px;
+  border:         1px solid var(--color-warning);
+  border-radius:  999px;
+  background:     var(--color-warning-pale);
+  color:          var(--color-warning-text);
+  font-size:      10px;
+  font-weight:    800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.transfer-badge svg {
+  display:     block;
+  pointer-events: none;
+}
+
+.transfer-local-title {
+  font-size:   13px;
+  font-weight: 800;
+  color:       var(--text);
+}
+
+.transfer-local-url {
+  padding:       10px 12px;
+  border:        1px dashed var(--border2);
+  border-radius: var(--radius-md);
+  background:    var(--color-bg-subtle);
+  color:         var(--color-primary-deep);
+  font-family:   var(--font);
+  font-size:     13px;
+  font-weight:   800;
+  word-break:    break-all;
+}
+
+.transfer-local-list {
+  margin:      0;
+  padding:     0 0 0 16px;
+  color:       var(--text2);
+  font-size:   12px;
+  font-weight: 600;
+  word-break:  break-all;
+}
+
+.transfer-local-hint {
+  margin:      0;
+  color:       var(--text3);
+  font-size:   12px;
+  line-height: 1.5;
+}
+
+.transfer-local-actions {
+  display: flex;
+  gap:     8px;
+}
+
+.transfer-local-actions .btn-secondary {
+  flex:            1 1 0;
+  min-width:       0;
+  min-height:      44px;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+  font-size:       13px;
+}
+
+.transfer-local-actions svg {
+  display:     block;
+  flex-shrink: 0;
   pointer-events: none;
 }
 

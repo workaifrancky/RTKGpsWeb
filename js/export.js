@@ -251,6 +251,149 @@ async function shareGeoJSON() {
   }
 }
 
+// ─── HUB DE TRANSFERT (redondance des solutions d'export) ───
+// Une seule modale (#transferModal) propose quatre canaux : partage natif,
+// mode serveur local, cloud, téléchargement direct. Chaque canal réutilise
+// les fonctions d'export existantes (shareGeoJSON / exportGeoJSON / CSV / GPX)
+// afin de ne jamais dupliquer la construction du GeoJSON.
+let transferPreviousFocus = null;
+let transferLocalUrls = [];
+
+function openTransferModal() {
+  const overlay = document.getElementById('transferModal');
+  if (!overlay) return;
+
+  // Sans point, aucun fichier à produire : même garde-fou que les exports.
+  if (typeof getPoints === 'function' && getPoints().length === 0) {
+    showToast('Aucun point à transférer', 'error');
+    return;
+  }
+
+  transferShowOptions();
+
+  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+  const nameEl = document.getElementById('transferProjectName');
+  if (nameEl) nameEl.textContent = project?.name || 'Parcelle courante';
+
+  transferPreviousFocus = document.activeElement;
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+
+  const first = document.getElementById('transferOptionShare');
+  if (first && typeof first.focus === 'function') first.focus({ preventScroll: true });
+}
+
+function closeTransferModal() {
+  const overlay = document.getElementById('transferModal');
+  if (!overlay || !overlay.classList.contains('show')) return;
+
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  transferShowOptions();                 // la prochaine ouverture repart des options
+
+  const fromFocused = transferPreviousFocus;
+  transferPreviousFocus = null;
+  const trigger = document.getElementById('btnTransfer');
+  const target = trigger && trigger.offsetParent !== null ? trigger : fromFocused;
+  if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
+}
+
+// Vue « options » = état par défaut de la modale.
+function transferShowOptions() {
+  const options = document.getElementById('transferOptions');
+  const local = document.getElementById('transferLocalPanel');
+  if (options) options.hidden = false;
+  if (local) local.hidden = true;
+}
+
+// Option 1 — partage natif (Quick Share, Gmail, Drive…).
+async function transferViaNativeShare() {
+  closeTransferModal();
+  await shareGeoJSON();
+}
+
+// Option 3 — cloud : c'est le menu de partage Android qui propose Drive.
+function transferViaCloud() {
+  closeTransferModal();
+  showToast('Choisissez Drive / Cloud dans le menu de partage', 'info', 3200);
+  return shareGeoJSON();
+}
+
+// Option 4 — téléchargement manuel : on ramène l'utilisateur sur les boutons
+// d'export déjà présents dans la section POINTS et on les met en évidence.
+function transferOpenDownloads() {
+  closeTransferModal();
+
+  const actions = document.querySelector('.points-view-actions');
+  if (!actions) return;
+  if (typeof actions.scrollIntoView === 'function') {
+    actions.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  actions.classList.remove('is-highlight');
+  void actions.offsetWidth;              // relance l'animation
+  actions.classList.add('is-highlight');
+  setTimeout(() => actions.classList.remove('is-highlight'), 2000);
+}
+
+// Option 2 — mode serveur local. L'adresse LAN est fournie par
+// `serve-http.cjs` (/api/local-info) ; le QR code reste à venir.
+async function transferViaLocalServer() {
+  const options = document.getElementById('transferOptions');
+  const local = document.getElementById('transferLocalPanel');
+  if (!local) return;
+  if (options) options.hidden = true;
+  local.hidden = false;
+
+  const urlEl = document.getElementById('transferLocalUrl');
+  const listEl = document.getElementById('transferLocalList');
+  if (urlEl) urlEl.textContent = 'Recherche de l’adresse…';
+  if (listEl) listEl.innerHTML = '';
+
+  const fallback = typeof location !== 'undefined' && location.origin
+    ? `${location.origin}/`
+    : '';
+  let urls = [];
+
+  try {
+    const response = await fetch('/api/local-info', { cache: 'no-store' });
+    if (response.ok) {
+      const info = await response.json();
+      if (Array.isArray(info?.urls)) {
+        urls = info.urls.filter(url => typeof url === 'string' && url.trim());
+      }
+    }
+  } catch {
+    // Serveur statique sans endpoint : repli sur l'origine courante.
+  }
+
+  if (!urls.length && fallback) urls = [fallback];
+  transferLocalUrls = urls;
+
+  if (urlEl) urlEl.textContent = urls[0] || 'Adresse indisponible';
+  if (listEl && urls.length > 1) {
+    listEl.innerHTML = urls.map(url => `<li>${url}</li>`).join('');
+  }
+}
+
+async function copyTransferLocalUrl() {
+  const url = transferLocalUrls[0];
+  if (!url) {
+    showToast('Adresse indisponible', 'error');
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(url);
+      showToast('Adresse copiée', 'info');
+      return;
+    }
+  } catch {
+    // Presse-papiers refusé : on affiche l'adresse pour une copie manuelle.
+  }
+  showToast(url, 'info', 4000);
+}
+
 // ─── MENU D'EXPORT SECONDAIRE (CSV / GPX) ───────────────────
 function toggleExportMenu(event) {
   if (event) event.stopPropagation();
@@ -279,9 +422,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.target.closest('.export-menu')) return;
     closeExportMenu();
   });
+
+  // Hub de transfert : piège de focus (Tab reste dans la modale).
+  const transferOverlay = document.getElementById('transferModal');
+  if (transferOverlay) {
+    transferOverlay.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab') return;
+      const focusables = Array.from(transferOverlay.querySelectorAll('button:not([disabled])'))
+        .filter(el => el.offsetParent !== null);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last  = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  // Échap : la modale de transfert est prioritaire sur le menu d'export.
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeExportMenu();
-  });
+    if (event.key !== 'Escape') return;
+    const overlay = document.getElementById('transferModal');
+    if (overlay && overlay.classList.contains('show')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeTransferModal();
+      return;
+    }
+    closeExportMenu();
+  }, true);
 });
 
 function downloadFile(content, filename, mime) {

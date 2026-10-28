@@ -247,6 +247,7 @@ function showTab(tabId) {
   if (typeof closeProjectDrawer === 'function') closeProjectDrawer();
   if (typeof closeObstacleMenu === 'function') closeObstacleMenu();
   if (typeof closeTraceFabMenu === 'function') closeTraceFabMenu();
+  if (typeof closeTransferModal === 'function') closeTransferModal();
 
   // Une seule instance de carte, dans l'onglet TRACÉS.
   if (tabId === 'tab-points' && typeof mountMapForTab === 'function') {
