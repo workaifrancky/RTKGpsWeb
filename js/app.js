@@ -171,6 +171,41 @@ function toggleTheme() {
 function initNavigation() {
   showTab(APP.currentTab);
   if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+
+  // La hauteur du header dépend des breakpoints et de la safe-area : on
+  // recalcule le décalage des écrans de contenu à chaque rotation / resize.
+  window.addEventListener('resize', syncScreenHeaderOffset);
+}
+
+// ─── DÉCALAGE DES ÉCRANS DE CONTENU SOUS LE HEADER ───────────
+// Le header est en flux (position: sticky) : `.screen` commence donc sous lui.
+// Si un navigateur le superpose malgré tout (header hors flux, WebView,
+// safe-area), on mesure le recouvrement réel et on le compense par
+// `--screen-header-offset` — uniquement sur HISTORIQUE et RELEVÉ (TRACÉS et
+// CAMÉRA occupent l'écran et ne doivent pas être décalés).
+function syncScreenHeaderOffset() {
+  const header = document.querySelector('header');
+  const root = document.documentElement;
+  if (!header || !root) return;
+
+  const headerRect = header.getBoundingClientRect();
+  if (headerRect.height > 0) {
+    // Hauteur de référence (2 lignes + safe-area, ~104 px sur mobile).
+    root.style.setProperty('--header-height', `${Math.round(headerRect.height)}px`);
+  }
+
+  const active = document.querySelector('.screen.active');
+  const isContentScreen = !!active && (active.id === 'tab-history' || active.id === 'tab-stats');
+  if (!isContentScreen || active.getBoundingClientRect().height === 0) return;
+
+  const style = typeof getComputedStyle === 'function' ? getComputedStyle(header) : null;
+  const headerInFlow = !style || (style.position !== 'fixed' && style.position !== 'absolute');
+  const measured = Math.round(headerRect.bottom - active.getBoundingClientRect().top);
+  const offset = headerInFlow
+    ? Math.max(0, measured)                       // en flux : 0 (aucun recouvrement)
+    : Math.max(0, Math.round(headerRect.height)); // hors flux : on réserve sa hauteur
+
+  root.style.setProperty('--screen-header-offset', `${offset}px`);
 }
 
 // ─── MENU DÉROULANT DU HEADER (bouton « Connexion ») ────────
@@ -286,6 +321,8 @@ function showTab(tabId) {
   if (tabsWrapper) tabsWrapper.scrollLeft = tabsScrollLeft;
 
   APP.currentTab = tabId;
+  // L'écran vient de devenir actif : sa position sous le header est mesurable.
+  if (typeof syncScreenHeaderOffset === 'function') syncScreenHeaderOffset();
   if (typeof exitMapFullscreen === 'function') exitMapFullscreen();
   if (typeof syncCrosshairVisibility === 'function') syncCrosshairVisibility(tabId);
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();

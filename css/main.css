@@ -39,6 +39,12 @@
   /* Hauteur de la barre de navigation basse (hors safe-area iPhone) */
   --bottom-nav-height: 64px;
 
+  /* Header sur deux lignes : hauteur de référence (~104 px, safe-area exclue).
+     `--screen-header-offset` est recalculée par syncScreenHeaderOffset()
+     (`js/app.js`) et vaut 0 tant que le header est en flux normal. */
+  --header-height:         104px;
+  --screen-header-offset:  0px;
+
   /* Couleurs fix GPS (spécifiques RTK Mower) → tokens */
   --color-rtk:    var(--color-primary-light);
   --color-float:  var(--color-warning);
@@ -629,6 +635,16 @@ header {
 }
 
 .screen.active { display: block; }
+
+/* Écrans de contenu (HISTORIQUE, RELEVÉ) : le header est en flux normal, donc
+   `--screen-header-offset` vaut 0. La valeur n'est renseignée (hauteur du
+   header) que si un navigateur le superpose au contenu (header hors flux,
+   WebView, safe-area) — voir syncScreenHeaderOffset() dans js/app.js.
+   TRACÉS et CAMÉRA ne reçoivent aucun décalage : ils occupent l'écran. */
+#tab-history,
+#tab-stats {
+  padding-top: var(--screen-header-offset, 0px);
+}
 
 /* TRACÉS : carte plein écran (100 % de la zone visible) + panneau qui défile
    dessous. La barre d'enregistrement flotte sur la carte. */

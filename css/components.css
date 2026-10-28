@@ -11,6 +11,38 @@
 .badge-none  { background:var(--color-danger-pale); color:var(--color-danger-text); border-color:var(--color-danger-strong); }
 
 /* ─── GRILLE DONNÉES GPS ────────────────────────────────────── */
+/* En-tête de l'onglet RELEVÉ : titre à gauche, parcelle courante à droite.
+   Le filet du titre est porté par le conteneur pour couvrir les deux. */
+.stats-header {
+  display:         flex;
+  align-items:     baseline;
+  justify-content: space-between;
+  gap:             10px;
+  margin-bottom:   10px;
+  padding-bottom:  6px;
+  border-bottom:   1px solid var(--border);
+}
+
+.stats-header .section-title {
+  min-width:      0;
+  margin:         0;
+  padding:        0;
+  border-bottom:  none;
+}
+
+.stat-project-name {
+  flex:            1 1 auto;
+  min-width:       0;
+  text-align:      right;
+  font-size:       11px;
+  font-weight:     800;
+  letter-spacing:  0.3px;
+  color:           var(--color-primary-deep);
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+}
+
 .data-grid {
   display:               grid;
   grid-template-columns: 1fr 1fr;

@@ -272,6 +272,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   texte blanc. Icônes **Lucide** : `map`, `satellite`, `maximize` (puis `minimize` en plein
   écran) ; le verrou `#btnLock` utilise `lock` / `unlock` (`inline-flex` centré,
   `svg { display: block; pointer-events: none }`).
+- **Décalage sous le header** : `--header-height` (valeur de référence 104 px, mesurée par
+  `syncScreenHeaderOffset()` dans `js/app.js`) et `--screen-header-offset` (0 px par défaut).
+  Seuls `#tab-history` et `#tab-stats` appliquent `padding-top: var(--screen-header-offset)` :
+  le header étant en flux normal, l'offset reste à 0 et aucun double espacement n'apparaît ;
+  il ne devient non nul que si le header est hors flux (fixed/absolute) ou superposé.
+  TRACÉS et CAMÉRA ne reçoivent aucun décalage.
 - `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
@@ -350,6 +356,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   24 px / 800 en `--color-primary-deep`** (override `--color-primary-light` en nuit).
 - `.data-card-primary` : bloc pleine largeur (Surface à tondre), mêmes valeurs 24 px / 800,
   labels 10 px (9 px pour les secondaires).
+- `.stats-header` (en-tête de l'onglet RELEVÉ) : `flex` titre + nom de parcelle, filet commun
+  en bas (`1px var(--border)`), `margin-bottom` 10 px. `.stats-header .section-title` perd son
+  propre filet (`margin`, `padding` et `border` remis à zéro).
+- `.stat-project-name` (`#statProjectName`) : nom de la parcelle courante aligné à droite,
+  11 px / 800, `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le
+  nom est long. Rempli par `updateStatsDisplay()` (`js/stats.js`).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`

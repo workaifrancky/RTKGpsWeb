@@ -107,6 +107,15 @@ function computeStats() {
 
 function updateStatsDisplay() {
   const s = computeStats();
+
+  // En-tête de l'onglet : nom de la parcelle courante (aligné à droite).
+  const projectNameEl = document.getElementById('statProjectName');
+  if (projectNameEl) {
+    const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+    projectNameEl.textContent = project?.name || '—';
+    projectNameEl.title = project ? `Parcelle : ${project.name}` : 'Aucune parcelle';
+  }
+
   // L'unité m² est portée par le HTML (.data-unit) : ne pas la répéter ici.
   setHTML('statArea',      s.area>0 ? fmt(s.area, 1) : '—');
   setHTML('statTime',      formatDuration(s.estimatedSeconds));

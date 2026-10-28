@@ -305,6 +305,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   numéro, la zone (`ZT1` / `ZI1`), le fix, l'altitude et les satellites, puis les actions
   (renommer / supprimer). **Pas d'horodatage** : l'heure reste dans la liste des points
   (`renderPointsList()`) et dans les exports.
+- **Décalage sous le header** : le header est **en flux** (`position: sticky` dans
+  `.app-wrapper` en colonne), donc `#tab-history` et `#tab-stats` commencent déjà sous lui.
+  `syncScreenHeaderOffset()` (`js/app.js`, appelée par `showTab()` et au `resize`) publie
+  `--header-height` (mesurée, référence 104 px) et `--screen-header-offset` (0 px tant que le
+  header est en flux ; hauteur du header s'il est hors flux `fixed`/`absolute` ou superposé).
+  Seuls `#tab-history` et `#tab-stats` appliquent `padding-top: var(--screen-header-offset)` ;
+  TRACÉS et CAMÉRA n'ont aucun décalage. **Ne pas mettre `padding-top: 104px` en dur** : ce
+  serait un double espacement puisque le header occupe déjà sa place dans le flux.
+- **En-tête RELEVÉ** : `.stats-header` (`flex`, filet commun en bas) contient le
+  `.section-title` « RELEVÉ DE LA PARCELLE » et `#statProjectName` (nom de la parcelle
+  courante, aligné à droite, ellipse, `--color-primary-deep` / `--color-primary-light` en
+  nuit). Le nom est rempli par `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à
+  l'ouverture de l'onglet (`showTab('tab-stats')`) et à chaque changement de parcelle.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
   `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
@@ -803,6 +816,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   « Type d'obstacle » / « Nouvelle parcelle » sans emoji. `index.html` et `menu-test.html`
   alignés ; banc Node : 22 vérifications au vert + captures Chrome headless (contrôles, menu
   FAB, panneau Connexion, plein écran).
+- **3.49 — Décalage sous le header et nom de parcelle dans RELEVÉ** : `syncScreenHeaderOffset()`
+  (`js/app.js`) mesure `--header-height` et `--screen-header-offset`, appelée par `showTab()` et
+  au `resize` ; `#tab-history` et `#tab-stats` reçoivent
+  `padding-top: var(--screen-header-offset, 0px)` (0 dans le cas normal, hauteur du header
+  seulement s'il est hors flux ou superposé), TRACÉS et CAMÉRA restant intacts. L'onglet RELEVÉ
+  gagne `.stats-header` (titre + `#statProjectName` aligné à droite, filet commun, ellipse,
+  `--color-primary-light` en thème nuit), rempli par `updateStatsDisplay()` (`js/stats.js`).
+  Vérifié par captures Chrome headless avec le vrai JS : `header bottom=110 / screen top=110 /
+  padding-top=0px` (aucun double espacement), `statProjectName="Jardin Repro"` ; banc Node :
+  6 vérifications au vert (header en flux → 0 px, hors flux → hauteur, TRACÉS non décalé).
 
 ## 9. Langue et communication
 
