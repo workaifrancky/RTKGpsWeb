@@ -8,6 +8,7 @@ const APP = {
   currentTab:   'tab-points',
   tracesMode:   'lecture',   // 'lecture' (consultation) | 'creation' (tracé)
   currentTraceMode: null,    // 'tonte' | 'interdit' | 'obstacle' | null
+  pendingObstacle:  null,    // { type, icon } choisi, en attente de positionnement
   theme:        'light',
   bleConnected: false,
   hasGpsData:   false,
@@ -364,6 +365,10 @@ function hideAlert() {
 }
 
 // ─── MODAL OBSTACLE ──────────────────────────────────────────
+// Flux : menu FAB → « Obstacle » → modale du type → choix du type (mémorisé,
+// modale fermée) → l'utilisateur place la cible → clic sur le FAB = validation.
+// Aucun contrôle de position ici : elle est vérifiée par recordObstacle() au
+// moment de l'ajout (l'utilisateur peut déplacer la carte entre-temps).
 function openObstacleMenu() {
   if (typeof APP !== 'undefined' && APP.tracesMode !== 'creation') {
     showToast('Mode lecture — menu FAB pour ajouter', 'info');
@@ -374,37 +379,41 @@ function openObstacleMenu() {
     showToast('Terminez le tracé en cours (✓ Terminer) avant d’ajouter un obstacle', 'error');
     return;
   }
-  const pos = typeof getPointPosition === 'function' ? getPointPosition() : null;
-  if (!pos) {
-    if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
-      APP.currentTraceMode = null;
-      if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
-    }
-    showToast('Position indisponible — placez la cible sur la carte', 'error');
-    return;
-  }
-  // Appel direct au menu : on entre dans le type obstacle. Le clic normal
-  // passe par le FAB, qui gère la sélection et la confirmation.
   if (typeof APP !== 'undefined') {
     APP.tracesMode = 'creation';
     if (!activeType) APP.currentTraceMode = 'obstacle';
     if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   }
+  showObstacleModal();
+}
+
+// Affiche / masque uniquement la modale (aucun effet sur le mode de tracé).
+function showObstacleModal() {
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.add('show');
 }
 
-function closeObstacleMenu(preserveCreation = false) {
+function hideObstacleModal() {
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.remove('show');
-  // Fermer le menu sans choisir (ou après le choix) libère le type obstacle.
-  if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
+}
+
+// Fermeture « annulation » : masque la modale ET libère le type obstacle.
+function closeObstacleMenu(preserveCreation = false) {
+  hideObstacleModal();
+  if (typeof APP !== 'undefined'
+      && (APP.currentTraceMode === 'obstacle' || APP.pendingObstacle)) {
+    APP.pendingObstacle = null;
     APP.currentTraceMode = null;
     if (!preserveCreation) APP.tracesMode = 'lecture';
     if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+    if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
   }
 }
 
+// Choix du type dans la modale : mémorise le type, ferme la modale et laisse le
+// mode obstacle actif (croix de visée + FAB jaune). L'obstacle n'est PAS
+// enregistré ici : la validation se fait au clic sur le FAB.
 function selectObstacleType(type, icon) {
   // Sécurité supplémentaire si le menu était ouvert hors du flux normal :
   // un obstacle ne peut pas être créé au milieu d'une zone.
@@ -414,13 +423,17 @@ function selectObstacleType(type, icon) {
     showToast('Terminez le tracé en cours (✓ Terminer) avant d’ajouter un obstacle', 'error');
     return;
   }
-  closeObstacleMenu(true);
-  if (typeof recordObstacle === 'function') recordObstacle(type, icon);
-  // L'obstacle est ponctuel : retour à l'état neutre après sa création.
-  if (typeof APP !== 'undefined' && APP.tracesMode === 'creation' && !APP.currentTraceMode) {
-    APP.tracesMode = 'lecture';
-    if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+
+  if (typeof APP !== 'undefined') {
+    APP.pendingObstacle = { type, icon: icon || '🟡' };
+    APP.tracesMode = 'creation';
+    APP.currentTraceMode = 'obstacle';
   }
+  hideObstacleModal();
+  if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+  if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+  showToast(`Obstacle « ${type} » — placez la cible puis touchez le FAB`, 'info', 3200);
 }
 
 // ─── MODAL NOUVEAU PROJET ────────────────────────────────────

@@ -75,8 +75,9 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 
 `createProject()` (`js/app.js`) et `renameProject()` (`js/projects.js`) convertissent le nom
 saisi avec `toUpperCase()` : l'affichage est uniforme partout (FAB, tiroir, RELEVÉ,
-HISTORIQUE, exports). Les parcelles plus anciennes conservent leur casse jusqu'au prochain
-renommage.
+HISTORIQUE, exports). `normalizeProject()` (`js/projects.js`) applique la même règle au
+chargement, ce qui **migre** les parcelles créées avant cette règle. Les vues appliquent en
+plus `toUpperCase()` + `text-transform: uppercase` (ceinture et bretelles).
 
 Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet courant dans
 `rtkCurrentProject`. L'accès passe par `getPoints()` et `getCurrentProjectData()`.
@@ -147,10 +148,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (option « Nouvelle zone interdite » du menu FAB, garde-fou ≥ 3 points) incrémente la zone
   courante. `recordInterdit()` s'appuie sur `buildPoint()`, qui lit
   `getCurrentInterditZoneId()`. Carte et export produisent un polygone / une Feature
-  `zone_interdite` **par zone** (`zone_id`), sans fusion. La création d'obstacle passe par
-  l'option « Obstacle » du même menu : elle **ouvre directement la modale « Type d'obstacle »**
-  (`chooseTraceMode('obstacle')` → `beginTraceMode()` puis `openObstacleMenu()`), sans second
-  clic sur le FAB ; l'obstacle reste un point ponctuel.
+  `zone_interdite` **par zone** (`zone_id`), sans fusion. Flux d'un obstacle (point ponctuel) :
+  1. option « Obstacle » du menu FAB → `chooseTraceMode('obstacle')` → `beginTraceMode()` puis
+     `openObstacleMenu()` ouvre la modale « Type d'obstacle » **sans enregistrer** ;
+  2. choix du type → `selectObstacleType()` mémorise `APP.pendingObstacle = { type, icon }`,
+     **ferme la modale** et laisse le mode obstacle actif (croix de visée + FAB ambre) ;
+  3. l'utilisateur déplace la carte, puis le clic sur le FAB appelle `recordObstacle()` avec le
+     type en attente : c'est **la seule** validation. Annuler la modale (`closeObstacleMenu()`)
+     libère le mode ; le bouton « ✓ » est masqué en mode obstacle.
 - **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
   `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
   les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
@@ -159,9 +164,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   de point de référence à exclure).
 - **Header et menu** : le header tient sur **deux lignes** :
   1. logo `🌾 RTK Mower` + bouton `#btnConnectionSettings` (`.header-connection-btn`,
-     **icône seule** SVG Lucide `settings` dans un rond de 36 px / 34 px ≤ 480 px ; le sens est
-     porté par `title` / `aria-label` = « Connexion », **aucun libellé texte**) qui ouvre le
-     panneau de connexion ;
+     **icône seule** SVG Lucide `settings` (18 px) **sans cercle ni fond** — zone tactile
+     invisible de 44 × 44 px, survol signalé par l'opacité ; le sens est porté par
+     `title` / `aria-label` = « Connexion », **aucun libellé texte**) qui ouvre le panneau de
+     connexion ;
   2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`) + `.header-actions-group` contenant
      le bouton thème `#btnTheme` et le bouton BLE `#btnBle` (tous deux `.header-icon-btn`).
 
@@ -247,7 +253,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
 - **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
   (`#pointsViewOverlay` supprimé). L'en-tête `.points-section-head` affiche
-  `« Parcelle : <NOM> »` (`<span class="section-title">Parcelle :</span>` +
+  `« PARCELLE : <NOM> »` (`<span class="section-title">PARCELLE :</span>` +
   `#historyProjectName`, classe `.history-project-name`, mis à jour par
   `updateHistoryProjectName()` — appelée par `loadHistory()` et `renderProjectList()`), puis
   `#btnTransfer` (hub de transfert). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
@@ -300,12 +306,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   bas à 80 px) est visible sur TRACÉS, **avec ou sans parcelle**. Neutre, il ouvre
   `#traceFabMenu` (**4 options seulement**, dans cet ordre : « Parcelle : … » / tonte /
   interdit / obstacle) ; `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le
-  clic principal ajoute un point (`recordTonte()` / `recordInterdit()` ou menu obstacle) —
+  clic principal ajoute un point (`recordTonte()` / `recordInterdit()`), **valide l'obstacle**
+  quand `APP.pendingObstacle` est renseigné (`recordObstacle()`) ou rouvre le choix du type —
   sans parcelle il ouvre le tiroir. Le bouton secondaire `#traceFabSecondary` (icône Lucide
   `check`) termine la zone : sous 3 points, `customConfirm()` demande « Zone incomplète
-  (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur « ✓ » rouvre le menu.
-  Après un obstacle, le FAB redevient neutre et le mode est remis à `null`. Le type actif est
-  indiqué par la couleur/titre du FAB et la cible `#map-crosshair` (plus de badge flottant).
+  (X points). Terminer quand même ? » ; il est **masqué en mode obstacle** (un obstacle se
+  valide avec le FAB). Un appui long sur le FAB ou sur « ✓ » rouvre le menu.
+  Après un obstacle, le FAB redevient neutre et `currentTraceMode` / `pendingObstacle` sont
+  remis à `null`. Le type actif est indiqué par la couleur/titre du FAB (« Valider l'obstacle
+  « Arbre » » quand un type est en attente) et par la cible `#map-crosshair`.
   Le bouton principal porte l'icône Lucide `plus` (26 px), le secondaire `check` (24 px).
 - **Toasts de création** : `recordTonte()`, `recordInterdit()` et `recordObstacle()`
   n'affichent plus de toast de succès ; seules les erreurs (position indisponible, mode
@@ -333,12 +342,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   activer **uniquement** si un appareil superpose encore le header. La mesure JS
   (`syncScreenHeaderOffset()`) a été supprimée : elle ne mesurait que la boîte du header, pas
   son contenu débordant, d'où un offset qui restait à 0. TRACÉS et CAMÉRA n'ont aucun décalage.
-- **En-tête RELEVÉ** : `.stats-header` (`flex` en `flex-start`, filet commun en bas) contient
-  le `.section-title` « RELEVÉ DE LA PARCELLE » (`display: inline`) suivi de
-  `#statProjectName` (`.stat-project-name-inline`, balise `<span>` avec
-  `font-weight: 700; margin-left: 4px`) : le nom est **sur la même ligne que le titre**, plus
-  poussé à droite (ellipse si trop long, `--color-primary-deep` / `--color-primary-light` en
-  nuit). Le nom est rempli par `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à
+- **En-tête RELEVÉ** : `.stats-header` (`flex` en `flex-start`, filet commun en bas) affiche
+  « **PARCELLE :** » (`.section-title`) suivi de `#statProjectName`
+  (`.stat-project-name-inline`, balise `<span>` avec `font-weight: 700; margin-left: 4px`) :
+  le nom est **sur la même ligne que le titre**, en majuscules (`toUpperCase()` +
+  `text-transform`), ellipse si trop long, `--color-primary-deep` / `--color-primary-light`
+  en nuit. Le nom est rempli par `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à
   l'ouverture de l'onglet (`showTab('tab-stats')`) et à chaque changement de parcelle.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
@@ -863,6 +872,20 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   depuis `loadHistory()` et `renderProjectList()`). `index.html` et `menu-test.html` alignés ;
   vérifié par captures Chrome headless (bouton 36×36 sans texte, modale obstacle ouverte,
   « Parcelle : JARDIN REPRO ») et banc Node (7 vérifications au vert).
+- **3.51 — Flux obstacle, icône Connexion nue, majuscules et titres PARCELLE** : le choix du
+  type d'obstacle **n'enregistre plus rien** : `selectObstacleType()` mémorise
+  `APP.pendingObstacle`, ferme la modale et laisse le mode obstacle actif (croix de visée,
+  FAB ambre, titre « Valider l'obstacle « Arbre » ») ; le clic sur le FAB appelle
+  `recordObstacle()` (seule validation), le bouton `check` est masqué en mode obstacle.
+  `openObstacleMenu()` ne vérifie plus la position (elle l'est dans `recordObstacle()`) ;
+  `closeObstacleMenu()` libère `pendingObstacle`. `#btnConnectionSettings` perd son cercle
+  (`border: none`, `border-radius: 0`, `background: transparent`, 44 × 44 px, feedback par
+  opacité). Les noms de parcelle sont **migrés en majuscules au chargement** par
+  `normalizeProject()`, et les vues appliquent `toUpperCase()` + `text-transform`. Les titres
+  deviennent « **PARCELLE : <NOM>** » dans RELEVÉ (`.stats-header`) et HISTORIQUE
+  (`.points-section-head`). Vérifié par captures Chrome headless (aucun enregistrement à la
+  sélection `8 → 8`, validation FAB `8 → 9`, bouton 44 px sans bordure, titres PARCELLE) et
+  banc Node (19 vérifications au vert).
 
 ## 9. Langue et communication
 

@@ -8,7 +8,9 @@
 // Procédure complète : docs/simulation.md.
 const ENABLE_SIMULATION = false;
 
-const SIMULATION_PROJECT_NAME = 'Simulation';
+// Les noms de parcelle sont stockés en majuscules (normalizeProject) : la
+// constante doit l'être aussi pour que la recherche par nom aboutisse.
+const SIMULATION_PROJECT_NAME = 'SIMULATION';
 const SIM_BASE_LAT = 44.832223;
 const SIM_BASE_LON = -0.701992;
 

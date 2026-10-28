@@ -43,6 +43,7 @@
   white-space:    nowrap;
   overflow:       hidden;
   text-overflow:  ellipsis;
+  text-transform: uppercase;   /* ceinture et bretelles : nom déjà stocké en majuscules */
 }
 
 .data-grid {
@@ -427,6 +428,7 @@
   white-space:     nowrap;
   overflow:        hidden;
   text-overflow:   ellipsis;
+  text-transform:  uppercase;   /* ceinture et bretelles : nom déjà stocké en majuscules */
 }
 
 .points-view-head-actions {

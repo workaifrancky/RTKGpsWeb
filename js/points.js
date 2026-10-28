@@ -90,21 +90,31 @@ function syncTraceFabUI() {
   const type = hasProject
     ? ((typeof APP !== 'undefined' && APP.currentTraceMode) || null)
     : null;
+  const pendingObstacle = (typeof APP !== 'undefined' && APP.pendingObstacle) || null;
   const main = document.getElementById('traceFabMain');
   const secondary = document.getElementById('traceFabSecondary');
 
   if (main) {
     main.className = `trace-fab-main ${type || 'neutral'}`;
-    main.title = !hasProject
-      ? 'Aucune parcelle — en choisir ou en créer une'
-      : type
-        ? `Ajouter un point — ${TRACE_TYPE_LABELS[type]}`
-        : 'Choisir un tracé';
+    if (!hasProject) {
+      main.title = 'Aucune parcelle — en choisir ou en créer une';
+    } else if (type === 'obstacle' && pendingObstacle) {
+      // Type choisi : le clic sur le FAB valide l'obstacle (position = cible).
+      main.title = `Valider l'obstacle « ${pendingObstacle.type} »`;
+    } else if (type === 'obstacle') {
+      main.title = 'Choisir le type d’obstacle';
+    } else if (type) {
+      main.title = `Ajouter un point — ${TRACE_TYPE_LABELS[type]}`;
+    } else {
+      main.title = 'Choisir un tracé';
+    }
     main.setAttribute('aria-label', main.title);
   }
 
   if (secondary) {
-    secondary.hidden = !hasProject || !type;
+    // Un obstacle est ponctuel : il se valide avec le FAB, le bouton « ✓ »
+    // (terminer la zone) n'a pas de sens et reste masqué.
+    secondary.hidden = !hasProject || !type || type === 'obstacle';
     secondary.title = type
       ? `Terminer ${TRACE_TYPE_LABELS[type]} (appui long : menu)`
       : 'Terminer le tracé';
@@ -166,7 +176,11 @@ async function beginTraceMode(type) {
     if (!ok) return false;
   }
 
-  if (typeof APP !== 'undefined') APP.tracesMode = 'creation';
+  if (typeof APP !== 'undefined') {
+    APP.tracesMode = 'creation';
+    // Nouveau type : aucun obstacle en attente de positionnement.
+    APP.pendingObstacle = null;
+  }
 
   // Une zone existante déjà complète est clôturée ; une zone de 0 à 2 points
   // est reprise pour éviter de perdre un tracé commencé.
@@ -233,6 +247,7 @@ async function finishCurrentTrace() {
   }
 
   APP.currentTraceMode = null;
+  APP.pendingObstacle = null;
   APP.tracesMode = 'lecture';
   syncTracesModeUI();
   syncTraceFabUI();
@@ -257,6 +272,13 @@ function onTraceFabMainClick() {
     return;
   }
   if (type === 'obstacle') {
+    // Type déjà choisi dans la modale : le clic sur le FAB VALIDE l'obstacle
+    // à la position de la cible. Sinon, on (re)demande le type.
+    const pending = (typeof APP !== 'undefined' && APP.pendingObstacle) || null;
+    if (pending && typeof recordObstacle === 'function') {
+      recordObstacle(pending.type, pending.icon);
+      return;
+    }
     openObstacleMenu();
     return;
   }
@@ -552,9 +574,12 @@ function recordObstacle(subtype, icon) {
   // Ajoute aussi l'obstacle à la bibliothèque globale (réutilisable).
   if (typeof addGlobalObstacle === 'function') addGlobalObstacle(pt);
   // Un obstacle est un tracé ponctuel : on revient à l'état sans type actif.
-  if (typeof APP !== 'undefined' && APP.currentTraceMode === 'obstacle') {
-    APP.currentTraceMode = null;
-    if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  if (typeof APP !== 'undefined') {
+    APP.pendingObstacle = null;
+    if (APP.currentTraceMode === 'obstacle') {
+      APP.currentTraceMode = null;
+      if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+    }
   }
 }
 

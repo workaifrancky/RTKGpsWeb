@@ -262,30 +262,35 @@ header {
 .gps-status-pill.float { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.55); }
 .gps-status-pill.dgps  { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.55); }
 
-/* Bouton « Connexion » (icône seule) : ouvre le panneau Parcelle / NTRIP.
-   Le libellé texte a été retiré : `title` / `aria-label` portent le sens. */
+/* Bouton « Connexion » : icône SEULE, sans cercle ni fond (ni bordure).
+   La zone tactile de 44 px reste invisible ; `title` / `aria-label` portent
+   le sens. Le survol et l'ouverture du panneau sont signalés par l'opacité. */
 .header-connection-btn {
   flex:            0 0 auto;
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
-  width:           36px;
-  min-width:       36px;
-  height:          36px;
+  width:           44px;
+  min-width:       44px;
+  height:          44px;
   padding:         0;
-  border:          1px solid rgba(255,255,255,0.35);
-  border-radius:   50%;
-  background:      rgba(255,255,255,0.12);
+  border:          none;
+  border-radius:   0;
+  background:      transparent;
   color:           #fff;
   font-family:     var(--font);
   cursor:          pointer;
-  transition:      var(--transition);
+  transition:      opacity 0.15s ease;
 }
 
 .header-connection-btn:hover,
-.header-connection-btn[aria-expanded="true"] {
-  background:   rgba(255,255,255,0.22);
-  border-color: #fff;
+.header-connection-btn[aria-expanded="true"] { opacity: 0.82; }
+
+.header-connection-btn:active { opacity: 0.62; }
+
+.header-connection-btn:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
 }
 
 .header-connection-btn svg {
@@ -833,7 +838,6 @@ header {
   .header-logo  { font-size: 14px; gap: 4px; }
   .header-logo > span[aria-hidden] { font-size: 18px; }
   .gps-status-pill { height: 30px; padding: 0 8px; font-size: 10px; }
-  .header-connection-btn { width: 34px; min-width: 34px; height: 34px; }
   .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
   .header-menu { right: 8px; width: calc(100% - 16px); padding: 12px; }
 }
@@ -855,7 +859,6 @@ header {
   }
 
   .header-logo { font-size: 15px; }
-  .header-connection-btn { width: 34px; min-width: 34px; height: 34px; }
   .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
 
   .gps-status-pill {

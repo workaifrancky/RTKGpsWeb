@@ -112,8 +112,9 @@ function updateStatsDisplay() {
   const projectNameEl = document.getElementById('statProjectName');
   if (projectNameEl) {
     const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
-    projectNameEl.textContent = project?.name || '—';
-    projectNameEl.title = project ? `Parcelle : ${project.name}` : 'Aucune parcelle';
+    const name = project?.name ? String(project.name).toUpperCase() : '';
+    projectNameEl.textContent = name || '—';
+    projectNameEl.title = name ? `Parcelle : ${name}` : 'Aucune parcelle';
   }
 
   // L'unité m² est portée par le HTML (.data-unit) : ne pas la répéter ici.

@@ -535,6 +535,12 @@ function normalizeProject(project) {
   if (!project || typeof project !== 'object') return project;
   if (!Array.isArray(project.points)) project.points = [];
 
+  // Migration : les noms de parcelle sont toujours stockés en MAJUSCULES
+  // (règle appliquée à la création et au renommage depuis la 3.50).
+  if (typeof project.name === 'string') {
+    project.name = project.name.trim().toUpperCase();
+  }
+
   // Migration : la fonction « base du rover » a été supprimée. Les anciens
   // points de type `base` sont purgés du stockage local.
   project.points = project.points.filter(p => p && p.type !== 'base');

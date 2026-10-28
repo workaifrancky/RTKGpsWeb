@@ -9,8 +9,9 @@ function updateHistoryProjectName() {
   const el = document.getElementById('historyProjectName');
   if (!el) return;
   const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
-  el.textContent = project ? project.name : '—';
-  el.title = project ? `Parcelle : ${project.name}` : 'Aucune parcelle';
+  const name = project?.name ? String(project.name).toUpperCase() : '';
+  el.textContent = name || '—';
+  el.title = name ? `Parcelle : ${name}` : 'Aucune parcelle';
 }
 
 function loadHistory() {

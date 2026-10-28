@@ -125,11 +125,12 @@ Overrides de lisibilité :
   - `.header-top-row` : logo (🌾 + « RTK Mower ») + bouton `#btnConnectionSettings` ;
   - `.header-bottom-row` : pastille `#headerGpsStatus` (`.gps-status-pill`,
     `flex: 1 1 auto`) + `.header-actions-group` (thème `#btnTheme`, BLE `#btnBle`).
-- `.header-connection-btn` : bouton **rond** translucide de 36 px (34 px ≤ 480 px, bordure et
-  fond `rgba(255,255,255,0.35)` / `rgba(255,255,255,0.12)`, survol `0.22`), **icône seule**
-  SVG Lucide `settings` de 18 px — plus aucun libellé texte : le sens est porté par `title` /
-  `aria-label` = « Connexion ». L'état ouvert est porté par `aria-expanded` ; l'emoji `⚙️`
-  n'est pas utilisé.
+- `.header-connection-btn` : **icône seule, sans cercle** — `border: none`,
+  `border-radius: 0`, `background: transparent`, zone tactile invisible de **44 × 44 px**
+  (`inline-flex` centré), SVG Lucide `settings` de 18 px. Aucun libellé texte : le sens est
+  porté par `title` / `aria-label` = « Connexion ». Feedback uniquement par l'opacité
+  (`0.82` au survol, `0.62` à l'appui) et `focus-visible` (contour 3 px). L'état ouvert est
+  porté par `aria-expanded`.
 - `.header-icon-btn` : carrés de 40 px (38 px ≤ 480 px), translucides et centrés
   (`inline-flex`). Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans
   `#btnTheme` par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
@@ -323,7 +324,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   en trait pour les actions (`map-pin` pour la parcelle, `crosshair` pour la cible,
   `ruler` pour la mesure), toujours en `stroke: currentColor`.
 - Appui long (550 ms) sur le FAB ou sur l'icône `check` : ouverture du menu. Le clic court du
-  FAB ajoute un point (ou ouvre le menu obstacle) ; le clic court de `check` termine la zone.
+  FAB ajoute un point ; en mode obstacle il **valide** l'obstacle du type choisi
+  (`APP.pendingObstacle`, titre « Valider l'obstacle « Arbre » »), sinon il rouvre le choix du
+  type. Le clic court de `check` termine la zone.
+- **Mode obstacle** : la modale « Type d'obstacle » se ferme dès le choix du type, le FAB est
+  ambre (`.trace-fab-main.obstacle`), la cible `#map-crosshair` est visible et le bouton
+  `check` est **masqué** (un obstacle est ponctuel : il se valide avec le FAB).
 - **1re option** « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
   tiroir des parcelles, avant les trois options de tracé. Le menu ne contient **que** les
   tracés et la parcelle ; l'accès aux points se fait par l'onglet HISTORIQUE de la navigation
@@ -361,18 +367,19 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - `.data-card-primary` : bloc pleine largeur (Surface à tondre), mêmes valeurs 24 px / 800,
   labels 10 px (9 px pour les secondaires).
 - `.stats-header` (en-tête de l'onglet RELEVÉ) : `flex` en `flex-start`, `gap: 0`, filet
-  commun en bas (`1px var(--border)`), `margin-bottom` 10 px. `.stats-header .section-title`
-  perd son propre filet (`margin`, `padding` et `border` remis à zéro) et reste sur une ligne.
+  commun en bas (`1px var(--border)`), `margin-bottom` 10 px. Il affiche
+  « **PARCELLE :** » (`.section-title`, qui perd son propre filet : `margin`, `padding` et
+  `border` remis à zéro, `white-space: nowrap`).
 - `.stat-project-name-inline` (`#statProjectName`, balise `<span>`) : nom de la parcelle
-  courante **à la suite du titre** sur la même ligne (`<div class="section-title"
-  style="display: inline;">`), 11 px, graisse 700 et `margin-left: 4px` portées par le style
-  inline, `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le nom
-  est long. Rempli par `updateStatsDisplay()` (`js/stats.js`).
+  courante **à la suite du titre** sur la même ligne, 11 px, graisse 700 et `margin-left: 4px`
+  portées par le style inline, `text-transform: uppercase`,
+  `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le nom est long.
+  Rempli par `updateStatsDisplay()` (`js/stats.js`, `name.toUpperCase()`).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
-  1. `#pointsSection` — en-tête `.points-section-head` : `« Parcelle : »`
+  1. `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`
      (`.section-title` sans filet) + `#historyProjectName` (`.history-project-name`, 12 px /
      800, vert foncé, ellipse) puis `#btnTransfer`,
      `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
