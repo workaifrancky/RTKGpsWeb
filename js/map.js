@@ -391,7 +391,9 @@ function pointPopup(p, idx) {
       <button class="popup-btn" onclick="renamePoint(${p.id})" title="Renommer ce point">${ICON_PENCIL} Renommer</button>
       <button class="popup-btn popup-btn-danger" onclick="deletePoint(${p.id})" title="Supprimer ce point">${ICON_TRASH}</button>
     </div>`;
-  return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}<br>${fmtTime(p.timestamp)}${actions}`;
+  // Popup allégée : pas d'horodatage (l'heure reste dans la liste des points
+  // et l'export), uniquement zone, fix, altitude et satellites.
+  return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
 }
 
 // Popup d'une zone (tonte ou interdite) : nom personnalisé + actions.
@@ -659,8 +661,10 @@ function setMapFullscreen(enabled) {
 
   const btn = document.getElementById('btnMapFullscreen');
   if (btn) {
-    btn.textContent = mapUiFullscreen ? '✕' : '⛶';
+    // Icône Lucide : `minimize` en plein écran, `maximize` sinon.
+    btn.innerHTML = mapUiFullscreen ? ICON_MINIMIZE : ICON_MAXIMIZE;
     btn.title = mapUiFullscreen ? 'Quitter le plein écran' : 'Plein écran carte';
+    btn.setAttribute('aria-label', btn.title);
     btn.setAttribute('aria-pressed', mapUiFullscreen ? 'true' : 'false');
   }
 

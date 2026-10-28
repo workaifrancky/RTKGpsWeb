@@ -330,27 +330,45 @@
 }
 
 .camera-fullscreen-btn {
-  flex:           0 0 auto;
-  margin-left:    auto;
-  width:          42px;
-  height:         42px;
-  padding:        0;
-  border-radius:  50%;
-  border:         2px solid rgba(255,255,255,0.65);
-  background:     rgba(0,0,0,0.45);
-  color:          #fff;
-  font-size:      20px;
-  font-weight:    800;
-  cursor:         pointer;
-  pointer-events: auto;
+  flex:            0 0 auto;
+  margin-left:     auto;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           42px;
+  height:          42px;
+  padding:         0;
+  border-radius:   50%;
+  border:          2px solid rgba(255,255,255,0.65);
+  background:      rgba(0,0,0,0.45);
+  color:           #fff;
+  cursor:          pointer;
+  pointer-events:  auto;
   backdrop-filter: blur(3px);
+}
+
+/* Icônes Lucide du HUD caméra (plein écran, boussole, chevron de cible). */
+.camera-fullscreen-btn svg,
+.cam-compass-inline svg,
+.camera-picker-caret {
+  display:     block;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .camera-fullscreen-btn:hover {
   background: rgba(0,0,0,0.65);
 }
 
+/* Plein écran caméra : header et bouton « Connexion » totalement masqués,
+   comme pour la carte (lignes et boutons du header compris). */
 body.camera-ui-fullscreen header,
+body.camera-ui-fullscreen header .header-top-row,
+body.camera-ui-fullscreen header .header-bottom-row,
+body.camera-ui-fullscreen #btnConnectionSettings,
+body.camera-ui-fullscreen #btnTheme,
+body.camera-ui-fullscreen #btnBle,
+body.camera-ui-fullscreen #headerGpsStatus,
 body.camera-ui-fullscreen #headerMenu,
 body.camera-ui-fullscreen #headerMenuOverlay,
 body.camera-ui-fullscreen #projectDrawer,
@@ -358,6 +376,8 @@ body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
 body.camera-ui-fullscreen .tabs-wrapper {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 body.camera-ui-fullscreen .app-wrapper {

@@ -80,27 +80,31 @@ function syncTraceFabUI() {
 
   const hasProject = !!currentProject;
   const onTracesTab = typeof APP === 'undefined' || APP.currentTab === 'tab-points';
-  const visible = hasProject && onTracesTab;
+  // Le FAB reste visible sur TRACÉS même sans parcelle : son menu porte
+  // l'option « Parcelle : … », seul accès à la création (le panneau Connexion
+  // ne contient plus la parcelle). Le clic principal ouvre alors le tiroir.
+  const visible = onTracesTab;
   fab.hidden = !visible;
-  if (!visible) {
-    closeTraceFabMenu();
-    if (!hasProject) return;
-  }
+  if (!visible) closeTraceFabMenu();
 
-  const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  const type = hasProject
+    ? ((typeof APP !== 'undefined' && APP.currentTraceMode) || null)
+    : null;
   const main = document.getElementById('traceFabMain');
   const secondary = document.getElementById('traceFabSecondary');
 
   if (main) {
     main.className = `trace-fab-main ${type || 'neutral'}`;
-    main.title = type
-      ? `Ajouter un point — ${TRACE_TYPE_LABELS[type]}`
-      : 'Choisir un tracé';
+    main.title = !hasProject
+      ? 'Aucune parcelle — en choisir ou en créer une'
+      : type
+        ? `Ajouter un point — ${TRACE_TYPE_LABELS[type]}`
+        : 'Choisir un tracé';
     main.setAttribute('aria-label', main.title);
   }
 
   if (secondary) {
-    secondary.hidden = !type;
+    secondary.hidden = !hasProject || !type;
     secondary.title = type
       ? `Terminer ${TRACE_TYPE_LABELS[type]} (appui long : menu)`
       : 'Terminer le tracé';
@@ -108,7 +112,8 @@ function syncTraceFabUI() {
 }
 
 function openTraceFabMenu() {
-  if (!currentProject) return;
+  // Sans parcelle, le menu reste accessible : l'option « Parcelle : … » y est
+  // la première entrée et permet d'en créer une.
   const menu = document.getElementById('traceFabMenu');
   const main = document.getElementById('traceFabMain');
   if (!menu) return;
@@ -180,6 +185,12 @@ async function beginTraceMode(type) {
 }
 
 function chooseTraceMode(type) {
+  if (!currentProject) {
+    closeTraceFabMenu();
+    showToast('Créez d’abord une parcelle', 'error');
+    if (typeof openProjectDrawer === 'function') openProjectDrawer();
+    return;
+  }
   // Appelée depuis le menu : la promesse n'a pas besoin d'être attendue.
   beginTraceMode(type);
 }
@@ -214,7 +225,12 @@ async function finishCurrentTrace() {
 }
 
 function onTraceFabMainClick() {
-  if (!currentProject) return;
+  // Sans parcelle, le FAB mène directement au tiroir (création/sélection).
+  if (!currentProject) {
+    if (typeof openProjectDrawer === 'function') openProjectDrawer();
+    return;
+  }
+
   const menu = document.getElementById('traceFabMenu');
   if (menu && menu.classList.contains('show')) {
     closeTraceFabMenu();

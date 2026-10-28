@@ -451,12 +451,6 @@ function renderProjectList() {
       : 'Aucune parcelle — en créer une';
   }
 
-  // Sans parcelle, le FAB (et donc son bouton Parcelle) est masqué : le
-  // panneau Connexion expose alors un bouton de création pour que le premier
-  // lancement conserve un point d'entrée.
-  const emptyRow = document.getElementById('menuEmptyProjectRow');
-  if (emptyRow) emptyRow.hidden = !!currentProject;
-
   if (!container) return;
   if (!projects.length) {
     container.innerHTML = '<div class="drawer-empty">Aucune parcelle</div>';

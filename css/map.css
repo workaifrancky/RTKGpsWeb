@@ -56,6 +56,9 @@
 .map-lock-btn { font-size: 18px; }
 
 .map-float-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
   width:           44px;
   height:          44px;
   padding:         0;
@@ -71,6 +74,14 @@
   transition:      var(--transition);
 }
 
+/* Icônes Lucide des contrôles de carte (Relief, Satellite, ⛶, verrou) :
+   couleur héritée du bouton, jamais d'interception du clic. */
+.map-float-btn svg {
+  display:     block;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
 .map-float-btn:hover {
   border-color: var(--color-primary);
   color:        var(--color-primary);
@@ -83,15 +94,24 @@
 }
 
 /* ─── CARTE EN PLEIN ÉCRAN ─────────────────────────────────── */
-/* Le menu du header vit hors de `<header>` (voir main.css) : il doit être
-   masqué explicitement, comme le header et son voile. */
+/* Le menu et le bouton « Connexion » vivent dans `<header>` ; le menu est
+   hors de `.app-wrapper` : tout doit être masqué explicitement, header,
+   ses lignes et ses boutons compris (aucun résidu de bouton flottant). */
 body.map-ui-fullscreen header,
+body.map-ui-fullscreen header .header-top-row,
+body.map-ui-fullscreen header .header-bottom-row,
+body.map-ui-fullscreen #btnConnectionSettings,
+body.map-ui-fullscreen #btnTheme,
+body.map-ui-fullscreen #btnBle,
+body.map-ui-fullscreen #headerGpsStatus,
 body.map-ui-fullscreen #headerMenu,
 body.map-ui-fullscreen #headerMenuOverlay,
 body.map-ui-fullscreen .tabs-wrapper,
 body.map-ui-fullscreen #projectDrawer,
 body.map-ui-fullscreen #projectDrawerOverlay {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 body.map-ui-fullscreen .app-wrapper { max-width: none; }

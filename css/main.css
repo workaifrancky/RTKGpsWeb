@@ -352,7 +352,7 @@ header {
 .header-menu-content {
   display:        flex;
   flex-direction: column;
-  gap:            10px;
+  gap:            14px;   /* deux blocs distincts : NTRIP / Affichage */
 }
 
 .menu-row {
@@ -476,9 +476,6 @@ header {
   outline-offset: 2px;
 }
 
-/* Repli du premier lancement : simple bouton de création */
-.menu-create-project { justify-content: center; }
-
 /* Thème nuit : --color-white devient une surface sombre, la pastille du
    switch reprend donc la couleur de texte principale pour rester visible. */
 [data-theme="dark"] .menu-switch-knob {
@@ -504,8 +501,8 @@ header {
 }
 
 .save-icon {
-  font-size:   13px;
-  line-height: 1;
+  display:     block;
+  flex-shrink: 0;
 }
 
 .save-indicator.flash {

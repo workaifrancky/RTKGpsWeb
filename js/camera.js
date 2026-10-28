@@ -141,7 +141,7 @@ function syncCameraFabUI() {
     main.className = `trace-fab-main ${cameraMode || 'neutral'}`;
     main.innerHTML = cameraMode === 'target' ? ICON_CROSSHAIR
       : cameraMode === 'distance' ? ICON_RULER
-      : '＋';
+      : ICON_PLUS;
     main.title = cameraMode
       ? `${CAMERA_MODE_LABELS[cameraMode]} (appui long : menu)`
       : 'Choisir un mode caméra';
@@ -282,7 +282,7 @@ function setCameraFullscreen(enabled) {
 
   const btn = document.getElementById('btnCameraFullscreen');
   if (btn) {
-    btn.textContent = cameraUiFullscreen ? '🗗' : '⛶';
+    btn.innerHTML = cameraUiFullscreen ? ICON_MINIMIZE : ICON_MAXIMIZE;
     btn.title = cameraUiFullscreen ? 'Quitter le plein écran' : 'Passer en plein écran';
     btn.setAttribute('aria-pressed', cameraUiFullscreen ? 'true' : 'false');
   }
@@ -885,8 +885,8 @@ function getCompassAndCoordsRowHtml() {
   const coords = formatCurrentCameraCoords();
 
   const compassControl = compassPermissionState === 'needs-permission'
-    ? `<button class="cam-compass-inline ${stateClass}" title="${statusText}" onclick="requestCompassPermission()">🧭</button>`
-    : `<span class="cam-compass-inline ${stateClass}" title="${statusText}">🧭</span>`;
+    ? `<button class="cam-compass-inline ${stateClass}" title="${statusText}" onclick="requestCompassPermission()">${ICON_COMPASS}</button>`
+    : `<span class="cam-compass-inline ${stateClass}" title="${statusText}">${ICON_COMPASS}</span>`;
 
   return `
     <div class="cam-compact-row">

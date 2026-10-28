@@ -78,6 +78,54 @@ const ICON_RULER = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="2
   <path d="m17.5 15.5 2-2"/>
 </svg>`;
 
+// Icônes des contrôles d'écran (générées en JS : plein écran, verrouillage,
+// FAB neutre, boussole). Même convention : 24×24, `currentColor`, jamais d'emoji.
+const ICON_PLUS = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M5 12h14"/>
+  <path d="M12 5v14"/>
+</svg>`;
+
+const ICON_MAXIMIZE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+  <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+  <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+  <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+</svg>`;
+
+const ICON_MINIMIZE = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
+  <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+  <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
+  <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+</svg>`;
+
+const ICON_LOCK = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+</svg>`;
+
+const ICON_UNLOCK = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+</svg>`;
+
+const ICON_COMPASS = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
+  <circle cx="12" cy="12" r="10"/>
+</svg>`;
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
@@ -686,7 +734,7 @@ function setScreenLock(locked, options = {}) {
 
   const btn = document.getElementById('btnLock');
   if (btn) {
-    btn.textContent = isLocked ? '🔓' : '🔒';
+    btn.innerHTML = isLocked ? ICON_UNLOCK : ICON_LOCK;
     btn.title = isLocked ? "Déverrouiller l'écran" : "Verrouiller l'écran";
     btn.setAttribute('aria-label', btn.title);
     btn.setAttribute('aria-pressed', isLocked ? 'true' : 'false');

@@ -161,9 +161,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   avec `#saveIndicator` (ligne 1) puis le switch `#btnPointNumbers` « Numéros des points »
   (ligne 2, `role="switch"` + `aria-checked`) : le thème et le BLE sont **dans le header**, la
   parcelle courante **dans le menu FAB de TRACÉS**, ne pas les remettre dans le menu (doublons
-  d'ID interdits). Seule exception : `#menuEmptyProjectRow` (bouton « ＋ Créer une parcelle »)
-  n'apparaît que si `currentProject` est `null`, sinon le premier lancement n'aurait aucun
-  point d'entrée (FAB masqué sans parcelle) ; `renderProjectList()` pilote son `hidden`.
+  d'ID interdits). Le panneau est organisé en **deux blocs séparés** (`gap` 14 px,
+  `.menu-row-context` avec filet supérieur) : (1) NTRIP + `#saveIndicator` ; (2) « Affichage »
+  + switch `#btnPointNumbers`. **Aucune ligne Parcelle** dans ce panneau (ni bouton de repli) :
+  la parcelle est uniquement dans la 1re ligne du menu FAB de TRACÉS.
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
   breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
@@ -177,23 +178,29 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
-  `ICON_RULER` — fichier chargé **avant** `projects/points/map/history/camera` : ne pas
+  `ICON_RULER`, `ICON_PLUS`, `ICON_MAXIMIZE`, `ICON_MINIMIZE`, `ICON_LOCK`, `ICON_UNLOCK`,
+  `ICON_COMPASS` — fichier chargé **avant** `projects/points/map/history/camera` : ne pas
   redéclarer ces constantes ailleurs (`SyntaxError` de redéclaration dans le scope global).
-  Les icônes statiques (header, menus FAB, boutons de la vue POINTS) sont écrites dans
-  `index.html` **et** `menu-test.html`. Toujours `fill: none` + `stroke: currentColor` (ou
-  `fill: currentColor` pour une pastille), conteneur `inline-flex` centré et
-  `svg { display: block; pointer-events: none }`. Les emoji **de données** (`point.icon`, icône
-  du type d'obstacle, libellés statistiques) sont conservés : ils font partie du modèle stocké
-  et des textes, pas des boutons.
+  Les icônes statiques (header, contrôles de carte, menus FAB, boutons de la section POINTS,
+  tiroir, verrouillage) sont écrites dans `index.html` **et** `menu-test.html`. Toujours
+  `fill: none` + `stroke: currentColor` (ou `fill: currentColor` pour une pastille), conteneur
+  `inline-flex` centré et `svg { display: block; pointer-events: none }`.
+  Aucun emoji dans un contrôle : `map` (Relief), `satellite`, `maximize` / `minimize`
+  (plein écran carte **et** caméra), `lock` / `unlock` (verrouillage), `plus` (FAB neutre,
+  « Nouvelle parcelle », « Créer la parcelle »), `check` (FAB secondaire), `x` (tiroir),
+  `refresh-cw` (Actualiser), `compass` (boussole du HUD), `chevron-down` (sélecteur de cible),
+  `save` (indicateur de sauvegarde), `share-2` / `download` (exports et hub de transfert),
+  `folder-open` (historique). Restent volontairement en emoji : le logo `🌾`, les **icônes de
+  données** (`point.icon`, types d'obstacles, libellés statistiques 🟡/🔴) et les textes
+  (toasts, messages d'état).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
-  « Parcelle : <nom> », `.trace-fab-item.project` avec `#currentProjectName`) est la **4ᵉ
-  option du menu FAB de TRACÉS** ; il ouvre `#projectDrawer`
+  « Parcelle : <nom> », `.trace-fab-item.project` avec `#currentProjectName`) est la **1re
+  ligne du menu FAB de TRACÉS** ; il ouvre `#projectDrawer`
   (`openProjectDrawer()` / `closeProjectDrawer()` / `toggleProjectDrawer()` dans
   `js/projects.js`). La liste (`renderProjectList()`) affiche une ligne par parcelle avec
   `switchProject(id)`, `renameProject(id)` et `deleteProject(id)` ; `saveProjects()` rafraîchit
   la liste **et** le libellé du bouton FAB. Fermeture au clic sur l'overlay, avec Échap et au
-  changement d'onglet. Comme le FAB est masqué sans parcelle, le panneau Connexion expose
-  `#menuEmptyProjectRow` (bouton de création) uniquement dans ce cas.
+  changement d'onglet.
 - **Base globale des obstacles** : `rtkGlobalObstacles` (tableau `{ id, name, subtype, icon,
   lat, lon, alt, rayon, createdAt, projectId }`) est chargée au démarrage dans
   `globalObstacles` (`js/projects.js`) et **amorcée depuis les parcelles** si la clé est
@@ -264,30 +271,40 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Effacer sont dans la section POINTS de l'onglet HISTORIQUE (`#pointsSection`).
 - **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
   `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
-  Le bouton « Connexion » → `#menuEmptyProjectRow` (« ＋ Créer une parcelle ») permet de créer
-  la première parcelle ; ensuite `#btnProjectDrawer` du menu FAB choisit ou crée une parcelle.
-  Tant qu'aucune parcelle n'est sélectionnée, `#traceFab` reste masqué et la carte est vide.
+  `#traceFab` reste visible sur TRACÉS : son clic principal ouvre directement `#projectDrawer`
+  (création/sélection) et la 1re ligne du menu est « Parcelle : Aucune » ; `chooseTraceMode()`
+  affiche « Créez d'abord une parcelle » et ouvre le tiroir. La carte reste vide tant qu'aucune
+  parcelle n'est sélectionnée.
 - **Modes lecture / création** : `APP.tracesMode` reste un état interne (`lecture` au
   chargement, `creation` pendant un tracé). Il n'y a plus de bouton `#btnTracesMode` :
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
   lecture. `setTracesMode()` / `syncTracesModeUI()` restent utilisés par la gestion des
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
 - **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, centré en
-  bas à 80 px) est visible dès qu'une parcelle est sélectionnée sur TRACÉS. Neutre, il ouvre
-  `#traceFabMenu` (**4 options seulement** : tonte / interdit / obstacle / « Parcelle : … ») ;
-  `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le clic principal ajoute
-  un point (`recordTonte()` / `recordInterdit()` ou menu obstacle). Le bouton secondaire
-  `#traceFabSecondary` (« ✓ ») termine la zone : sous 3 points, `customConfirm()` demande
-  « Zone incomplète (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur
-  « ✓ » rouvre le menu. Après un obstacle, le FAB redevient neutre et le mode est remis à
-  `null`. Le type actif est indiqué par la couleur/titre du FAB et la cible `#map-crosshair`
-  (plus de badge flottant).
+  bas à 80 px) est visible sur TRACÉS, **avec ou sans parcelle**. Neutre, il ouvre
+  `#traceFabMenu` (**4 options seulement**, dans cet ordre : « Parcelle : … » / tonte /
+  interdit / obstacle) ; `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le
+  clic principal ajoute un point (`recordTonte()` / `recordInterdit()` ou menu obstacle) —
+  sans parcelle il ouvre le tiroir. Le bouton secondaire `#traceFabSecondary` (icône Lucide
+  `check`) termine la zone : sous 3 points, `customConfirm()` demande « Zone incomplète
+  (X points). Terminer quand même ? ». Un appui long sur le FAB ou sur « ✓ » rouvre le menu.
+  Après un obstacle, le FAB redevient neutre et le mode est remis à `null`. Le type actif est
+  indiqué par la couleur/titre du FAB et la cible `#map-crosshair` (plus de badge flottant).
+  Le bouton principal porte l'icône Lucide `plus` (26 px), le secondaire `check` (24 px).
 - **Toasts de création** : `recordTonte()`, `recordInterdit()` et `recordObstacle()`
   n'affichent plus de toast de succès ; seules les erreurs (position indisponible, mode
   lecture, stockage) et les actions de gestion (suppression, renommage…) en produisent.
 - **Plein écran carte** : `toggleMapFullscreen()` / `exitMapFullscreen()` (`js/map.js`),
-  classe `body.map-ui-fullscreen` (header, onglets et tiroir masqués ;
-  `#tab-points` fixé plein écran). Fermeture au changement d'onglet.
+  classe `body.map-ui-fullscreen` (`#tab-points` fixé plein écran). Masquage **explicite** en
+  `display: none !important` (`map.css` / `theme.css`) de `header`, de ses deux lignes
+  (`.header-top-row`, `.header-bottom-row`), de `#btnConnectionSettings`, `#btnTheme`,
+  `#btnBle`, `#headerGpsStatus`, `#headerMenu`, `#headerMenuOverlay`, `.tabs-wrapper` et du
+  tiroir : aucun bouton du header ne doit rester visible. Le bouton `#btnMapFullscreen` passe
+  d'`ICON_MAXIMIZE` à `ICON_MINIMIZE`. Fermeture au changement d'onglet.
+- **Popups de points** : `pointPopup()` (`js/map.js`) affiche l'icône, le nom/sous-type et le
+  numéro, la zone (`ZT1` / `ZI1`), le fix, l'altitude et les satellites, puis les actions
+  (renommer / supprimer). **Pas d'horodatage** : l'heure reste dans la liste des points
+  (`renderPointsList()`) et dans les exports.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
   `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
@@ -768,6 +785,24 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   colorées par canal (`share`/`local`/`cloud`/`download`), overrides nuit, animation
   `transfer-highlight` (désactivée en `prefers-reduced-motion`). Banc Node : 23 vérifications
   au vert (ouverture, 4 canaux, `navigator.share`, adresses locales, presse-papiers).
+- **3.48 — Lucide partout, FAB réorganisé, plein écran et popups** : derniers emoji des
+  contrôles remplacés par des SVG Lucide — contrôles de carte (`map`, `satellite`,
+  `maximize`/`minimize`, `lock`/`unlock`), FAB (`plus`, `check`), boussole du HUD (`compass`),
+  chevron du sélecteur de cible (`chevron-down`), tiroir (`x`, `plus`), « Actualiser »
+  (`refresh-cw`), « Créer la parcelle » (`plus`), cadenas du verrouillage (`lock`, `unlock`) et
+  indicateur de sauvegarde (`save`). Nouvelles constantes `ICON_PLUS`, `ICON_MAXIMIZE`,
+  `ICON_MINIMIZE`, `ICON_LOCK`, `ICON_UNLOCK`, `ICON_COMPASS` dans `js/app.js` ;
+  `setMapFullscreen()`, `setCameraFullscreen()`, `setScreenLock()`, `syncCameraFabUI()` et
+  `getCompassAndCoordsRowHtml()` les injectent (plus de `textContent` emoji). Le panneau
+  Connexion perd `#menuEmptyProjectRow` : il ne contient plus que deux blocs (NTRIP +
+  sauvegarde / Affichage + numéros, `gap` 14 px). `#btnProjectDrawer` passe en **1re ligne**
+  du menu FAB, avant les tracés. Sans parcelle, `#traceFab` reste visible et son clic ouvre le
+  tiroir (`chooseTraceMode()` affiche « Créez d'abord une parcelle »). Le plein écran carte et
+  caméra masque en plus les lignes et boutons du header (`display: none !important` +
+  `visibility: hidden`). `pointPopup()` ne montre plus l'horodatage. Titres des modales
+  « Type d'obstacle » / « Nouvelle parcelle » sans emoji. `index.html` et `menu-test.html`
+  alignés ; banc Node : 22 vérifications au vert + captures Chrome headless (contrôles, menu
+  FAB, panneau Connexion, plein écran).
 
 ## 9. Langue et communication
 

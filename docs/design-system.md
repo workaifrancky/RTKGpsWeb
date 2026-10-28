@@ -139,12 +139,12 @@ Overrides de lisibilité :
   par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
   de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
   `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- Deux lignes `.menu-row` : (1) libellé `NTRIP` + station `.menu-ntrip-select` +
-  `#saveIndicator` ; (2) libellé `Affichage` + switch `#btnPointNumbers`
-  (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px, pastille
-  `.menu-switch-knob`, état porté par `aria-checked`). La parcelle n'est **plus** dans ce
-  panneau : elle est dans le menu FAB de TRACÉS. Repli `#menuEmptyProjectRow`
-  (`.menu-create-project`), visible uniquement sans parcelle, pour créer la première.
+- **Deux blocs distincts** `.menu-row` séparés par 14 px (`.header-menu-content` en colonne,
+  filet supérieur `.menu-row-context`) : (1) libellé `NTRIP` + station `.menu-ntrip-select` +
+  `#saveIndicator` (icône Lucide `save`) ; (2) libellé `Affichage` + switch
+  `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
+  pastille `.menu-switch-knob`, état porté par `aria-checked`). La parcelle n'est **pas** dans
+  ce panneau (elle est en 1re ligne du menu FAB de TRACÉS) : aucune ligne de repli.
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
   (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
   Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le
@@ -217,10 +217,11 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 
 ### Tiroir Parcelles
 
-- `#btnProjectDrawer` (`components.css`) : 4ᵉ option `.trace-fab-item.project` du menu FAB de
-  TRACÉS, libellé `Parcelle : <nom>` (`#currentProjectName`) avec ellipse
+- `#btnProjectDrawer` (`components.css`) : **1re option** `.trace-fab-item.project` du menu FAB
+  de TRACÉS, libellé `Parcelle : <nom>` (`#currentProjectName`) avec ellipse
   (`.trace-fab-item-text` et icône map-pin `--color-primary`). Il ouvre le tiroir et reçoit
-  `aria-expanded` (`aria-controls="projectDrawer"`).
+  `aria-expanded` (`aria-controls="projectDrawer"`). La fermeture du tiroir utilise l'icône
+  Lucide `x` (`.drawer-close`), la création `plus` (`.drawer-new`).
 - `.drawer-overlay` : voile `rgba(0,0,0,0.5)` en position absolue dans `.app-wrapper`,
   `opacity` 0 → 1 via `.show`, `z-index: 1040`.
 - `.drawer` : panneau latéral droit `min(320px, 86%)`, fond `--color-white`, bordure
@@ -268,14 +269,19 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `#map-points-slot`** (`position: relative`, hauteur de la carte seule) — Relief, Satellite,
   Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`). Les boutons sont
   8 px sous le zoom Leaflet (44 px chacun). `.map-float-btn.active` = fond `--color-primary`,
-  texte blanc.
+  texte blanc. Icônes **Lucide** : `map`, `satellite`, `maximize` (puis `minimize` en plein
+  écran) ; le verrou `#btnLock` utilise `lock` / `unlock` (`inline-flex` centré,
+  `svg { display: block; pointer-events: none }`).
 - `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
-- `body.map-ui-fullscreen` : masque header, menu du header, onglets et tiroir ;
-  `#tab-points` passe en `position: fixed; inset: 0; width: 100vw;
-  height: 100dvh; z-index: 900`. Le FAB et les contrôles restent visibles ; le bouton plein
-  écran devient `✕`.
+- `body.map-ui-fullscreen` : `#tab-points` passe en `position: fixed; inset: 0;
+  width: 100vw; height: 100dvh; z-index: 900`. Sont masqués en `display: none !important` +
+  `visibility: hidden` : `header`, `.header-top-row`, `.header-bottom-row`,
+  `#btnConnectionSettings`, `#btnTheme`, `#btnBle`, `#headerGpsStatus`, `#headerMenu`,
+  `#headerMenuOverlay`, `.tabs-wrapper` et le tiroir (idem `body.camera-ui-fullscreen` dans
+  `theme.css`). Le FAB et les contrôles de carte restent visibles ; le bouton plein écran
+  affiche l'icône Lucide `minimize`.
 - La cible `#map-crosshair` n'est visible que lorsqu'un mode de tracé est actif
   (`APP.currentTraceMode` non nul), sur l'onglet TRACÉS.
 - La popup d'une zone (`.leaflet-popup-content .popup-actions`) expose l'icône crayon +
@@ -306,11 +312,13 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   pour les types de tracé (couleur portée par `.tonte` / `.interdit` / `.obstacle`), et icônes
   en trait pour les actions (`map-pin` pour la parcelle, `crosshair` pour la cible,
   `ruler` pour la mesure), toujours en `stroke: currentColor`.
-- Appui long (550 ms) sur le FAB ou sur « ✓ » : ouverture du menu. Le clic court du FAB
-  ajoute un point (ou ouvre le menu obstacle) ; le clic court de « ✓ » termine la zone.
-- 4ᵉ option « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
-  tiroir des parcelles. Le menu ne contient **que** les tracés et la parcelle ; l'accès aux
-  points se fait par l'onglet HISTORIQUE de la navigation basse.
+- Appui long (550 ms) sur le FAB ou sur l'icône `check` : ouverture du menu. Le clic court du
+  FAB ajoute un point (ou ouvre le menu obstacle) ; le clic court de `check` termine la zone.
+- **1re option** « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
+  tiroir des parcelles, avant les trois options de tracé. Le menu ne contient **que** les
+  tracés et la parcelle ; l'accès aux points se fait par l'onglet HISTORIQUE de la navigation
+  basse. Le bouton principal porte l'icône Lucide `plus` (26 px) et le secondaire `check`
+  (24 px) ; sans parcelle, le FAB reste visible et son clic ouvre le tiroir.
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.
