@@ -39,11 +39,11 @@
   /* Hauteur de la barre de navigation basse (hors safe-area iPhone) */
   --bottom-nav-height: 64px;
 
-  /* Header sur deux lignes : hauteur de référence (~104 px, safe-area exclue).
-     `--screen-header-offset` est recalculée par syncScreenHeaderOffset()
-     (`js/app.js`) et vaut 0 tant que le header est en flux normal. */
-  --header-height:         104px;
-  --screen-header-offset:  0px;
+  /* Hauteur mesurée du header sur deux lignes (safe-area exclue) : 104 à 110 px
+     selon le breakpoint. Sert de valeur de secours pour le `padding-top` des
+     écrans de contenu (voir #tab-history / #tab-stats plus bas) : le header
+     étant en flux et non compressible, ce padding reste à 0 px par défaut. */
+  --header-height: 104px;
 
   /* Couleurs fix GPS (spécifiques RTK Mower) → tokens */
   --color-rtk:    var(--color-primary-light);
@@ -172,6 +172,10 @@ header {
   padding:         8px 12px;
   background:      var(--color-primary);
   box-shadow:      0 2px 10px rgba(0,0,0,0.2);
+  /* Le header est un élément flex de `.app-wrapper` : sans ceci, il est
+     COMPRESSÉ quand l'écran courant est chargé (HISTORIQUE), ses deux lignes
+     débordent de sa boîte et passent par-dessus le contenu. Ne pas retirer. */
+  flex-shrink:     0;
 }
 
 .header-top-row,
@@ -636,14 +640,16 @@ header {
 
 .screen.active { display: block; }
 
-/* Écrans de contenu (HISTORIQUE, RELEVÉ) : le header est en flux normal, donc
-   `--screen-header-offset` vaut 0. La valeur n'est renseignée (hauteur du
-   header) que si un navigateur le superpose au contenu (header hors flux,
-   WebView, safe-area) — voir syncScreenHeaderOffset() dans js/app.js.
+/* Écrans de contenu (HISTORIQUE, RELEVÉ) : le header est en flux et ne peut plus
+   être comprimé (`header { flex-shrink: 0 }`), donc ces écrans commencent déjà
+   sous lui : aucun décalage n'est nécessaire (0 px), ce qui évite 104 px de
+   vide. Filet de sécurité : si un appareil superpose malgré tout le header,
+   décommenter la ligne `padding-top` ci-dessous (valeur = hauteur du header).
    TRACÉS et CAMÉRA ne reçoivent aucun décalage : ils occupent l'écran. */
 #tab-history,
 #tab-stats {
-  padding-top: var(--screen-header-offset, 0px);
+  padding-top: 0;
+  /* padding-top: var(--header-height, 104px); */
 }
 
 /* TRACÉS : carte plein écran (100 % de la zone visible) + panneau qui défile

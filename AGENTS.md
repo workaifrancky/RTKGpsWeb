@@ -305,14 +305,18 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   numéro, la zone (`ZT1` / `ZI1`), le fix, l'altitude et les satellites, puis les actions
   (renommer / supprimer). **Pas d'horodatage** : l'heure reste dans la liste des points
   (`renderPointsList()`) et dans les exports.
-- **Décalage sous le header** : le header est **en flux** (`position: sticky` dans
-  `.app-wrapper` en colonne), donc `#tab-history` et `#tab-stats` commencent déjà sous lui.
-  `syncScreenHeaderOffset()` (`js/app.js`, appelée par `showTab()` et au `resize`) publie
-  `--header-height` (mesurée, référence 104 px) et `--screen-header-offset` (0 px tant que le
-  header est en flux ; hauteur du header s'il est hors flux `fixed`/`absolute` ou superposé).
-  Seuls `#tab-history` et `#tab-stats` appliquent `padding-top: var(--screen-header-offset)` ;
-  TRACÉS et CAMÉRA n'ont aucun décalage. **Ne pas mettre `padding-top: 104px` en dur** : ce
-  serait un double espacement puisque le header occupe déjà sa place dans le flux.
+- **Header non compressible** : `header { flex-shrink: 0 }` (`css/main.css`) est
+  **indispensable**. Le header est un élément flex de `.app-wrapper` : sans cette règle, il
+  était écrasé (110 → 85 px mesuré) quand l'écran courant est chargé (HISTORIQUE), ses deux
+  lignes débordaient de sa boîte et passaient **par-dessus** le contenu — c'était la cause
+  réelle du « contenu sous le header », pas un manque de padding. Ne pas retirer.
+- **Décalage sous le header** : grâce à `flex-shrink: 0`, `#tab-history` et `#tab-stats`
+  commencent déjà sous le header, donc `padding-top: 0` (pas de double espacement). Une ligne
+  de secours reste disponible et commentée dans `css/main.css`
+  (`padding-top: var(--header-height, 104px)`) avec `--header-height: 104px` dans `:root`, à
+  activer **uniquement** si un appareil superpose encore le header. La mesure JS
+  (`syncScreenHeaderOffset()`) a été supprimée : elle ne mesurait que la boîte du header, pas
+  son contenu débordant, d'où un offset qui restait à 0. TRACÉS et CAMÉRA n'ont aucun décalage.
 - **En-tête RELEVÉ** : `.stats-header` (`flex`, filet commun en bas) contient le
   `.section-title` « RELEVÉ DE LA PARCELLE » et `#statProjectName` (nom de la parcelle
   courante, aligné à droite, ellipse, `--color-primary-deep` / `--color-primary-light` en
@@ -816,16 +820,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   « Type d'obstacle » / « Nouvelle parcelle » sans emoji. `index.html` et `menu-test.html`
   alignés ; banc Node : 22 vérifications au vert + captures Chrome headless (contrôles, menu
   FAB, panneau Connexion, plein écran).
-- **3.49 — Décalage sous le header et nom de parcelle dans RELEVÉ** : `syncScreenHeaderOffset()`
-  (`js/app.js`) mesure `--header-height` et `--screen-header-offset`, appelée par `showTab()` et
-  au `resize` ; `#tab-history` et `#tab-stats` reçoivent
-  `padding-top: var(--screen-header-offset, 0px)` (0 dans le cas normal, hauteur du header
-  seulement s'il est hors flux ou superposé), TRACÉS et CAMÉRA restant intacts. L'onglet RELEVÉ
-  gagne `.stats-header` (titre + `#statProjectName` aligné à droite, filet commun, ellipse,
-  `--color-primary-light` en thème nuit), rempli par `updateStatsDisplay()` (`js/stats.js`).
-  Vérifié par captures Chrome headless avec le vrai JS : `header bottom=110 / screen top=110 /
-  padding-top=0px` (aucun double espacement), `statProjectName="Jardin Repro"` ; banc Node :
-  6 vérifications au vert (header en flux → 0 px, hors flux → hauteur, TRACÉS non décalé).
+- **3.49 — Header non compressible et nom de parcelle dans RELEVÉ** : cause réelle du
+  chevauchement identifiée par mesure Chrome headless avec le vrai JS — le header, élément
+  flex de `.app-wrapper`, était **comprimé** par le contenu (`header box h=85` alors que ses
+  deux lignes descendaient à 102 px) : il débordait donc de 17 px sur l'écran. Correctif :
+  `header { flex-shrink: 0 }`. Après correctif, mesure `header h=110 / screen top=110 /
+  padding-top=0px` (ni chevauchement ni vide). Les deux tentatives précédentes sont
+  abandonnées : la mesure JS `syncScreenHeaderOffset()` (elle ne voyait que la boîte du
+  header, pas le débordement) et le `padding-top` fixe de 104 px (il créait 104 px de vide
+  alors que le header restait écrasé) ; la ligne de padding reste en secours commenté avec
+  `--header-height: 104px`. L'onglet RELEVÉ gagne `.stats-header` (titre + `#statProjectName`
+  aligné à droite, filet commun, ellipse, `--color-primary-light` en thème nuit), rempli par
+  `updateStatsDisplay()` (`js/stats.js`) : `statProjectName="Jardin Repro"` vérifié en capture.
 
 ## 9. Langue et communication
 

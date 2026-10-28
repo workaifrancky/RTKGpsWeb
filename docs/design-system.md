@@ -272,12 +272,14 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   texte blanc. Icônes **Lucide** : `map`, `satellite`, `maximize` (puis `minimize` en plein
   écran) ; le verrou `#btnLock` utilise `lock` / `unlock` (`inline-flex` centré,
   `svg { display: block; pointer-events: none }`).
-- **Décalage sous le header** : `--header-height` (valeur de référence 104 px, mesurée par
-  `syncScreenHeaderOffset()` dans `js/app.js`) et `--screen-header-offset` (0 px par défaut).
-  Seuls `#tab-history` et `#tab-stats` appliquent `padding-top: var(--screen-header-offset)` :
-  le header étant en flux normal, l'offset reste à 0 et aucun double espacement n'apparaît ;
-  il ne devient non nul que si le header est hors flux (fixed/absolute) ou superposé.
-  TRACÉS et CAMÉRA ne reçoivent aucun décalage.
+- **Header non compressible** : `header { flex-shrink: 0 }` — sans cette règle, le header
+  (flex item de `.app-wrapper`) était écrasé de 110 → 85 px sur HISTORIQUE et ses deux lignes
+  débordaient sur le contenu.
+- **Décalage sous le header** : `#tab-history` et `#tab-stats` restent à `padding-top: 0`
+  puisque le header, non compressible et en flux, occupe déjà sa place. Ligne de secours
+  commentée : `padding-top: var(--header-height, 104px)` (`--header-height: 104px` dans
+  `:root`), à activer seulement si un appareil superpose encore le header. Aucun décalage sur
+  TRACÉS et CAMÉRA (ils occupent l'écran).
 - `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
   mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
   `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
