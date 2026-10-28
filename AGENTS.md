@@ -317,9 +317,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   activer **uniquement** si un appareil superpose encore le header. La mesure JS
   (`syncScreenHeaderOffset()`) a été supprimée : elle ne mesurait que la boîte du header, pas
   son contenu débordant, d'où un offset qui restait à 0. TRACÉS et CAMÉRA n'ont aucun décalage.
-- **En-tête RELEVÉ** : `.stats-header` (`flex`, filet commun en bas) contient le
-  `.section-title` « RELEVÉ DE LA PARCELLE » et `#statProjectName` (nom de la parcelle
-  courante, aligné à droite, ellipse, `--color-primary-deep` / `--color-primary-light` en
+- **En-tête RELEVÉ** : `.stats-header` (`flex` en `flex-start`, filet commun en bas) contient
+  le `.section-title` « RELEVÉ DE LA PARCELLE » (`display: inline`) suivi de
+  `#statProjectName` (`.stat-project-name-inline`, balise `<span>` avec
+  `font-weight: 700; margin-left: 4px`) : le nom est **sur la même ligne que le titre**, plus
+  poussé à droite (ellipse si trop long, `--color-primary-deep` / `--color-primary-light` en
   nuit). Le nom est rempli par `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à
   l'ouverture de l'onglet (`showTab('tab-stats')`) et à chaque changement de parcelle.
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec

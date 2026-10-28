@@ -358,12 +358,14 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   24 px / 800 en `--color-primary-deep`** (override `--color-primary-light` en nuit).
 - `.data-card-primary` : bloc pleine largeur (Surface à tondre), mêmes valeurs 24 px / 800,
   labels 10 px (9 px pour les secondaires).
-- `.stats-header` (en-tête de l'onglet RELEVÉ) : `flex` titre + nom de parcelle, filet commun
-  en bas (`1px var(--border)`), `margin-bottom` 10 px. `.stats-header .section-title` perd son
-  propre filet (`margin`, `padding` et `border` remis à zéro).
-- `.stat-project-name` (`#statProjectName`) : nom de la parcelle courante aligné à droite,
-  11 px / 800, `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le
-  nom est long. Rempli par `updateStatsDisplay()` (`js/stats.js`).
+- `.stats-header` (en-tête de l'onglet RELEVÉ) : `flex` en `flex-start`, `gap: 0`, filet
+  commun en bas (`1px var(--border)`), `margin-bottom` 10 px. `.stats-header .section-title`
+  perd son propre filet (`margin`, `padding` et `border` remis à zéro) et reste sur une ligne.
+- `.stat-project-name-inline` (`#statProjectName`, balise `<span>`) : nom de la parcelle
+  courante **à la suite du titre** sur la même ligne (`<div class="section-title"
+  style="display: inline;">`), 11 px, graisse 700 et `margin-left: 4px` portées par le style
+  inline, `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le nom
+  est long. Rempli par `updateStatsDisplay()` (`js/stats.js`).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
