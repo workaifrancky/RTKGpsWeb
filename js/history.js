@@ -31,14 +31,14 @@ function loadHistory() {
     const obstacle=p.points.filter(pt=>pt.type==='obstacle').length;
     return `<div class="session-item">
       <div class="session-header">
-        <span class="session-name">🌾 ${p.name}</span>
+        <span class="session-name">${p.name}</span>
         <span class="session-count">${p.points.length} pts</span>
       </div>
       <div class="session-meta">
         Créé le ${date} &nbsp;·&nbsp;
-        🟢 ${tonte} tonte &nbsp;·&nbsp;
-        🔴 ${interdit} interdit &nbsp;·&nbsp;
-        🟡 ${obstacle} obstacle(s)
+        <span class="type-dot tonte"></span>${tonte} tonte &nbsp;·&nbsp;
+        <span class="type-dot interdit"></span>${interdit} interdit &nbsp;·&nbsp;
+        <span class="type-dot obstacle"></span>${obstacle} obstacle(s)
       </div>
       <div class="session-actions">
         <button class="btn-action-bar" onclick="switchProject('${p.id}');showTab('tab-points')">

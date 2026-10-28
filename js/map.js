@@ -382,7 +382,9 @@ function pointPopup(p, idx) {
   const label = typeof getPointDisplayName === 'function'
     ? getPointDisplayName(p)
     : (p.subtype ? p.subtype : (p.type==='tonte'?'Tonte':'Interdit'));
-  const icon = p.icon || '📍';
+  // Pastille colorée à la place de l'emoji `p.icon` (conservé dans les données
+  // pour l'export GeoJSON, mais plus affiché dans l'interface).
+  const dot = `<span class="type-dot ${p.type}" aria-hidden="true"></span>`;
   const zone = (p.type === 'tonte' || p.type === 'interdit') && typeof getZoneCode === 'function'
     ? `${getZoneCode(p.type, p.zoneId)} · `
     : '';
@@ -393,7 +395,7 @@ function pointPopup(p, idx) {
     </div>`;
   // Popup allégée : pas d'horodatage (l'heure reste dans la liste des points
   // et l'export), uniquement zone, fix, altitude et satellites.
-  return `<b>${icon} ${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
+  return `<b>${dot}${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
 }
 
 // Popup d'une zone (tonte ou interdite) : nom personnalisé + actions.

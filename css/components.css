@@ -1078,6 +1078,24 @@
 .point-dot.interdit { background: var(--color-interdit); }
 .point-dot.obstacle { background: var(--color-obstacle); }
 
+/* Pastille de type inline : remplace les emoji 🟢 / 🔴 / 🟡 dans l'interface
+   (listes, popups carte, libellés RELEVÉ, historique). Le champ `icon` des
+   données n'est PAS modifié : il reste exporté tel quel dans le GeoJSON. */
+.type-dot {
+  display:        inline-block;
+  width:          10px;
+  height:         10px;
+  margin-right:   4px;
+  border-radius:  50%;
+  vertical-align: -1px;
+  flex-shrink:    0;
+  background:     var(--color-none);
+}
+
+.type-dot.tonte    { background: var(--color-tonte); }
+.type-dot.interdit { background: var(--color-interdit); }
+.type-dot.obstacle { background: var(--color-obstacle); }
+
 .point-info { flex: 1; min-width: 0; }
 
 .point-name {

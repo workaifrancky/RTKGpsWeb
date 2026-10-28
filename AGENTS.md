@@ -154,8 +154,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   2. choix du type → `selectObstacleType()` mémorise `APP.pendingObstacle = { type, icon }`,
      **ferme la modale** et laisse le mode obstacle actif (croix de visée + FAB ambre) ;
   3. l'utilisateur déplace la carte, puis le clic sur le FAB appelle `recordObstacle()` avec le
-     type en attente : c'est **la seule** validation. Annuler la modale (`closeObstacleMenu()`)
-     libère le mode ; le bouton « ✓ » est masqué en mode obstacle.
+     type en attente : c'est **la seule** validation. Annuler la modale — voile, **Échap**
+     (`initObstacleModal()`, inactif si `#customModal` ou `#transferModal` est ouvert) ou
+     `closeObstacleMenu()` — libère le mode ; le bouton « ✓ » est masqué en mode obstacle.
 - **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
   `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
   les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
@@ -206,9 +207,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   « Nouvelle parcelle », « Créer la parcelle »), `check` (FAB secondaire), `x` (tiroir),
   `refresh-cw` (Actualiser), `compass` (boussole du HUD), `chevron-down` (sélecteur de cible),
   `save` (indicateur de sauvegarde), `share-2` / `download` (exports et hub de transfert),
-  `folder-open` (historique). Restent volontairement en emoji : le logo `🌾`, les **icônes de
-  données** (`point.icon`, types d'obstacles, libellés statistiques 🟡/🔴) et les textes
-  (toasts, messages d'état).
+  `folder-open` (historique). Dans l'interface, le **type d'un point** est rendu par une
+  pastille CSS : `.point-dot` (14 px, listes) ou `.type-dot` (10 px inline : popups carte,
+  libellés RELEVÉ, historique, cible caméra), colorée par
+  `--color-tonte` / `--color-interdit` / `--color-obstacle`. Le champ `point.icon` (🟢/🔴/🟡)
+  **n'est pas modifié** : il reste exporté dans le GeoJSON (contrat Mower Planner) mais n'est
+  plus affiché. Restent volontairement en emoji : le logo `🌾`, les **types d'obstacles** de
+  la modale (🌳🪨… = données métier) et les textes (toasts, messages d'état).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
   « Parcelle : <nom> », `.trace-fab-item.project` avec `#currentProjectName`) est la **1re
   ligne du menu FAB de TRACÉS** ; il ouvre `#projectDrawer`
@@ -886,6 +891,20 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`.points-section-head`). Vérifié par captures Chrome headless (aucun enregistrement à la
   sélection `8 → 8`, validation FAB `8 → 9`, bouton 44 px sans bordure, titres PARCELLE) et
   banc Node (19 vérifications au vert).
+- **3.52 — Échap sur la modale obstacle, pastilles de type, header sans encadrement** :
+  `initObstacleModal()` (`js/app.js`, appelée au `DOMContentLoaded`) ferme `#obstacleModal`
+  avec **Échap** (`preventDefault` + `closeObstacleMenu()`), sauf si `#customModal` ou
+  `#transferModal` est ouvert (ces modales capturent déjà Échap) ; le type en attente et le
+  mode sont libérés. Les emoji 🟢/🔴/🟡 ne sont plus affichés dans l'interface : listes
+  (le nom du point n'affiche plus `p.icon`, la pastille `.point-dot` suffit), popups carte, libellés RELEVÉ
+  (« ● OBSTACLES » / « ● ZONES INTERDITES »), historique des sessions et cible caméra
+  utilisent `.type-dot` (pastille CSS 10 px). Le champ `point.icon` et l'export GeoJSON sont
+  **inchangés**. `.header-icon-btn` (thème, Bluetooth) perd son encadrement
+  (`border: none`, `border-radius: 0`, `background: transparent`), passe à 44 × 44 px et signale
+  le survol par l'opacité (0,8). Vérifié par banc Node (8 vérifications Échap) et captures
+  Chrome headless : `modale avant=true / après=false`, `mode=null`, `pending=null`,
+  « Point 1 » sans emoji + 8 `.point-dot`, « ● OBSTACLES » (1 pastille),
+  `thème/BLE : 44x44 border=0px none radius=0px bg=rgba(0,0,0,0)`.
 
 ## 9. Langue et communication
 

@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
   initTheme();
   initCustomModal();
+  initObstacleModal();
   initScreenLock();
   initNavigation();
   initHeaderMenu();
@@ -396,6 +397,23 @@ function showObstacleModal() {
 function hideObstacleModal() {
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.remove('show');
+}
+
+// Échap ferme la modale « Type d'obstacle ». Les modales prioritaires
+// (confirm/prompt et hub de transfert) capturent déjà Échap et stoppent la
+// propagation : on vérifie donc l'état avant de fermer.
+function initObstacleModal() {
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    const modal = document.getElementById('obstacleModal');
+    if (!modal || !modal.classList.contains('show')) return;
+    // Une modale au-dessus (confirm/prompt, transfert) garde la priorité.
+    if (customModalResolve) return;
+    const transfer = document.getElementById('transferModal');
+    if (transfer && transfer.classList.contains('show')) return;
+    event.preventDefault();
+    closeObstacleMenu();
+  });
 }
 
 // Fermeture « annulation » : masque la modale ET libère le type obstacle.

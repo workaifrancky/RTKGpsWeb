@@ -739,9 +739,11 @@ function renderPointItem(p, zoneIndex = null) {
   const inZone = p.type === 'tonte' || p.type === 'interdit';
   const number = inZone && Number.isInteger(zoneIndex) ? zoneIndex : p.index;
   const customName = p.name ? ` — ${p.name}` : '';
+  // Le type est porté par la pastille `.point-dot` à gauche : plus d'emoji
+  // `p.icon` dans l'interface (le champ reste intact pour l'export GeoJSON).
   const name = inZone
-    ? `${p.icon} Point ${number}${customName}`
-    : `${p.icon} ${getPointDisplayName(p)} #${p.index}`;
+    ? `Point ${number}${customName}`
+    : `${getPointDisplayName(p)} #${p.index}`;
   const zoneMeta = inZone ? `${getZoneCode(p.type, p.zoneId)} &nbsp;·&nbsp; ` : '';
   const fix   = getFixMeta(p.fix);
   return `

@@ -131,9 +131,11 @@ Overrides de lisibilité :
   porté par `title` / `aria-label` = « Connexion ». Feedback uniquement par l'opacité
   (`0.82` au survol, `0.62` à l'appui) et `focus-visible` (contour 3 px). L'état ouvert est
   porté par `aria-expanded`.
-- `.header-icon-btn` : carrés de 40 px (38 px ≤ 480 px), translucides et centrés
-  (`inline-flex`). Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans
-  `#btnTheme` par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
+- `.header-icon-btn` : icônes **seules, sans encadrement** (`border: none`, `border-radius: 0`,
+  `background: transparent`), zone tactile invisible de **44 × 44 px** (`inline-flex` centré).
+  Feedback par l'opacité (`0.8` au survol, `0.62` à l'appui) et `focus-visible` (contour 3 px).
+  Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans `#btnTheme`
+  par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
   `getBleIconMarkup()` (SVG + trois ondes). Couleurs d'état `#btnBle.connected` /
   `.disconnected` dans `components.css`.
 - `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
@@ -329,7 +331,9 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   type. Le clic court de `check` termine la zone.
 - **Mode obstacle** : la modale « Type d'obstacle » se ferme dès le choix du type, le FAB est
   ambre (`.trace-fab-main.obstacle`), la cible `#map-crosshair` est visible et le bouton
-  `check` est **masqué** (un obstacle est ponctuel : il se valide avec le FAB).
+  `check` est **masqué** (un obstacle est ponctuel : il se valide avec le FAB). La modale se
+  ferme par le voile ou **Échap** (`initObstacleModal()`), sauf si la modale confirm/prompt
+  (`#customModal`) ou le hub de transfert (`#transferModal`) est ouvert au-dessus.
 - **1re option** « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
   tiroir des parcelles, avant les trois options de tracé. Le menu ne contient **que** les
   tracés et la parcelle ; l'accès aux points se fait par l'onglet HISTORIQUE de la navigation
@@ -376,7 +380,13 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le nom est long.
   Rempli par `updateStatsDisplay()` (`js/stats.js`, `name.toUpperCase()`).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
-- `.point-dot` : pastille de type (`tonte`, `interdit`, `obstacle`).
+- `.point-dot` : pastille de type des listes (14 px, bordure blanche, ombre), colorée par
+  `--color-tonte` / `--color-interdit` / `--color-obstacle`.
+- `.type-dot` : pastille inline (10 px, `margin-right: 4px`, `vertical-align: -1px`) utilisée
+  pour le type dans les **popups carte**, les **libellés RELEVÉ** (« ● OBSTACLES »,
+  « ● ZONES INTERDITES »), l'**historique** des sessions et la **cible caméra**.
+  Elle remplace l'affichage des emoji 🟢/🔴/🟡 : le champ `point.icon` reste intact dans les
+  données et l'export GeoJSON.
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
   1. `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`

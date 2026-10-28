@@ -624,8 +624,10 @@ function updateCameraPickerLabels() {
   const targetLabel = document.getElementById('cameraTargetLabel');
 
   if (targetLabel) {
-    targetLabel.textContent = targetPoint
-      ? `${targetPoint.icon} ${targetPoint.type} #${targetPoint.index}`
+    // Pastille colorée plutôt que l'emoji `icon` (donnée conservée pour l'export).
+    targetLabel.innerHTML = targetPoint
+      ? `<span class="type-dot ${targetPoint.type}" aria-hidden="true"></span>`
+        + `${targetPoint.type} #${targetPoint.index}`
       : 'Aucun';
   }
 }
@@ -792,7 +794,7 @@ function renderTargetMode(overlay) {
           <span class="card-val" style="color:#fff">${formatCap(cap)}</span>
         </div>
       </div>
-      <div class="cam-target-info">${targetPoint.icon} ${targetPoint.type} #${targetPoint.index} — ${targetPoint.fix}</div>
+      <div class="cam-target-info"><span class="type-dot ${targetPoint.type}" aria-hidden="true"></span>${targetPoint.type} #${targetPoint.index} — ${targetPoint.fix}</div>
       ${nearTarget ? `<div class="cam-success">CIBLE À MOINS DE ${CAMERA_TARGET_NEAR_M.toFixed(1).replace('.', ',')} M</div>` : ''}
     </div>
   `;

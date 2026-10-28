@@ -302,26 +302,32 @@ header {
 }
 
 /* Actions rapides du header : thème (lune / soleil) et Bluetooth */
+/* Boutons icône du header (thème, Bluetooth) : icône SEULE, sans encadrement
+   (ni bordure, ni fond). Zone tactile invisible de 44 × 44 px ; le survol est
+   signalé par l'opacité. */
 .header-icon-btn {
-  width:           40px;
-  height:          40px;
-  min-width:       40px;
+  width:           44px;
+  height:          44px;
+  min-width:       44px;
   padding:         0;
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
   flex:            0 0 auto;
-  border:          1px solid rgba(255,255,255,0.35);
-  border-radius:   var(--radius-md);
-  background:      rgba(255,255,255,0.12);
+  border:          none;
+  border-radius:   0;
+  background:      transparent;
   color:           #fff;
   cursor:          pointer;
-  transition:      var(--transition);
+  transition:      opacity 0.15s ease;
 }
 
-.header-icon-btn:hover {
-  background:   rgba(255,255,255,0.22);
-  border-color: #fff;
+.header-icon-btn:hover  { opacity: 0.8; }
+.header-icon-btn:active { opacity: 0.62; }
+
+.header-icon-btn:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
 }
 
 .header-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -838,7 +844,6 @@ header {
   .header-logo  { font-size: 14px; gap: 4px; }
   .header-logo > span[aria-hidden] { font-size: 18px; }
   .gps-status-pill { height: 30px; padding: 0 8px; font-size: 10px; }
-  .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
   .header-menu { right: 8px; width: calc(100% - 16px); padding: 12px; }
 }
 
@@ -859,7 +864,6 @@ header {
   }
 
   .header-logo { font-size: 15px; }
-  .header-icon-btn { width: 38px; height: 38px; min-width: 38px; }
 
   .gps-status-pill {
     height:   30px;
