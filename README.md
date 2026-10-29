@@ -86,8 +86,9 @@ peut être isolé.
 
 ## Utilisation
 
-1. **Connecter le BLE** : icône Bluetooth de la 2ᵉ ligne du header, puis sélectionner
-   l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir enregistrer.
+1. **Connecter le BLE** : icône Bluetooth de la 1re ligne du header (à droite du logo), puis
+   sélectionner l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir
+   enregistrer.
 2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
    reste masqué. Le bouton « Connexion » (1ʳᵉ ligne du header) ouvre le panneau de connexion :
    station NTRIP, puis bouton `<nom> ▾` (icône d'épingle) qui ouvre le tiroir « Parcelles ».

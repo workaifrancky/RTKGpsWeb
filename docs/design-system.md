@@ -122,9 +122,10 @@ Overrides de lisibilité :
 
 - `header` : **deux lignes** collantes (`position: sticky`, `z-index: 200`,
   `flex-direction: column`, `gap: 6px`, fond `--color-primary`) :
-  - `.header-top-row` : logo (🌾 + « RTK Mower ») + bouton `#btnConnectionSettings` ;
+  - `.header-top-row` : logo (🌾 + « RTK Mower ») à gauche + bouton BLE `#btnBle` à droite ;
   - `.header-bottom-row` : pastille `#headerGpsStatus` (`.gps-status-pill`,
-    `flex: 1 1 auto`) + `.header-actions-group` (thème `#btnTheme`, BLE `#btnBle`).
+    `flex: 1 1 auto`) à gauche + `.header-actions-group` (Réglages `#btnConnectionSettings`,
+    puis thème `#btnTheme`) à droite. Les deux lignes sont en `justify-content: space-between`.
 - `.header-connection-btn` : **icône seule, sans cercle** — `border: none`,
   `border-radius: 0`, `background: transparent`, zone tactile invisible de **44 × 44 px**
   (`inline-flex` centré), SVG Lucide `settings` de 18 px. Aucun libellé texte : le sens est
@@ -137,10 +138,12 @@ Overrides de lisibilité :
   Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans `#btnTheme`
   par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
   `getBleIconMarkup(connected)` (SVG + trois ondes), soit **`bluetooth`** connecté, soit
-  **`bluetooth-off`** déconnecté (repli par défaut). Couleurs d'état `#btnBle.connected` /
-  `.disconnected` dans `components.css` (`--color-ble-connected` vert,
-  `--color-ble-disconnected` bleu). Aucun encadrement : `#btnBle` conserve
-  `border: none` / `background: transparent` ; `.ble-svg` fait 18 × 18 px dans le header.
+  **`bluetooth-off`** déconnecté (repli par défaut). Le bouton est en **`currentColor`** :
+  il garde le `color: #fff` de `.header-icon-btn` — plus de bleu ni de vert (les anciennes
+  règles `#btnBle.connected` / `.disconnected` sont retirées). Aucun encadrement : `#btnBle`
+  conserve `border: none` / `background: transparent` ; `.ble-svg` fait 18 × 18 px dans le
+  header. Les tokens `--color-ble-connected` / `--color-ble-disconnected` restent disponibles
+  dans `design-tokens.css` mais ne sont plus utilisés par le bouton.
 - `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
   **hors de `.app-wrapper`** pour que leur `z-index` (3999 / 4000) passe au-dessus du
   verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé **sous le header mesuré**
@@ -422,14 +425,17 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   basculées par `syncHistoryView()`.
   1. **Racine** : titre `.section-title` « PARCELLES » puis `#historyList`
      (`.session-item` : nom, compteur, méta, actions `Ouvrir` / `GeoJSON` / `Suppr.`).
-  2. **Détail** : bouton `.history-back` (« ← Parcelles », 44 px, pilule, icône `arrow-left`)
-     puis `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`
-     (`.section-title` sans filet) suivi **immédiatement** de `#historyProjectName`
-     (`.project-name` : 12 px / 800, uppercase, vert foncé, ellipse ; `gap: 0` et
-     `margin-left: 0`), `#btnTransfer` repoussé à droite (`.points-view-head-actions`,
-     `margin-left: 10px`), `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList`
-     dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui défile) et
-     `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer).
+  2. **Détail** : en-tête `.history-detail-header` (`flex`, `justify-content: space-between`,
+     `gap: 10px`, `margin-bottom: 10px`) avec `.history-back` (« ← Parcelles », 44 px, pilule,
+     icône `arrow-left`) à gauche et `#btnTransfer` (pilule verte, icône `share-2`) à droite,
+     **sur la même ligne** ; puis `#pointsSection` — en-tête `.points-section-head` :
+     `« PARCELLE : »` (`.section-title` sans filet) suivi **immédiatement** de
+     `#historyProjectName` (`.project-name` : 12 px / 800, uppercase, vert foncé, ellipse ;
+     `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#zoneBadge`, `#pointCount`),
+     `#pointsList` dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui
+     défile) et `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer).
+     `#historyDetailView` réserve `calc(var(--bottom-nav-height, 64px) + 16px)` de
+     `padding-bottom` pour que les exports ne passent pas sous la barre de navigation.
   L'ancien panneau `#pointsViewOverlay` (`.points-view-box`, `.points-view-head`,
   `.points-view-title`, `.points-view-close`) a été supprimé en 3.45 ; les boutons d'action
   conservent leur `focus-visible` vert.

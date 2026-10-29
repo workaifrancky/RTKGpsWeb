@@ -159,8 +159,9 @@ body {
 }
 
 /* ─── HEADER COMPACT SUR DEUX LIGNES ────────────────────────── */
-/* Ligne 1 : logo + bouton Connexion (parcelle / NTRIP).
-   Ligne 2 : pastille de statut GPS + actions rapides (thème, BLE). */
+/* Ligne 1 : logo RTK Mower (gauche) + bouton Bluetooth (droite).
+   Ligne 2 : pastille de statut GPS (gauche) + actions rapides Réglages /
+   Thème (droite). Les deux lignes sont en `justify-content: space-between`. */
 header {
   position:        sticky;
   top:             0;
@@ -301,7 +302,8 @@ header {
   pointer-events: none;
 }
 
-/* Actions rapides du header : thème (lune / soleil) et Bluetooth */
+/* Actions rapides de la ligne 2 : Réglages (#btnConnectionSettings) puis
+   Thème (lune / soleil). Le Bluetooth est désormais sur la ligne 1. */
 /* Boutons icône du header (thème, Bluetooth) : icône SEULE, sans encadrement
    (ni bordure, ni fond). Zone tactile invisible de 44 × 44 px ; le survol est
    signalé par l'opacité. */

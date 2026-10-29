@@ -429,8 +429,25 @@
   display: none !important;
 }
 
+/* Vue détail : réserve la barre de navigation basse (64 px) + une marge pour
+   que les boutons d'export (GeoJSON, CSV, GPX, Effacer) restent entièrement
+   accessibles au défilement. Le parent `.screen` assure `overflow-y: auto`. */
+#historyDetailView {
+  padding-bottom: calc(var(--bottom-nav-height, 64px) + 16px);
+}
+
 .history-section {
   margin-bottom: 18px;
+}
+
+/* En-tête de la vue détail : « ← Parcelles » à gauche, « Transférer » à
+   droite, sur la même ligne. */
+.history-detail-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  margin-bottom:   10px;
 }
 
 /* Bouton « ← Parcelles » de la vue détail. */
@@ -439,7 +456,7 @@
   align-items:    center;
   gap:            6px;
   min-height:     44px;
-  margin-bottom:  10px;
+  margin-bottom:  0;   /* l'espace est porté par `.history-detail-header` */
   padding:        8px 14px 8px 10px;
   border:         2px solid var(--border);
   border-radius:  999px;
@@ -486,14 +503,6 @@
 .points-section-head .project-name {
   flex:        1 1 auto;
   margin-left: 0;
-}
-
-/* L'espace qui séparait le titre du nom est reporté sur les actions. */
-.points-view-head-actions {
-  display:     flex;
-  align-items: center;
-  gap:         8px;
-  margin-left: 10px;
 }
 
 .points-view-meta {
@@ -1975,8 +1984,11 @@ body.locked .lock-overlay {
   100% { transform: scale(1.2); opacity: 0; }
 }
 
-#btnBle.connected    { color: var(--color-ble-connected); }
-#btnBle.disconnected { color: var(--color-ble-disconnected); }
+/* Le bouton BLE n'a plus de couleur propre : il garde le `color` de
+   `.header-icon-btn` (#fff) et le SVG utilise `currentColor` — ni bleu ni vert.
+   L'état est porté par le pictogramme (`bluetooth` / `bluetooth-off`) et le
+   `title`. Les classes `connected` / `disconnected` restent posées par
+   `setBleStatus()` mais ne changent plus la couleur. */
 
 /* Accessibilité : les ondes restent visibles mais figées. */
 @media (prefers-reduced-motion: reduce) {

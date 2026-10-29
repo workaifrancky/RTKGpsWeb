@@ -163,14 +163,17 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   les points suivants repartent dans l'ancienne zone après un rechargement.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
-- **Header et menu** : le header tient sur **deux lignes** :
-  1. logo `🌾 RTK Mower` + bouton `#btnConnectionSettings` (`.header-connection-btn`,
-     **icône seule** SVG Lucide `settings` (18 px) **sans cercle ni fond** — zone tactile
-     invisible de 44 × 44 px, survol signalé par l'opacité ; le sens est porté par
-     `title` / `aria-label` = « Connexion », **aucun libellé texte**) qui ouvre le panneau de
-     connexion ;
-  2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`) + `.header-actions-group` contenant
-     le bouton thème `#btnTheme` et le bouton BLE `#btnBle` (tous deux `.header-icon-btn`).
+- **Header et menu** : le header tient sur **deux lignes**, toutes deux en
+  `justify-content: space-between` :
+  1. logo `🌾 RTK Mower` (gauche) + **bouton Bluetooth `#btnBle`** (droite,
+     `.header-icon-btn`) : `bluetooth` connecté / `bluetooth-off` déconnecté, en
+     `currentColor` (blanc du header, plus de bleu ni de vert) ;
+  2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`, `flex: 1 1 auto`, gauche) +
+     `.header-actions-group` (droite) avec le bouton `#btnConnectionSettings`
+     (`.header-connection-btn`, **icône seule** SVG Lucide `settings` 18 px **sans cercle ni
+     fond** — zone tactile invisible de 44 × 44 px, opacité au survol, `title` /
+     `aria-label` = « Connexion », **aucun libellé texte**, ouvre le panneau de connexion)
+     puis le bouton thème `#btnTheme` (`.header-icon-btn`).
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
   `toggleConnectionPanel()` → `toggleHeaderMenu()` — ne contient plus que la station NTRIP
@@ -227,8 +230,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Le bouton BLE `#btnBle` suit la même règle : `getBleIconMarkup(connected)` (`js/ble.js`)
   renvoie `bluetooth` quand la connexion est active et `bluetooth-off` sinon (état par défaut
   d'`index.html` / `menu-test.html`), avec les trois ondes animées et **sans encadrement**
-  (`border: none`, fond transparent). `setBleStatus()` transmet l'état : `connected` seul est
-  vrai, `disconnected` / `scanning` / `connecting` restent sur l'icône barrée.
+  (`border: none`, fond transparent). Il est en **`currentColor`** (blanc du header) : les
+  règles `#btnBle.connected` / `.disconnected` de couleur bleue/verte ont été retirées.
+  `setBleStatus()` transmet l'état : `connected` seul est vrai, `disconnected` / `scanning` /
+  `connecting` restent sur l'icône barrée.
   Restent volontairement en emoji : le logo `🌾` et les textes (toasts, messages d'état) ;
   l'emoji d'un obstacle n'est plus qu'une donnée interne (`point.icon`).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
@@ -277,18 +282,22 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
   (`openHistoryDetail(id)`), `GeoJSON` (`exportProjectGeoJSON(id)` — remplace l'ancien CSV de
   ligne) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
-  (`hidden` par défaut) contient le bouton `#btnHistoryBack` (« ← Parcelles »,
-  `closeHistoryDetail()`) et `#pointsSection`. `syncHistoryView('list' | 'detail')` bascule
-  les deux vues par `hidden` ; `showTab('tab-history')` revient **toujours** sur la racine.
+  (`hidden` par défaut) contient l'en-tête `.history-detail-header` — `#btnHistoryBack`
+  (« ← Parcelles », `closeHistoryDetail()`) à gauche et `#btnTransfer` à droite, **sur la même
+  ligne** (`justify-content: space-between`) — puis `#pointsSection`.
+  `syncHistoryView('list' | 'detail')` bascule les deux vues par `hidden` ;
+  `showTab('tab-history')` revient **toujours** sur la racine.
   `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
   (ZT, ZI, obstacles) et laisse la main aux exports de la section POINTS.
   L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
-  titre et le nom (`gap: 0` + `margin-left: 0`) — avec `#btnTransfer` repoussé à droite
-  (`margin-left: 10px` sur `.points-view-head-actions`). `#pointsSection` contient
-  `#zoneBadge`, `#pointCount`, `#pointsList`, `#btnTransfer`, les exports GeoJSON/CSV/GPX et
-  « Effacer ». Le menu FAB TRACÉS ne contient plus d'option « Historique » : `openPointsView()`
-  et ses alias (`closePointsView()`, `togglePointsView()`, `scrollToPointsPanel()`) sont
-  supprimés — ne pas les réintroduire.
+  titre et le nom (`gap: 0` + `margin-left: 0`), sans bouton (le transfert est remonté dans
+  `.history-detail-header`). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
+  `#pointsList`, les exports GeoJSON/CSV/GPX et « Effacer ». La vue détail réserve la barre de
+  navigation basse (`#historyDetailView { padding-bottom: calc(var(--bottom-nav-height, 64px)
+  + 16px) }`) pour que les exports restent entièrement accessibles ; le parent `.screen` assure
+  `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
+  `openPointsView()` et ses alias (`closePointsView()`, `togglePointsView()`,
+  `scrollToPointsPanel()`) sont supprimés — ne pas les réintroduire.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
@@ -1007,6 +1016,22 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   actions étant reporté sur `.points-view-head-actions` (`margin-left: 10px`). Vérifié par
   Chrome/CDP (86 vérifications : racine/détail, retour, 3 actions de ligne, écart titre → nom
   mesuré à 0 px, GeoJSON par parcelle) et captures des deux vues.
+- **3.59 — Header réorganisé (BLE en ligne 1) et en-tête du détail HISTORIQUE** : le header
+  garde deux lignes en `justify-content: space-between`, mais change de contenu :
+  (1) logo `🌾 RTK Mower` + `#btnBle` à droite ; (2) pastille `#headerGpsStatus` +
+  `.header-actions-group` avec `#btnConnectionSettings` (Réglages) puis `#btnTheme`.
+  Le bouton BLE n'a plus de couleur propre (`#btnBle.connected` / `.disconnected` retirés) :
+  il garde le `color: #fff` de `.header-icon-btn` et le SVG reste en `currentColor`
+  (`bluetooth` / `bluetooth-off`). Dans `#historyDetailView`, `#btnHistoryBack` et
+  `#btnTransfer` sont regroupés dans `.history-detail-header` (`flex`,
+  `justify-content: space-between`, `gap: 10px`) : « ← Parcelles » à gauche, « Transférer »
+  à droite ; l'ancien conteneur `.points-view-head-actions` est supprimé. `#historyDetailView`
+  reçoit `padding-bottom: calc(var(--bottom-nav-height, 64px) + 16px)` pour que les quatre
+  boutons d'export restent entièrement visibles au-dessus de la barre de navigation (le parent
+  `.screen` fournit `overflow-y: auto`). Vérifié par Chrome/CDP (105 vérifications : BLE dans
+  `.header-top-row`, Réglages + Thème dans `.header-bottom-row`, couleur BLE identique au
+  bouton thème, même ligne retour/transférer, dernier bouton « Effacer » au-dessus de la barre,
+  `padding-bottom` 80 px) et captures.
 
 ## 9. Langue et communication
 

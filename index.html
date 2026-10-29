@@ -22,25 +22,30 @@
   <!-- HEADER                                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <header>
-    <!-- Ligne 1 : logo + accès aux paramètres de connexion (Parcelle, NTRIP) -->
+    <!-- Ligne 1 : logo + connexion Bluetooth (module RTK). -->
     <div class="header-top-row">
       <div class="header-logo">
         <span aria-hidden="true">🌾</span>
         <span class="logo-text">RTK Mower</span>
       </div>
-      <button type="button" id="btnConnectionSettings" class="header-connection-btn"
-        onclick="toggleConnectionPanel()" title="Connexion" aria-label="Connexion"
-        aria-haspopup="true" aria-expanded="false" aria-controls="headerMenu">
-        <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+      <button type="button" id="btnBle" class="header-icon-btn disconnected" onclick="toggleBle()"
+        title="Connecter le module BLE" aria-label="Connecter le module BLE">
+        <div class="ble-icon-container" aria-hidden="true">
+          <div class="ble-waves"></div>
+          <div class="ble-waves"></div>
+          <div class="ble-waves"></div>
+          <!-- bluetooth-off : état par défaut (déconnecté) ; le JS remplace
+               le pictogramme par « bluetooth » une fois connecté. -->
+          <svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="m17 17-5 5V12l-5 5"/>
+            <path d="m2 2 20 20"/>
+            <path d="M14.5 9.5 17 7l-5-5v4.5"/>
+          </svg>
+        </div>
       </button>
     </div>
 
-    <!-- Ligne 2 : statut GPS + actions rapides (thème, Bluetooth) -->
+    <!-- Ligne 2 : statut GPS + actions rapides (réglages, thème). -->
     <div class="header-bottom-row">
       <div id="headerGpsStatus" class="gps-status-pill disconnected" title="Aucun fix GPS">
         <span class="status-dot" aria-hidden="true"></span>
@@ -48,6 +53,16 @@
       </div>
 
       <div class="header-actions-group">
+        <button type="button" id="btnConnectionSettings" class="header-connection-btn"
+          onclick="toggleConnectionPanel()" title="Connexion" aria-label="Connexion"
+          aria-haspopup="true" aria-expanded="false" aria-controls="headerMenu">
+          <svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
         <button type="button" id="btnTheme" class="header-icon-btn" onclick="toggleTheme()"
           title="Thème sombre" aria-label="Thème sombre">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -55,21 +70,6 @@
             stroke-linejoin="round" aria-hidden="true" focusable="false">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
           </svg>
-        </button>
-        <button type="button" id="btnBle" class="header-icon-btn disconnected" onclick="toggleBle()"
-          title="Connecter le module BLE" aria-label="Connecter le module BLE">
-          <div class="ble-icon-container" aria-hidden="true">
-            <div class="ble-waves"></div>
-            <div class="ble-waves"></div>
-            <div class="ble-waves"></div>
-            <!-- bluetooth-off : état par défaut (déconnecté) ; le JS remplace
-                 le pictogramme par « bluetooth » une fois connecté. -->
-            <svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <path d="m17 17-5 5V12l-5 5"/>
-              <path d="m2 2 20 20"/>
-              <path d="M14.5 9.5 17 7l-5-5v4.5"/>
-            </svg>
-          </div>
         </button>
       </div>
     </div>
@@ -458,38 +458,38 @@
 
       <!-- Vue 2 — DÉTAIL : points de la parcelle ouverte via « Ouvrir ». -->
       <div id="historyDetailView" class="history-view" hidden>
-        <button type="button" id="btnHistoryBack" class="history-back"
-          onclick="closeHistoryDetail()" title="Revenir à la liste des parcelles"
-          aria-label="Revenir à la liste des parcelles">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="m12 19-7-7 7-7"/>
-            <path d="M19 12H5"/>
-          </svg>
-          <span>Parcelles</span>
-        </button>
+        <div class="history-detail-header">
+          <button type="button" id="btnHistoryBack" class="history-back"
+            onclick="closeHistoryDetail()" title="Revenir à la liste des parcelles"
+            aria-label="Revenir à la liste des parcelles">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="m12 19-7-7 7-7"/>
+              <path d="M19 12H5"/>
+            </svg>
+            <span>Parcelles</span>
+          </button>
+          <button type="button" id="btnTransfer" class="transfer-trigger"
+            onclick="openTransferModal()" title="Transférer le GeoJSON"
+            aria-haspopup="dialog" aria-controls="transferModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="18" cy="5" r="3"/>
+              <circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+              <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+            </svg>
+            <span>Transférer</span>
+          </button>
+        </div>
 
         <section id="pointsSection" class="history-section" aria-label="Points de la parcelle courante">
           <div class="points-section-head">
             <span class="section-title">PARCELLE :</span>
             <span id="historyProjectName" class="project-name">—</span>
-            <div class="points-view-head-actions">
-              <button type="button" id="btnTransfer" class="transfer-trigger"
-                onclick="openTransferModal()" title="Transférer le GeoJSON"
-                aria-haspopup="dialog" aria-controls="transferModal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                  stroke-linejoin="round" aria-hidden="true" focusable="false">
-                  <circle cx="18" cy="5" r="3"/>
-                  <circle cx="6" cy="12" r="3"/>
-                  <circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
-                  <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
-                </svg>
-                <span>Transférer</span>
-              </button>
-            </div>
           </div>
 
           <div class="points-panel-head points-view-meta">
