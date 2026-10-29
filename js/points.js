@@ -100,7 +100,7 @@ function syncTraceFabUI() {
       main.title = 'Aucune parcelle — en choisir ou en créer une';
     } else if (type === 'obstacle' && pendingObstacle) {
       // Type choisi : le clic sur le FAB valide l'obstacle (position = cible).
-      main.title = `Valider l'obstacle « ${pendingObstacle.type} »`;
+      main.title = `Valider l'obstacle « ${getObstacleTypeLabel(pendingObstacle.type)} »`;
     } else if (type === 'obstacle') {
       main.title = 'Choisir le type d’obstacle';
     } else if (type) {
@@ -637,7 +637,8 @@ function deletePoint(id) {
 function getPointDisplayName(p) {
   if (!p) return '—';
   if (p.name) return p.name;
-  if (p.subtype) return p.subtype;
+  // Sous-type affiché (« Divers » pour le sous-type stocké « Perso »).
+  if (p.subtype) return getObstacleTypeLabel(p.subtype);
   return p.type === 'tonte' ? 'Tonte' : 'Interdit';
 }
 

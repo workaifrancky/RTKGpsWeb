@@ -381,7 +381,9 @@ function syncZoneLabelVisibility() {
 function pointPopup(p, idx) {
   const label = typeof getPointDisplayName === 'function'
     ? getPointDisplayName(p)
-    : (p.subtype ? p.subtype : (p.type==='tonte'?'Tonte':'Interdit'));
+    : (p.subtype
+      ? (typeof getObstacleTypeLabel === 'function' ? getObstacleTypeLabel(p.subtype) : p.subtype)
+      : (p.type==='tonte'?'Tonte':'Interdit'));
   // Pastille colorée à la place de l'emoji `p.icon` (conservé dans les données
   // pour l'export GeoJSON, mais plus affiché dans l'interface). Un obstacle
   // affiche l'icône Lucide de son sous-type (arbre, souche, poteau…).

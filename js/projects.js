@@ -167,7 +167,11 @@ function renderGlobalObstaclePicker() {
     container.innerHTML = '<div class="import-obstacles-empty">Aucun obstacle enregistré pour le moment.</div>';
   } else {
     container.innerHTML = globalObstacles.map(o => {
-      const name   = escapeHtml(o.name || o.subtype || 'Obstacle');
+      // Libellé affiché (« Divers » pour le sous-type stocké « Perso »).
+      const label  = typeof getObstacleTypeLabel === 'function'
+        ? getObstacleTypeLabel(o.subtype)
+        : (o.subtype || '');
+      const name   = escapeHtml(o.name || label || 'Obstacle');
       const coords = `${Number(o.lat).toFixed(5)}, ${Number(o.lon).toFixed(5)}`;
       return `
         <label class="import-obstacle-item">

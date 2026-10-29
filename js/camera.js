@@ -825,7 +825,7 @@ function updateCameraPickerLabels() {
     // Icône Lucide du type d'obstacle (repli épingle) : plus d'emoji affiché.
     targetLabel.innerHTML = targetPoint
       ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(targetPoint.subtype)}</span>`
-        + `${targetPoint.subtype || targetPoint.type} #${targetPoint.index}`
+        + `${getObstacleTypeLabel(targetPoint.subtype) || targetPoint.type} #${targetPoint.index}`
       : 'Aucun';
   }
 }
@@ -850,7 +850,7 @@ function populateTargetSelect() {
   const previousValue = sel.value;
 
   sel.innerHTML = '<option value="">— Sélectionnez un obstacle —</option>' +
-    pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${p.subtype || 'Obstacle'} #${p.index} — ${p.fix}</option>`).join('');
+    pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${getObstacleTypeLabel(p.subtype) || 'Obstacle'} #${p.index} — ${p.fix}</option>`).join('');
   // Hauteur compacte : une ligne de titre + un obstacle par ligne (3 à 7 max).
   sel.size = Math.min(Math.max(pts.length + 1, 3), 7);
 

@@ -24,14 +24,15 @@ function computePolygonPerimeter(points) {
 function formatObstacleDetail(obstacles) {
   if (obstacles.length === 0) return '—';
 
+  // Regroupement par sous-type stocké (« Perso »), libellé affiché « Divers ».
   const counts = {};
   obstacles.forEach(p => {
-    const label = p.subtype || 'Autre';
-    counts[label] = (counts[label] || 0) + 1;
+    const key = p.subtype || 'Autre';
+    counts[key] = (counts[key] || 0) + 1;
   });
 
   return Object.keys(counts)
-    .map(label => `${counts[label]} × ${label}`)
+    .map(key => `${counts[key]} × ${typeof getObstacleTypeLabel === 'function' ? getObstacleTypeLabel(key) : key}`)
     .join(' · ');
 }
 

@@ -406,6 +406,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `getObstacleIconMarkup(subtype)` (`js/app.js`). Utilisée dans la liste des points, les
   popups carte, le sélecteur d'import des parcelles et la cible caméra. `.obstacle-option-icon`
   est la variante de la modale « Type d'obstacle » (26 px, 20 px ≤ 360 px, même couleur).
+- **Modale « Type d'obstacle »** : six choix dans cet ordre — **Arbre** (`trees`), **Forage**
+  (`circle-dot-dashed`), **Poteau** (`utility-pole`), **Souche** (`axe`), **Talus**
+  (`mountain`), **Divers** (`map-pin`) — en grille `repeat(3, 1fr)`. Le libellé affiché
+  provient de `getObstacleTypeLabel(subtype)` (`OBSTACLE_TYPE_LABELS` dans `js/app.js`) :
+  le sous-type stocké `Perso` s'affiche « Divers » partout (listes, popups, RELEVÉ, cible
+  caméra, import), mais reste `Perso` dans les données et le GeoJSON.
   Le `<select>` natif `#targetSelect` reste en texte (pas de SVG dans un `<option>`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :

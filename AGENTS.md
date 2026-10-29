@@ -214,8 +214,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   **n'est pas modifié** : il reste exporté dans le GeoJSON (contrat Mower Planner) mais n'est
   plus affiché. Les **types d'obstacles** sont eux aussi rendus en SVG Lucide, indexés par
   `subtype` dans `OBSTACLE_ICON_SVG` (`js/app.js`) via `getObstacleIconMarkup()` : `trees`
-  (Arbre), `map-pin` (Perso **et repli** des anciens types), `axe` (Souche), `mountain`
-  (Talus), `utility-pole` (Poteau), `circle-dot-dashed` (Forage). Ils apparaissent dans la
+  (Arbre), `circle-dot-dashed` (Forage), `utility-pole` (Poteau), `axe` (Souche), `mountain`
+  (Talus), `map-pin` (Divers — sous-type stocké `Perso` — **et repli** des anciens types).
+  La modale les présente dans cet ordre : **Arbre, Forage, Poteau, Souche, Talus, Divers**.
+  Le sous-type stocké de « Divers » reste **`Perso`** : `getObstacleTypeLabel()`
+  (`OBSTACLE_TYPE_LABELS`, `js/app.js`) traduit le libellé à l'affichage (listes, popups,
+  RELEVÉ, cible caméra, import, toast du FAB) sans toucher aux données ni au GeoJSON.
+  Les icônes apparaissent dans la
   modale `#obstacleModal` (`.obstacle-option-icon`), la liste des points, les popups carte,
   le sélecteur d'import des parcelles et la cible caméra (`.obstacle-type-icon`). Seul le
   `<select>` natif `#targetSelect` reste en texte (un `<option>` ne peut pas contenir de SVG).
@@ -935,7 +940,7 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`resetApproachFeedbackState()`), et `stopCamera()` coupe la synthèse en quittant l'onglet.
   Les types d'obstacles passent des emoji aux **SVG Lucide** (`OBSTACLE_ICON_SVG`,
   `getObstacleIconMarkup()`, `js/app.js`) ; la modale ne propose plus que **6 types**
-  (Arbre, Perso, Souche, Talus, Poteau, Forage — Pierre, Bordure et Autre retirés) et
+  (Arbre, Forage, Poteau, Souche, Talus, Divers — Pierre, Bordure et Autre retirés) et
   `selectObstacleType()` conserve l'emoji en 2ᵉ argument pour ne pas modifier `point.icon`
   (donnée historique, export GeoJSON inchangé). CSS : `.obstacle-option-icon` (26 px, 20 px
   ≤ 360 px), `.obstacle-type-icon` (16 px), `.import-obstacle-icon`, `.camera-hud-actions`,
@@ -950,6 +955,19 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.ble-svg` 18 px). `index.html` et `menu-test.html` portent `bluetooth-off` par défaut ;
   `checkBleSupport()` force l'état barré. Vérifié par banc Node (38 vérifications) et
   Chrome/CDP (46 vérifications, captures des deux états).
+- **3.56 — Libellé « Divers » et ordre des types d'obstacles** : la modale « Type d'obstacle »
+  présente les six choix dans l'ordre **Arbre, Forage, Poteau, Souche, Talus, Divers**
+  (`index.html` et `menu-test.html`, grille `repeat(3, 1fr)`, SVG 26 px). Le libellé affiché
+  de l'ancien type « Perso » devient **« Divers »** sur tous les écrans : listes des points,
+  popups carte, en-tête et sélecteur de cible CAMÉRA, titre du FAB (« Valider l'obstacle
+  « Divers » »), toast de sélection, détail des obstacles du RELEVÉ et sélecteur d'import des
+  parcelles — via `getObstacleTypeLabel()` (`OBSTACLE_TYPE_LABELS = { Perso: 'Divers' }`,
+  `js/app.js`). **Le sous-type stocké et le contrat GeoJSON ne changent pas** :
+  `point.subtype === 'Perso'`, `properties.categorie === 'Perso'` et `properties.name ===
+  'Perso'` (sans nom personnalisé) restent identiques ; `getObstacleIconMarkup('Perso')`
+  continue de renvoyer `map-pin`. Vérifié par banc Node (71 vérifications) et Chrome/CDP
+  (51 vérifications : ordre des 6 libellés, « Arbre #1 / Pierre #2 / Divers #3 », popup
+  « Divers #3 », `categorie` et `name` GeoJSON toujours « Perso »).
 
 ## 9. Langue et communication
 

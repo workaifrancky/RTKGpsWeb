@@ -353,7 +353,7 @@
 .trace-fab-item-icon.project  { color: var(--color-primary); }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
-/* Six types seulement (Arbre, Perso, Souche, Talus, Poteau, Forage) :
+/* Six types, dans cet ordre : Arbre, Forage, Poteau, Souche, Talus, Divers.
    3 colonnes = 2 lignes pleines, cibles plus larges au doigt. */
 .obstacle-grid {
   display:               grid;
