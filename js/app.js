@@ -364,9 +364,11 @@ function showTab(tabId) {
     if (typeof setCameraFullscreen === 'function') setCameraFullscreen(false);
   }
   if (tabId === 'tab-history') {
-    // L'onglet contient la section POINTS puis les parcelles / sessions.
+    // L'onglet s'ouvre toujours sur la vue racine : la liste des parcelles
+    // (le détail des points s'ouvre via « Ouvrir » sur une parcelle).
     if (typeof renderPointsList === 'function') renderPointsList();
     if (typeof loadHistory === 'function') loadHistory();
+    if (typeof syncHistoryView === 'function') syncHistoryView('list');
   }
   if (tabId === 'tab-stats') {
     if (typeof updateStatsDisplay === 'function') updateStatsDisplay();

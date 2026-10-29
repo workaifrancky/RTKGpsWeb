@@ -277,7 +277,13 @@ async function deleteProject(projectId) {
   if (typeof renderMap        === 'function') renderMap();
   if (typeof renderPointsList === 'function') renderPointsList();
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
-  if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') loadHistory();
+  // Si la vue détail de l'onglet HISTORIQUE était ouverte, on revient à la liste.
+  if (typeof isHistoryDetailOpen === 'function' && isHistoryDetailOpen()
+      && typeof closeHistoryDetail === 'function') {
+    closeHistoryDetail();
+  } else if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') {
+    loadHistory();
+  }
   showToast('Parcelle supprimée', 'info');
 }
 

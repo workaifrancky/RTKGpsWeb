@@ -417,15 +417,19 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   le sous-type stocké `Perso` s'affiche « Divers » partout (listes, popups, RELEVÉ, cible
   caméra, import), mais reste `Perso` dans les données et le GeoJSON.
   Le `<select>` natif `#targetSelect` reste en texte (pas de SVG dans un `<option>`).
-- **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
-  (marge basse 18 px) :
-  1. `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`
-     (`.section-title` sans filet) + `#historyProjectName` (`.project-name` : 12 px / 800,
-     uppercase, vert foncé, ellipse) puis `#btnTransfer`,
-     `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
-     (plus de hauteur contrainte : c'est `.screen` qui défile) et `.points-view-actions` en
-     grille 2 × 2 (GeoJSON, CSV, GPX, Effacer) ;
-  2. liste « PARCELLES / SESSIONS » (`#historyList`).
+- **Onglet HISTORIQUE (deux vues)** : `.history-screen` (padding 12 px) contient
+  `#historyListView` (vue racine) et `#historyDetailView` (vue détail, `hidden` par défaut),
+  basculées par `syncHistoryView()`.
+  1. **Racine** : titre `.section-title` « PARCELLES » puis `#historyList`
+     (`.session-item` : nom, compteur, méta, actions `Ouvrir` / `GeoJSON` / `Suppr.`).
+  2. **Détail** : bouton `.history-back` (« ← Parcelles », 44 px, pilule, icône `arrow-left`)
+     puis `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`
+     (`.section-title` sans filet) suivi **immédiatement** de `#historyProjectName`
+     (`.project-name` : 12 px / 800, uppercase, vert foncé, ellipse ; `gap: 0` et
+     `margin-left: 0`), `#btnTransfer` repoussé à droite (`.points-view-head-actions`,
+     `margin-left: 10px`), `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList`
+     dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui défile) et
+     `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer).
   L'ancien panneau `#pointsViewOverlay` (`.points-view-box`, `.points-view-head`,
   `.points-view-title`, `.points-view-close`) a été supprimé en 3.45 ; les boutons d'action
   conservent leur `focus-visible` vert.

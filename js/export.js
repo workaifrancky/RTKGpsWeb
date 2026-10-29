@@ -95,10 +95,14 @@ function getExportMetadata(points, project) {
   };
 }
 
-function buildGeoJSON() {
-  const pts = getPoints();
+// `projectArg` (facultatif) : parcelle à exporter. La liste de l'onglet
+// HISTORIQUE s'en sert pour exporter une parcelle sans changer la parcelle
+// courante. Sans argument, la parcelle courante est utilisée (comportement
+// historique, contrat GeoJSON inchangé).
+function buildGeoJSON(projectArg) {
+  const proj = projectArg || getCurrentProjectData();
+  const pts = Array.isArray(projectArg?.points) ? projectArg.points : getPoints();
   if (pts.length===0) return null;
-  const proj = getCurrentProjectData();
   const projectName = proj?.name || 'export';
   const metadata = getExportMetadata(pts, proj);
 
@@ -151,7 +155,16 @@ function buildGeoJSON() {
   });
 
   // 3 ── Zones interdites (une Feature par zoneId)
-  const interditZones = typeof getInterditZones === 'function' ? getInterditZones() : { 1: interdit };
+  // Regroupement local à partir des points exportés (et non de la parcelle
+  // courante) : identique à getInterditZones() pour la parcelle courante, mais
+  // valable pour une parcelle passée en argument.
+  const interditZones = {};
+  interdit.forEach(p => {
+    const zid = Number(p.zoneId);
+    const zoneId = Number.isInteger(zid) && zid > 0 ? zid : 1;
+    if (!interditZones[zoneId]) interditZones[zoneId] = [];
+    interditZones[zoneId].push(p);
+  });
   Object.keys(interditZones).map(Number).sort((a, b) => a - b).forEach(zoneId => {
     const zonePts = interditZones[zoneId] || [];
     if (zonePts.length < 3) return;
@@ -201,6 +214,25 @@ function buildGeoJSON() {
 
 function exportGeoJSON() {
   const payload = buildGeoJSON();
+  if (!payload) { showToast('Aucun point à exporter','error'); return; }
+
+  downloadFile(
+    JSON.stringify(payload.geojson, null, 2),
+    payload.filename,
+    'application/json',
+  );
+  showToast(`✅ GeoJSON exporté — ${payload.geojson.features.length} feature(s)`,'info');
+}
+
+// Export GeoJSON d'une parcelle précise, depuis la liste de l'onglet
+// HISTORIQUE (bouton « GeoJSON » d'une ligne), sans changer la parcelle
+// courante. Le contrat de sortie est identique à exportGeoJSON().
+function exportProjectGeoJSON(projectId) {
+  const projects = typeof loadProjects === 'function' ? loadProjects() : [];
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const payload = buildGeoJSON(project);
   if (!payload) { showToast('Aucun point à exporter','error'); return; }
 
   downloadFile(

@@ -27,6 +27,12 @@
   color: var(--color-primary-light);
 }
 
+/* Bouton « ← Parcelles » de la vue détail : surface sombre (--color-white),
+   le vert foncé y serait illisible. */
+[data-theme="dark"] .history-back {
+  color: var(--color-primary-light);
+}
+
 /* Hub de transfert : --color-primary-pale-bg reste un vert très clair, on
    utilise donc une surface sombre au survol et pour les pastilles d'icône. */
 [data-theme="dark"] .transfer-option:hover {

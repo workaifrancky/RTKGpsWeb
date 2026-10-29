@@ -101,10 +101,11 @@ peut être isolé.
      un point ponctuel.
    Le bouton `✓` à gauche du FAB termine la zone (confirmation si elle a moins de 3 points).
    Un appui long sur le FAB ou sur `✓` rouvre le menu. L'icône crayon d'une ligne de la
-   section POINTS (onglet HISTORIQUE) ou d'une popup carte permet de renommer un point.
-4. **Consulter** : l'onglet **HISTORIQUE** regroupe la section POINTS (liste, zone, compteur,
-   exports, partage et « Effacer ») puis les parcelles / sessions ; son option « Historique »
-   dans le menu du FAB y amène directement. `⛶` affiche la carte en plein écran. Cliquer sur
+   vue détail (onglet HISTORIQUE) ou d'une popup carte permet de renommer un point.
+4. **Consulter** : l'onglet **HISTORIQUE** s'ouvre sur la liste **PARCELLES** (nom, compteur,
+   date, actions `Ouvrir` / `GeoJSON` / `Suppr.`). `Ouvrir` affiche la vue détail avec les
+   points de la parcelle (zone, compteur, liste, exports et « Effacer ») ; le bouton
+   « ← Parcelles » revient à la liste. `⛶` affiche la carte en plein écran. Cliquer sur
    une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
    l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
 5. **Exporter** depuis la section POINTS avec `⬇ GeoJSON` (format principal), `⬇ CSV`,

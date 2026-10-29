@@ -273,19 +273,22 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   La modale se ferme au voile, avec Échap (prioritaire sur le menu d'export) et au changement
   d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège de focus et retour du focus
   sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
-- **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
-  (`#pointsViewOverlay` supprimé). L'en-tête `.points-section-head` affiche
-  `« PARCELLE : <NOM> »` (`<span class="section-title">PARCELLE :</span>` +
-  `#historyProjectName`, classe `.project-name` (commune avec l'onglet RELEVÉ), mis à jour par
-  `updateHistoryProjectName()` — appelée par `loadHistory()` et `renderProjectList()`), puis
-  `#btnTransfer` (hub de transfert). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
-  `#pointsList`, `#btnTransfer`, les exports GeoJSON/CSV/GPX et « Effacer » ;
-  elle précède la section « PARCELLES / SESSIONS » (`#historyList`, `loadHistory()`).
-  Accès : **uniquement** le bouton HISTORIQUE de la navigation basse
-  (`showTab('tab-history')`, qui appelle `renderPointsList()` **et** `loadHistory()`).
-  Le menu FAB TRACÉS ne contient plus d'option « Historique » : `openPointsView()` et ses
-  alias (`closePointsView()`, `togglePointsView()`, `scrollToPointsPanel()`) sont supprimés —
-  ne pas les réintroduire.
+- **Onglet HISTORIQUE en deux vues** : la vue **racine** `#historyListView` porte le titre
+  `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
+  (`openHistoryDetail(id)`), `GeoJSON` (`exportProjectGeoJSON(id)` — remplace l'ancien CSV de
+  ligne) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
+  (`hidden` par défaut) contient le bouton `#btnHistoryBack` (« ← Parcelles »,
+  `closeHistoryDetail()`) et `#pointsSection`. `syncHistoryView('list' | 'detail')` bascule
+  les deux vues par `hidden` ; `showTab('tab-history')` revient **toujours** sur la racine.
+  `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
+  (ZT, ZI, obstacles) et laisse la main aux exports de la section POINTS.
+  L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
+  titre et le nom (`gap: 0` + `margin-left: 0`) — avec `#btnTransfer` repoussé à droite
+  (`margin-left: 10px` sur `.points-view-head-actions`). `#pointsSection` contient
+  `#zoneBadge`, `#pointCount`, `#pointsList`, `#btnTransfer`, les exports GeoJSON/CSV/GPX et
+  « Effacer ». Le menu FAB TRACÉS ne contient plus d'option « Historique » : `openPointsView()`
+  et ses alias (`closePointsView()`, `togglePointsView()`, `scrollToPointsPanel()`) sont
+  supprimés — ne pas les réintroduire.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
   par `body.locked`, glissement horizontal `.lock-swipe` (72 % du parcours) ou Entrée/Espace.
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
@@ -366,7 +369,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   son contenu débordant, d'où un offset qui restait à 0. TRACÉS et CAMÉRA n'ont aucun décalage.
 - **En-tête RELEVÉ** : `.stats-header` (`flex` en `flex-start`, filet commun en bas) affiche
   « **PARCELLE :** » (`.section-title`) suivi de `#statProjectName`
-  (`.project-name` + `.stats-header .project-name` pour `margin-left: 4px`) :
+  (`.project-name` + `.stats-header .project-name` avec `margin-left: 0`) :
   le nom est **sur la même ligne que le titre**, en majuscules (`toUpperCase()` +
   `text-transform`), **gras (800)**, 12 px, `letter-spacing: 0.3px`, ellipse si trop long,
   `--color-primary-deep` / `--color-primary-light` en nuit. Le nom est rempli par
@@ -377,7 +380,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `letter-spacing: 0.3px` / `--color-primary-deep`, ellipse). Ne pas réintroduire de style
   inline sur `#statProjectName` (il écraserait la graisse) ni de règle dupliquée par onglet :
   seules les propriétés de mise en page restent contextuelles (`.stats-header .project-name` :
-  `flex: 0 1 auto` + marge ; `.points-section-head .project-name` : `flex: 1 1 auto`).
+  `flex: 0 1 auto` ; `.points-section-head .project-name` : `flex: 1 1 auto`) et **aucune
+  marge** n'est ajoutée devant le nom (`margin-left: 0` dans les deux onglets).
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
   `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
@@ -988,6 +992,21 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (styles calculés comparés dans les deux onglets : graisse `800`, taille `12px`, casse
   `uppercase`, `letter-spacing` `0.3px`, couleur identique, aucun attribut `style`) et
   capture de l'en-tête RELEVÉ « PARCELLE : TEST VOICE ».
+- **3.58 — Onglet HISTORIQUE en deux vues (parcelles → détail)** : l'onglet s'ouvre sur la vue
+  racine `#historyListView` (titre **PARCELLES**, liste `#historyList`) ; `Ouvrir`
+  (`openHistoryDetail(id)`) bascule sur `#historyDetailView` (points de la parcelle) et le
+  bouton « ← Parcelles » (`#btnHistoryBack`, `closeHistoryDetail()`) revient à la liste.
+  `syncHistoryView()` bascule les deux vues par `hidden` ; `showTab('tab-history')` revient
+  toujours sur la racine ; `deleteProject()` referme le détail s'il était ouvert. Le bouton
+  `CSV` de chaque ligne est remplacé par **`GeoJSON`** (`exportProjectGeoJSON(id)`), qui
+  s'appuie sur `buildGeoJSON(project)` (paramètre optionnel) : les zones interdites sont
+  regroupées localement à partir des points exportés, le **contrat GeoJSON est inchangé** et
+  l'export d'une parcelle ne change pas la parcelle courante. `exportProjectCSV()` (devenu
+  inutilisé) est supprimé. L'espace devant le nom de parcelle est supprimé : `gap: 0` et
+  `margin-left: 0` dans `.points-section-head` / `.stats-header .project-name`, l'espace des
+  actions étant reporté sur `.points-view-head-actions` (`margin-left: 10px`). Vérifié par
+  Chrome/CDP (86 vérifications : racine/détail, retour, 3 actions de ligne, écart titre → nom
+  mesuré à 0 px, GeoJSON par parcelle) et captures des deux vues.
 
 ## 9. Langue et communication
 
