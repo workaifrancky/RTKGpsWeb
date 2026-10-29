@@ -32,18 +32,26 @@
   white-space:    nowrap;
 }
 
-/* Nom de la parcelle, inline juste après le titre (marge 4 px et graisse 700
-   portées par le style inline de l'élément dans index.html). */
-.stat-project-name-inline {
-  flex:           0 1 auto;
-  min-width:      0;
-  font-size:      11px;
-  letter-spacing: 0;
-  color:          var(--color-primary-deep);
-  white-space:    nowrap;
-  overflow:       hidden;
-  text-overflow:  ellipsis;
-  text-transform: uppercase;   /* ceinture et bretelles : nom déjà stocké en majuscules */
+/* Nom de la parcelle — classe COMMUNE aux onglets RELEVÉ (#statProjectName)
+   et HISTORIQUE (#historyProjectName) : même graisse, même casse, même taille
+   et même couleur dans les deux en-têtes. La mise en page (flex, marge) reste
+   portée par le conteneur de chaque onglet. */
+.project-name {
+  font-weight:     800;
+  text-transform:  uppercase;   /* ceinture et bretelles : nom déjà stocké en majuscules */
+  font-size:       12px;
+  color:           var(--color-primary-deep);
+  letter-spacing:  0.3px;
+  white-space:     nowrap;
+  overflow:        hidden;
+  text-overflow:   ellipsis;
+  min-width:       0;
+}
+
+/* Le nom suit immédiatement le titre dans l'en-tête RELEVÉ. */
+.stats-header .project-name {
+  flex:        0 1 auto;
+  margin-left: 4px;
 }
 
 .data-grid {
@@ -434,18 +442,11 @@
   white-space:    nowrap;
 }
 
-/* Nom de la parcelle courante, à la suite du titre (ellipse si trop long). */
-.history-project-name {
-  flex:            1 1 auto;
-  min-width:       0;
-  font-size:       12px;
-  font-weight:     800;
-  letter-spacing:  0;
-  color:           var(--color-primary-deep);
-  white-space:     nowrap;
-  overflow:        hidden;
-  text-overflow:   ellipsis;
-  text-transform:  uppercase;   /* ceinture et bretelles : nom déjà stocké en majuscules */
+/* Nom de la parcelle courante, à la suite du titre (ellipse si trop long).
+   Apparence : `.project-name`, commune aux deux onglets ; ici, il occupe
+   l'espace restant pour repousser les actions à droite. */
+.points-section-head .project-name {
+  flex: 1 1 auto;
 }
 
 .points-view-head-actions {

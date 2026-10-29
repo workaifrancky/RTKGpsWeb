@@ -371,8 +371,7 @@ localStorage.setItem("rtkCurrentProject","proj_test");
       <!-- BLOC 1 : SURFACE ET ESTIMATIONS -->
       <div class="stats-header">
         <span class="section-title">PARCELLE :</span>
-        <span id="statProjectName" class="stat-project-name-inline"
-          style="font-weight: 700; margin-left: 4px;">—</span>
+        <span id="statProjectName" class="project-name">—</span>
       </div>
 
       <!-- Surface (pleine largeur, comme Lat/Lon) -->
@@ -458,7 +457,7 @@ localStorage.setItem("rtkCurrentProject","proj_test");
       <section id="pointsSection" class="history-section" aria-label="Points de la parcelle courante">
         <div class="points-section-head">
           <span class="section-title">PARCELLE :</span>
-          <span id="historyProjectName" class="history-project-name">—</span>
+          <span id="historyProjectName" class="project-name">—</span>
           <div class="points-view-head-actions">
             <button type="button" id="btnTransfer" class="transfer-trigger"
               onclick="openTransferModal()" title="Transférer le GeoJSON"

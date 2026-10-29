@@ -276,7 +276,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Section POINTS (onglet HISTORIQUE)** : la liste des points n'est plus un panneau flottant
   (`#pointsViewOverlay` supprimé). L'en-tête `.points-section-head` affiche
   `« PARCELLE : <NOM> »` (`<span class="section-title">PARCELLE :</span>` +
-  `#historyProjectName`, classe `.history-project-name`, mis à jour par
+  `#historyProjectName`, classe `.project-name` (commune avec l'onglet RELEVÉ), mis à jour par
   `updateHistoryProjectName()` — appelée par `loadHistory()` et `renderProjectList()`), puis
   `#btnTransfer` (hub de transfert). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
   `#pointsList`, `#btnTransfer`, les exports GeoJSON/CSV/GPX et « Effacer » ;
@@ -366,11 +366,18 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   son contenu débordant, d'où un offset qui restait à 0. TRACÉS et CAMÉRA n'ont aucun décalage.
 - **En-tête RELEVÉ** : `.stats-header` (`flex` en `flex-start`, filet commun en bas) affiche
   « **PARCELLE :** » (`.section-title`) suivi de `#statProjectName`
-  (`.stat-project-name-inline`, balise `<span>` avec `font-weight: 700; margin-left: 4px`) :
+  (`.project-name` + `.stats-header .project-name` pour `margin-left: 4px`) :
   le nom est **sur la même ligne que le titre**, en majuscules (`toUpperCase()` +
-  `text-transform`), ellipse si trop long, `--color-primary-deep` / `--color-primary-light`
-  en nuit. Le nom est rempli par `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à
-  l'ouverture de l'onglet (`showTab('tab-stats')`) et à chaque changement de parcelle.
+  `text-transform`), **gras (800)**, 12 px, `letter-spacing: 0.3px`, ellipse si trop long,
+  `--color-primary-deep` / `--color-primary-light` en nuit. Le nom est rempli par
+  `updateStatsDisplay()` (`js/stats.js`) : rafraîchi à l'ouverture de l'onglet
+  (`showTab('tab-stats')`) et à chaque changement de parcelle.
+- **Nom de parcelle harmonisé (RELEVÉ / HISTORIQUE)** : les deux en-têtes partagent la classe
+  `.project-name` (`css/components.css`) — **une seule définition** (800 / 12 px / uppercase /
+  `letter-spacing: 0.3px` / `--color-primary-deep`, ellipse). Ne pas réintroduire de style
+  inline sur `#statProjectName` (il écraserait la graisse) ni de règle dupliquée par onglet :
+  seules les propriétés de mise en page restent contextuelles (`.stats-header .project-name` :
+  `flex: 0 1 auto` + marge ; `.points-section-head .project-name` : `flex: 1 1 auto`).
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
   `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
@@ -890,7 +897,7 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (complété par l'heure dans `flashSaveIndicator()`). Les noms de parcelle sont stockés en
   majuscules (`createProject()` dans `js/app.js`, `renameProject()` dans `js/projects.js`).
   L'en-tête de la section POINTS de HISTORIQUE affiche `Parcelle : <NOM>`
-  (`#historyProjectName` + `.history-project-name`, rempli par `updateHistoryProjectName()`
+  (`#historyProjectName` + `.project-name`, rempli par `updateHistoryProjectName()`
   depuis `loadHistory()` et `renderProjectList()`). `index.html` et `menu-test.html` alignés ;
   vérifié par captures Chrome headless (bouton 36×36 sans texte, modale obstacle ouverte,
   « Parcelle : JARDIN REPRO ») et banc Node (7 vérifications au vert).
@@ -968,6 +975,19 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   continue de renvoyer `map-pin`. Vérifié par banc Node (71 vérifications) et Chrome/CDP
   (51 vérifications : ordre des 6 libellés, « Arbre #1 / Pierre #2 / Divers #3 », popup
   « Divers #3 », `categorie` et `name` GeoJSON toujours « Perso »).
+- **3.57 — Nom de parcelle harmonisé (RELEVÉ / HISTORIQUE)** : `#statProjectName` et
+  `#historyProjectName` partagent désormais la classe **`.project-name`**
+  (`css/components.css`) : `font-weight: 800`, `text-transform: uppercase`,
+  `font-size: 12px`, `letter-spacing: 0.3px`, `--color-primary-deep`
+  (`--color-primary-light` en thème nuit), `white-space: nowrap` + ellipse. Le nom était
+  plus léger en RELEVÉ (700 porté par un **style inline**, supprimé : il écrasait toute
+  règle de classe). Les sélecteurs `.stat-project-name-inline` et `.history-project-name`
+  sont supprimés ; seules les propriétés de mise en page restent contextuelles
+  (`.stats-header .project-name` : `flex: 0 1 auto` + `margin-left: 4px` ;
+  `.points-section-head .project-name` : `flex: 1 1 auto`). Vérifié par Chrome/CDP
+  (styles calculés comparés dans les deux onglets : graisse `800`, taille `12px`, casse
+  `uppercase`, `letter-spacing` `0.3px`, couleur identique, aucun attribut `style`) et
+  capture de l'en-tête RELEVÉ « PARCELLE : TEST VOICE ».
 
 ## 9. Langue et communication
 

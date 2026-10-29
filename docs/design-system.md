@@ -388,11 +388,15 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   commun en bas (`1px var(--border)`), `margin-bottom` 10 px. Il affiche
   « **PARCELLE :** » (`.section-title`, qui perd son propre filet : `margin`, `padding` et
   `border` remis à zéro, `white-space: nowrap`).
-- `.stat-project-name-inline` (`#statProjectName`, balise `<span>`) : nom de la parcelle
-  courante **à la suite du titre** sur la même ligne, 11 px, graisse 700 et `margin-left: 4px`
-  portées par le style inline, `text-transform: uppercase`,
-  `--color-primary-deep` (`--color-primary-light` en thème nuit), ellipse si le nom est long.
-  Rempli par `updateStatsDisplay()` (`js/stats.js`, `name.toUpperCase()`).
+- `.project-name` (`#statProjectName` en RELEVÉ, `#historyProjectName` en HISTORIQUE) : classe
+  **commune aux deux en-têtes**, une seule définition — `font-weight: 800`,
+  `text-transform: uppercase`, `font-size: 12px`, `letter-spacing: 0.3px`,
+  `color: var(--color-primary-deep)` (`--color-primary-light` en thème nuit), `white-space:
+  nowrap` + ellipse (`overflow: hidden`, `text-overflow: ellipsis`, `min-width: 0`).
+  Seule la mise en page reste contextuelle : `.stats-header .project-name`
+  (`flex: 0 1 auto`, `margin-left: 4px`) et `.points-section-head .project-name`
+  (`flex: 1 1 auto`). Rempli par `updateStatsDisplay()` (`js/stats.js`) et
+  `updateHistoryProjectName()` (`js/projects.js`, `name.toUpperCase()`).
 - `.badge-rtk/float/dgps/gps/none` : badges de fix.
 - `.point-dot` : pastille de type des listes (14 px, bordure blanche, ombre), colorée par
   `--color-tonte` / `--color-interdit` / `--color-obstacle`.
@@ -416,8 +420,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
   1. `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`
-     (`.section-title` sans filet) + `#historyProjectName` (`.history-project-name`, 12 px /
-     800, vert foncé, ellipse) puis `#btnTransfer`,
+     (`.section-title` sans filet) + `#historyProjectName` (`.project-name` : 12 px / 800,
+     uppercase, vert foncé, ellipse) puis `#btnTransfer`,
      `.points-view-meta` (`#zoneBadge`, `#pointCount`), `#pointsList` dans `.points-view-body`
      (plus de hauteur contrainte : c'est `.screen` qui défile) et `.points-view-actions` en
      grille 2 × 2 (GeoJSON, CSV, GPX, Effacer) ;
