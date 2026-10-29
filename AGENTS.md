@@ -212,8 +212,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   libellés RELEVÉ, historique, cible caméra), colorée par
   `--color-tonte` / `--color-interdit` / `--color-obstacle`. Le champ `point.icon` (🟢/🔴/🟡)
   **n'est pas modifié** : il reste exporté dans le GeoJSON (contrat Mower Planner) mais n'est
-  plus affiché. Restent volontairement en emoji : le logo `🌾`, les **types d'obstacles** de
-  la modale (🌳🪨… = données métier) et les textes (toasts, messages d'état).
+  plus affiché. Les **types d'obstacles** sont eux aussi rendus en SVG Lucide, indexés par
+  `subtype` dans `OBSTACLE_ICON_SVG` (`js/app.js`) via `getObstacleIconMarkup()` : `trees`
+  (Arbre), `map-pin` (Perso **et repli** des anciens types), `axe` (Souche), `mountain`
+  (Talus), `utility-pole` (Poteau), `circle-dot-dashed` (Forage). Ils apparaissent dans la
+  modale `#obstacleModal` (`.obstacle-option-icon`), la liste des points, les popups carte,
+  le sélecteur d'import des parcelles et la cible caméra (`.obstacle-type-icon`). Seul le
+  `<select>` natif `#targetSelect` reste en texte (un `<option>` ne peut pas contenir de SVG).
+  Restent volontairement en emoji : le logo `🌾` et les textes (toasts, messages d'état) ;
+  l'emoji d'un obstacle n'est plus qu'une donnée interne (`point.icon`).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
   « Parcelle : <nom> », `.trace-fab-item.project` avec `#currentProjectName`) est la **1re
   ligne du menu FAB de TRACÉS** ; il ouvre `#projectDrawer`
@@ -905,6 +912,31 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   Chrome headless : `modale avant=true / après=false`, `mode=null`, `pending=null`,
   « Point 1 » sans emoji + 8 `.point-dot`, « ● OBSTACLES » (1 pastille),
   `thème/BLE : 44x44 border=0px none radius=0px bg=rgba(0,0,0,0)`.
+- **3.55 — Guidage vocal caméra et types d'obstacles en SVG** : le HUD CAMÉRA gagne un bouton
+  `#btnCameraVoice` (SVG Lucide `volume-2` / `volume-x`, 42 px, `.camera-voice-btn`) placé avec
+  le plein écran dans `.camera-hud-actions` (aligné à droite par `margin-left: auto`).
+  `js/camera.js` expose `voiceGuidanceEnabled` (persistée dans `rtkCameraVoiceGuidance`,
+  **désactivée par défaut**), `speak(text)` (`speechSynthesis`, `fr-FR`, `rate` 1,05, `cancel()`
+  avant chaque annonce pour que la distance la plus récente gagne), `toggleCameraVoiceGuidance()`,
+  `syncVoiceGuidanceUI()`, `resetVoiceGuidanceState()`, `getVoiceDirection()` et
+  `buildVoiceThresholdMessage()`. `renderTargetMode()` appelle `processVoiceGuidance(dist, bearing)`
+  après le calcul de la distance, du cap géographique et du cap courant : aux **mêmes seuils que
+  le retour d'approche** (`APPROACH_THRESHOLDS_M` 10/5/2/1 m, hystérésis 0,5 m) elle annonce
+  « Tournez à gauche, 10 mètres », « Tournez à droite, 2 mètres » ou « Cible à 5 mètres,
+  continuez tout droit » (tolérance ±20°, `VOICE_STRAIGHT_TOLERANCE_DEG` ; sans cap :
+  « Cible à 10 mètres »). Sous 0,5 m (`VOICE_ARRIVAL_M = CAMERA_HALO_ALERT_M`) : « Cible
+  atteinte » + `playSuccessChord()` (arpège do-mi-sol Web Audio, `VOICE_ARRIVAL_CHORD_HZ`),
+  réarmé au-delà de 1,5 m ; les seuils sont réarmés à chaque changement de cible ou de mode
+  (`resetApproachFeedbackState()`), et `stopCamera()` coupe la synthèse en quittant l'onglet.
+  Les types d'obstacles passent des emoji aux **SVG Lucide** (`OBSTACLE_ICON_SVG`,
+  `getObstacleIconMarkup()`, `js/app.js`) ; la modale ne propose plus que **6 types**
+  (Arbre, Perso, Souche, Talus, Poteau, Forage — Pierre, Bordure et Autre retirés) et
+  `selectObstacleType()` conserve l'emoji en 2ᵉ argument pour ne pas modifier `point.icon`
+  (donnée historique, export GeoJSON inchangé). CSS : `.obstacle-option-icon` (26 px, 20 px
+  ≤ 360 px), `.obstacle-type-icon` (16 px), `.import-obstacle-icon`, `.camera-hud-actions`,
+  `.camera-voice-btn` (+ états `.on` / `.off`). Vérifié par banc Node (65 vérifications) et
+  Chrome headless/CDP (28 vérifications : bouton 42 × 42 px, 6 icônes de 26 px, bascule
+  persistée `1 → 0`, liste « Arbre #1 » / « Pierre #2 » sans emoji, aucune exception JS).
 
 ## 9. Langue et communication
 

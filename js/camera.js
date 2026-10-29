@@ -47,12 +47,27 @@ let approachThresholdsArmed = {};
 let approachAudioContext = null;
 let approachFeedbackTargetId = null;
 
+// Guidage vocal (option A) : annonces mains libres de la distance et de la
+// direction vers la cible. Désactivé par défaut (opt-in) et persisté.
+const CAMERA_VOICE_KEY = 'rtkCameraVoiceGuidance';
+const VOICE_ARRIVAL_M = CAMERA_HALO_ALERT_M;   // « Cible atteinte » sous 50 cm
+const VOICE_ARRIVAL_REARM_M = 1.5;             // réarmement si on s'éloigne
+const VOICE_STRAIGHT_TOLERANCE_DEG = 20;       // « tout droit » dans cet écart
+const VOICE_ARRIVAL_CHORD_HZ = [523.25, 659.25, 783.99]; // do majeur (C5-E5-G5)
+
+let voiceGuidanceEnabled = false;
+let voiceThresholdsArmed = {};
+let voiceTargetId = null;
+let voiceArrivalAnnounced = false;
+
 document.addEventListener('DOMContentLoaded', () => {
   // Migration : ancienne clé de seuil réglable (0,8 / 1,0 / 1,5 m), supprimée en 3.4.
   localStorage.removeItem('rtkCameraTargetNearThreshold');
 
   approachFeedbackEnabled = localStorage.getItem(CAMERA_APPROACH_FEEDBACK_KEY) !== '0';
   resetApproachFeedbackState();
+
+  initVoiceGuidance();
 
   bindTargetSelectStabilityHandlers();
   bindCameraPickerOutsideClose();
@@ -354,6 +369,8 @@ async function startCamera() {
 function stopCamera() {
   closeCameraMenus();
   closeCameraFabMenu();
+  // Quitter l'onglet CAMÉRA coupe une annonce en cours.
+  stopVoiceGuidance();
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
@@ -516,6 +533,8 @@ function resetApproachFeedbackState() {
     approachThresholdsArmed[threshold] = true;
   });
   approachFeedbackTargetId = targetPoint ? String(targetPoint.id) : null;
+  // Le guidage vocal suit les mêmes points de réinitialisation (cible, mode).
+  resetVoiceGuidanceState();
 }
 
 function toggleApproachFeedback() {
@@ -620,14 +639,193 @@ function processApproachFeedback(dist) {
   });
 }
 
+// ─── GUIDAGE VOCAL (OPTION A) ───────────────────────────────
+
+function isVoiceGuidanceSupported() {
+  return typeof window !== 'undefined'
+    && 'speechSynthesis' in window
+    && typeof window.SpeechSynthesisUtterance === 'function';
+}
+
+function initVoiceGuidance() {
+  try {
+    voiceGuidanceEnabled = localStorage.getItem(CAMERA_VOICE_KEY) === '1';
+  } catch (error) {
+    voiceGuidanceEnabled = false;
+  }
+  resetVoiceGuidanceState();
+  syncVoiceGuidanceUI();
+}
+
+function syncVoiceGuidanceUI() {
+  const btn = document.getElementById('btnCameraVoice');
+  if (!btn) return;
+
+  btn.innerHTML = voiceGuidanceEnabled ? ICON_VOLUME_ON : ICON_VOLUME_OFF;
+  btn.classList.toggle('on', voiceGuidanceEnabled);
+  btn.classList.toggle('off', !voiceGuidanceEnabled);
+
+  const label = voiceGuidanceEnabled ? 'Couper le guidage vocal' : 'Activer le guidage vocal';
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+  btn.setAttribute('aria-pressed', voiceGuidanceEnabled ? 'true' : 'false');
+}
+
+function toggleCameraVoiceGuidance() {
+  if (!isVoiceGuidanceSupported()) {
+    showToast('Guidage vocal indisponible sur cet appareil', 'warning', 2600);
+    return;
+  }
+
+  voiceGuidanceEnabled = !voiceGuidanceEnabled;
+  try {
+    localStorage.setItem(CAMERA_VOICE_KEY, voiceGuidanceEnabled ? '1' : '0');
+  } catch (error) {
+    // Stockage plein : le réglage reste valable pour la session en cours.
+  }
+
+  resetVoiceGuidanceState();
+  syncVoiceGuidanceUI();
+
+  if (voiceGuidanceEnabled) {
+    unlockApproachAudio();
+    speak('Guidage vocal activé');
+  } else {
+    stopVoiceGuidance();
+  }
+
+  showToast(
+    voiceGuidanceEnabled ? 'Guidage vocal activé' : 'Guidage vocal coupé',
+    'info',
+    1600
+  );
+}
+
+// Annonce vocale en français. `cancel()` remplace l'annonce en cours : la
+// distance la plus récente est toujours celle qui est prononcée.
+function speak(text) {
+  if (!voiceGuidanceEnabled || !text || !isVoiceGuidanceSupported()) return;
+
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(text));
+    utterance.lang = 'fr-FR';
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    // Synthèse indisponible : le guidage visuel reste seul actif.
+  }
+}
+
+function stopVoiceGuidance() {
+  if (!isVoiceGuidanceSupported()) return;
+  try {
+    window.speechSynthesis.cancel();
+  } catch (error) {
+    // Rien à arrêter.
+  }
+}
+
+function resetVoiceGuidanceState() {
+  voiceThresholdsArmed = {};
+  APPROACH_THRESHOLDS_M.forEach(threshold => {
+    voiceThresholdsArmed[threshold] = true;
+  });
+  voiceTargetId = targetPoint ? String(targetPoint.id) : null;
+  voiceArrivalAnnounced = false;
+}
+
+// « gauche » / « droite » / « tout droit » d'après l'écart entre le cap
+// géographique de la cible et le cap courant (GPS ou boussole).
+function getVoiceDirection(bearing, cap) {
+  if (typeof cap !== 'number' || !Number.isFinite(cap)) return null;
+  const delta = ((bearing - cap + 540) % 360) - 180;
+  if (delta > VOICE_STRAIGHT_TOLERANCE_DEG) return 'droite';
+  if (delta < -VOICE_STRAIGHT_TOLERANCE_DEG) return 'gauche';
+  return 'tout droit';
+}
+
+function buildVoiceThresholdMessage(threshold, bearing, cap) {
+  const metres = `${threshold} mètre${threshold > 1 ? 's' : ''}`;
+  const direction = getVoiceDirection(bearing, cap);
+
+  if (direction === 'gauche') return `Tournez à gauche, ${metres}`;
+  if (direction === 'droite') return `Tournez à droite, ${metres}`;
+  if (direction === 'tout droit') return `Cible à ${metres}, continuez tout droit`;
+  return `Cible à ${metres}`;
+}
+
+// Accord majeur de réussite (Web Audio) : court arpège do-mi-sol.
+function playSuccessChord() {
+  const ctx = ensureApproachAudioContext();
+  if (!ctx) return;
+
+  if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+    ctx.resume().catch(() => {});
+  }
+
+  const now = ctx.currentTime;
+  VOICE_ARRIVAL_CHORD_HZ.forEach((frequency, index) => {
+    const startAt = now + index * 0.09;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.18, startAt + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.5);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + 0.52);
+  });
+}
+
+// Appelé à chaque rendu du mode cible : annonce d'un seuil franchi
+// (10 / 5 / 2 / 1 m) puis « Cible atteinte » sous 0,5 m, une seule fois.
+function processVoiceGuidance(dist, bearing) {
+  if (!voiceGuidanceEnabled || cameraMode !== 'target' || !targetPoint) return;
+  if (typeof dist !== 'number' || !Number.isFinite(dist)) return;
+
+  if (voiceTargetId !== String(targetPoint.id)) resetVoiceGuidanceState();
+
+  const cap = getCurrentCap();
+
+  if (dist < VOICE_ARRIVAL_M) {
+    if (!voiceArrivalAnnounced) {
+      voiceArrivalAnnounced = true;
+      speak('Cible atteinte');
+      playSuccessChord();
+    }
+    return;
+  }
+
+  if (voiceArrivalAnnounced && dist > VOICE_ARRIVAL_REARM_M) voiceArrivalAnnounced = false;
+
+  APPROACH_THRESHOLDS_M.forEach(threshold => {
+    if (dist <= threshold) {
+      if (voiceThresholdsArmed[threshold] !== false) {
+        voiceThresholdsArmed[threshold] = false;
+        speak(buildVoiceThresholdMessage(threshold, bearing, cap));
+      }
+    } else if (dist > threshold + APPROACH_HYSTERESIS_M) {
+      voiceThresholdsArmed[threshold] = true;
+    }
+  });
+}
+
 function updateCameraPickerLabels() {
   const targetLabel = document.getElementById('cameraTargetLabel');
 
   if (targetLabel) {
-    // Pastille colorée plutôt que l'emoji `icon` (donnée conservée pour l'export).
+    // Icône Lucide du type d'obstacle (repli épingle) : plus d'emoji affiché.
     targetLabel.innerHTML = targetPoint
-      ? `<span class="type-dot ${targetPoint.type}" aria-hidden="true"></span>`
-        + `${targetPoint.type} #${targetPoint.index}`
+      ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(targetPoint.subtype)}</span>`
+        + `${targetPoint.subtype || targetPoint.type} #${targetPoint.index}`
       : 'Aucun';
   }
 }
@@ -642,7 +840,9 @@ function populateTargetSelect() {
   // Seuls les obstacles sont des lieux physiques à rejoindre.
   const pts = getPoints().filter(p => p.type === 'obstacle');
   const selectedId = targetPoint ? String(targetPoint.id) : '';
-  const signature = `${selectedId}|${pts.map(p => `${p.id}:${p.icon}:${p.type}:${p.index}:${p.fix}`).join('|')}`;
+  // Plus d'emoji dans les options (un `<option>` ne peut pas contenir de SVG) :
+  // le libellé repose sur le sous-type de l'obstacle.
+  const signature = `${selectedId}|${pts.map(p => `${p.id}:${p.subtype}:${p.type}:${p.index}:${p.fix}`).join('|')}`;
 
   if (signature === targetSelectSignature) return;
 
@@ -650,7 +850,7 @@ function populateTargetSelect() {
   const previousValue = sel.value;
 
   sel.innerHTML = '<option value="">— Sélectionnez un obstacle —</option>' +
-    pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${p.icon} ${p.type} #${p.index} — ${p.fix}</option>`).join('');
+    pts.map(p => `<option value="${p.id}" ${selectedId === String(p.id) ? 'selected' : ''}>${p.subtype || 'Obstacle'} #${p.index} — ${p.fix}</option>`).join('');
   // Hauteur compacte : une ligne de titre + un obstacle par ligne (3 à 7 max).
   sel.size = Math.min(Math.max(pts.length + 1, 3), 7);
 
@@ -764,6 +964,8 @@ function renderTargetMode(overlay) {
   const guidanceBearing = getGuidanceBearing(bearing);
   const color = getCameraColor(dist);
   const cap = getCurrentCap();
+  // Guidage vocal : annonce les seuils franchis et l'arrivée (si activé).
+  processVoiceGuidance(dist, bearing);
   const nearTarget = dist < CAMERA_TARGET_NEAR_M;
   const haloAlert = nearTarget && dist < CAMERA_HALO_ALERT_M;
   const distText = nearTarget ? formatCameraDistanceCm(dist) : formatCameraDistance(dist);

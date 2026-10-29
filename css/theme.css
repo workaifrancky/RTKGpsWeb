@@ -336,9 +336,22 @@
   flex: 1;
 }
 
-.camera-fullscreen-btn {
+/* Actions du HUD (guidage vocal + plein écran) : toujours collées à droite,
+   même quand la carte « cible » est masquée. */
+.camera-hud-actions {
+  display:        flex;
+  align-items:    center;
+  gap:            8px;
+  margin-left:    auto;
+  flex:           0 0 auto;
+  pointer-events: none;
+}
+
+.camera-hud-actions > button { pointer-events: auto; }
+
+.camera-fullscreen-btn,
+.camera-voice-btn {
   flex:            0 0 auto;
-  margin-left:     auto;
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
@@ -354,8 +367,17 @@
   backdrop-filter: blur(3px);
 }
 
-/* Icônes Lucide du HUD caméra (plein écran, boussole, chevron de cible). */
+/* Guidage vocal : état actif = liseré vert, état coupé = icône atténuée. */
+.camera-voice-btn.on {
+  border-color: rgba(74,222,128,0.9);
+  background:   rgba(22,163,74,0.6);
+}
+
+.camera-voice-btn.off { opacity: 0.7; }
+
+/* Icônes Lucide du HUD caméra (plein écran, vocal, boussole, chevron). */
 .camera-fullscreen-btn svg,
+.camera-voice-btn svg,
 .cam-compass-inline svg,
 .camera-picker-caret {
   display:     block;
@@ -363,9 +385,12 @@
   pointer-events: none;
 }
 
-.camera-fullscreen-btn:hover {
+.camera-fullscreen-btn:hover,
+.camera-voice-btn.off:hover {
   background: rgba(0,0,0,0.65);
 }
+
+.camera-voice-btn.on:hover { background: rgba(22,163,74,0.75); }
 
 /* Plein écran caméra : header et bouton « Connexion » totalement masqués,
    comme pour la carte (lignes et boutons du header compris). */

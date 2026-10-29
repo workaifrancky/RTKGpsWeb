@@ -127,6 +127,45 @@ const ICON_COMPASS = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
   <circle cx="12" cy="12" r="10"/>
 </svg>`;
 
+// Guidage vocal du HUD caméra : haut-parleur (actif) et haut-parleur barré (coupé).
+const ICON_VOLUME_ON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>
+  <path d="M16 9a5 5 0 0 1 0 6"/>
+  <path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>
+</svg>`;
+
+const ICON_VOLUME_OFF = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>
+  <line x1="22" x2="16" y1="9" y2="15"/>
+  <line x1="16" x2="22" y1="9" y2="15"/>
+</svg>`;
+
+// ─── TYPES D'OBSTACLES (SVG Lucide) ──────────────────────────
+// Les emoji ne sont plus affichés dans l'interface : `point.icon` reste une
+// donnée interne (rétrocompatibilité des parcelles existantes) mais l'icône
+// affichée est choisie à partir de `subtype`. Table indexée par libellé de
+// sous-type ; repli sur `Perso` (map-pin) pour les anciens types retirés
+// (Pierre, Bordure, Autre) et les données importées.
+const OBSTACLE_ICON_SVG = {
+  Arbre: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>`,
+  Perso: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  Souche: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M15 13 9 7l4-4 6 6h3a8 8 0 0 1-7 7z"/></svg>`,
+  Talus: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`,
+  Poteau: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20"/><path d="M2 5h20"/><path d="M3 3v2"/><path d="M7 3v2"/><path d="M17 3v2"/><path d="M21 3v2"/><path d="m19 5-7 7-7-7"/></svg>`,
+  Forage: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0"/><path d="M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7"/><path d="M21.82 10.1a9.93 9.93 0 0 1 0 3.8"/><path d="M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69"/><path d="M13.9 21.82a9.94 9.94 0 0 1-3.8 0"/><path d="M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7"/><path d="M2.18 13.9a9.93 9.93 0 0 1 0-3.8"/><path d="M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"/><circle cx="12" cy="12" r="1"/></svg>`,
+};
+
+// Markup SVG d'un type d'obstacle. Jamais d'emoji : le rendu varie selon la
+// plateforme. `stroke: currentColor` : la couleur vient du conteneur.
+function getObstacleIconMarkup(subtype) {
+  const key = typeof subtype === 'string' ? subtype.trim() : '';
+  return OBSTACLE_ICON_SVG[key] || OBSTACLE_ICON_SVG.Perso;
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);

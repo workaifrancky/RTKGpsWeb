@@ -172,7 +172,7 @@ function renderGlobalObstaclePicker() {
       return `
         <label class="import-obstacle-item">
           <input type="checkbox" class="import-obstacle-check" value="${escapeHtml(o.id)}">
-          <span class="import-obstacle-icon" aria-hidden="true">${escapeHtml(o.icon || '🟡')}</span>
+          <span class="import-obstacle-icon" aria-hidden="true">${getObstacleIconMarkup(o.subtype)}</span>
           <span class="import-obstacle-name">${name}</span>
           <span class="import-obstacle-coords">${coords}</span>
         </label>`;

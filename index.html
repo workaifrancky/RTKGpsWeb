@@ -264,18 +264,33 @@
               </select>
             </div>
           </div>
-          <button id="btnCameraFullscreen" class="camera-fullscreen-btn"
-            onclick="toggleCameraFullscreen()" title="Basculer plein écran"
-            aria-label="Basculer plein écran" aria-pressed="false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" aria-hidden="true" focusable="false">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
-              <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
-              <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
-              <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
-            </svg>
-          </button>
+          <!-- Actions du HUD : guidage vocal + plein écran. Le conteneur garde
+               l'alignement à droite et rend les boutons cliquables. -->
+          <div class="camera-hud-actions">
+            <button id="btnCameraVoice" class="camera-voice-btn off"
+              onclick="toggleCameraVoiceGuidance()" title="Activer le guidage vocal"
+              aria-label="Activer le guidage vocal" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>
+                <line x1="22" x2="16" y1="9" y2="15"/>
+                <line x1="16" x2="22" y1="9" y2="15"/>
+              </svg>
+            </button>
+            <button id="btnCameraFullscreen" class="camera-fullscreen-btn"
+              onclick="toggleCameraFullscreen()" title="Basculer plein écran"
+              aria-label="Basculer plein écran" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+                <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+                <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+                <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="camera-card camera-hud-settings" id="cameraModeSettings"></div>
       </div>
@@ -666,41 +681,43 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Type d'obstacle</div>
     <div class="obstacle-grid">
+      <!-- Six types seulement : l'icône affichée est un SVG Lucide (le 2e
+           paramètre conserve l'emoji dans `point.icon`, donnée historique). -->
       <div class="obstacle-option" onclick="selectObstacleType('Arbre','🌳')">
-        <div class="obstacle-option-icon">🌳</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>
+        </div>
         <div class="obstacle-option-label">Arbre</div>
       </div>
       <div class="obstacle-option" onclick="selectObstacleType('Perso','📍')">
-        <div class="obstacle-option-icon">📍</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
         <div class="obstacle-option-label">Perso</div>
       </div>
       <div class="obstacle-option" onclick="selectObstacleType('Souche','🪵')">
-        <div class="obstacle-option-icon">🪵</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M15 13 9 7l4-4 6 6h3a8 8 0 0 1-7 7z"/></svg>
+        </div>
         <div class="obstacle-option-label">Souche</div>
       </div>
       <div class="obstacle-option" onclick="selectObstacleType('Talus','⛰')">
-        <div class="obstacle-option-icon">⛰</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+        </div>
         <div class="obstacle-option-label">Talus</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Bordure','▬')">
-        <div class="obstacle-option-icon">▬</div>
-        <div class="obstacle-option-label">Bordure</div>
-      </div>
       <div class="obstacle-option" onclick="selectObstacleType('Poteau','🪝')">
-        <div class="obstacle-option-icon">🪝</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20"/><path d="M2 5h20"/><path d="M3 3v2"/><path d="M7 3v2"/><path d="M17 3v2"/><path d="M21 3v2"/><path d="m19 5-7 7-7-7"/></svg>
+        </div>
         <div class="obstacle-option-label">Poteau</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Pierre','🪨')">
-        <div class="obstacle-option-icon">🪨</div>
-        <div class="obstacle-option-label">Pierre</div>
-      </div>
       <div class="obstacle-option" onclick="selectObstacleType('Forage','🕳️')">
-        <div class="obstacle-option-icon">🕳️</div>
+        <div class="obstacle-option-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0"/><path d="M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7"/><path d="M21.82 10.1a9.93 9.93 0 0 1 0 3.8"/><path d="M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69"/><path d="M13.9 21.82a9.94 9.94 0 0 1-3.8 0"/><path d="M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7"/><path d="M2.18 13.9a9.93 9.93 0 0 1 0-3.8"/><path d="M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"/><circle cx="12" cy="12" r="1"/></svg>
+        </div>
         <div class="obstacle-option-label">Forage</div>
-      </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Autre','❓')">
-        <div class="obstacle-option-icon">❓</div>
-        <div class="obstacle-option-label">Autre</div>
       </div>
     </div>
   </div>

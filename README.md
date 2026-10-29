@@ -27,7 +27,11 @@ Fonctionnalités principales :
 - interface **responsive** (320 → desktop) : header compact, **barre de navigation fixe en
   bas** avec libellés, cibles tactiles ≥ 44 px ;
 - **relevé de parcelle** (onglet RELEVÉ) : surface à tondre, temps et linéaire estimés, contraintes relevées ;
-- caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre un point ou mesurer une distance ;
+- caméra de visée (cap géographique fixe à l'écran, distance, retour d'approche) pour rejoindre
+  un point ou mesurer une distance, avec **guidage vocal** optionnel (annonces en français aux
+  seuils 10 / 5 / 2 / 1 m, « Cible atteinte » et accord de réussite sous 50 cm) ;
+- types d'obstacles **Arbre, Perso, Souche, Talus, Poteau et Forage**, illustrés par des icônes
+  SVG (modale, listes, popups, cible caméra) ;
 - export **GeoJSON** (format principal, contrat Mower Planner), **CSV** et **GPX** via le menu
   secondaire de l'onglet TRACÉS ;
 - outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les

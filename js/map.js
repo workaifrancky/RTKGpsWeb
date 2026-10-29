@@ -383,8 +383,11 @@ function pointPopup(p, idx) {
     ? getPointDisplayName(p)
     : (p.subtype ? p.subtype : (p.type==='tonte'?'Tonte':'Interdit'));
   // Pastille colorée à la place de l'emoji `p.icon` (conservé dans les données
-  // pour l'export GeoJSON, mais plus affiché dans l'interface).
-  const dot = `<span class="type-dot ${p.type}" aria-hidden="true"></span>`;
+  // pour l'export GeoJSON, mais plus affiché dans l'interface). Un obstacle
+  // affiche l'icône Lucide de son sous-type (arbre, souche, poteau…).
+  const dot = p.type === 'obstacle' && typeof getObstacleIconMarkup === 'function'
+    ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(p.subtype)}</span>`
+    : `<span class="type-dot ${p.type}" aria-hidden="true"></span>`;
   const zone = (p.type === 'tonte' || p.type === 'interdit') && typeof getZoneCode === 'function'
     ? `${getZoneCode(p.type, p.zoneId)} · `
     : '';

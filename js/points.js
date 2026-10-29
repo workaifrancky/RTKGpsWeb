@@ -741,9 +741,13 @@ function renderPointItem(p, zoneIndex = null) {
   const customName = p.name ? ` — ${p.name}` : '';
   // Le type est porté par la pastille `.point-dot` à gauche : plus d'emoji
   // `p.icon` dans l'interface (le champ reste intact pour l'export GeoJSON).
+  // Un obstacle affiche en plus l'icône Lucide de son sous-type.
+  const obstacleIcon = !inZone && p.type === 'obstacle' && typeof getObstacleIconMarkup === 'function'
+    ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(p.subtype)}</span>`
+    : '';
   const name = inZone
     ? `Point ${number}${customName}`
-    : `${getPointDisplayName(p)} #${p.index}`;
+    : `${obstacleIcon}${getPointDisplayName(p)} #${p.index}`;
   const zoneMeta = inZone ? `${getZoneCode(p.type, p.zoneId)} &nbsp;·&nbsp; ` : '';
   const fix   = getFixMeta(p.fix);
   return `

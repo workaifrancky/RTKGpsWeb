@@ -353,8 +353,19 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   seuls lieux physiques à rejoindre.
 - **HUD caméra** : `.camera-hud` est une surimpression absolue (`inset: 0`, `z-index: 60`,
   `pointer-events: none`) qui ne consomme aucune hauteur. Elle contient la pastille cible
-  `.camera-hud-chip`, les coordonnées/réglages `.camera-hud-settings` et le bouton plein
-  écran. Le conteneur vidéo occupe toute la hauteur restante (`flex: 1 1 auto`).
+  `.camera-hud-chip`, les coordonnées/réglages `.camera-hud-settings` et
+  `.camera-hud-actions`, qui regroupe à droite (`margin-left: auto`) le bouton de
+  **guidage vocal** et le bouton plein écran. Le conteneur vidéo occupe toute la hauteur
+  restante (`flex: 1 1 auto`).
+- **Boutons ronds du HUD** : `.camera-fullscreen-btn` et `.camera-voice-btn` partagent le
+  même gabarit (42 × 42 px, `border-radius: 50%`, bordure blanche translucide, fond
+  `rgba(0,0,0,0.45)`, `backdrop-filter: blur(3px)`). `.camera-voice-btn.on` passe en
+  liseré/fond vert (`rgba(22,163,74,0.6)`), `.camera-voice-btn.off` atténue l'icône
+  (`opacity: 0.7`). Icônes : `volume-2` (actif) / `volume-x` (coupé), 20 px.
+- **Guidage vocal** : activé par le bouton `#btnCameraVoice` (persistance
+  `rtkCameraVoiceGuidance`, désactivé par défaut). Aucun style propre à la caméra : les
+  annonces sont vocales (`speechSynthesis`, `fr-FR`) et l'arrivée déclenche le même type
+  d'accord Web Audio que le retour d'approche (arpège do-mi-sol).
 
 ### Indicateur de type de tracé
 
@@ -384,9 +395,15 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `--color-tonte` / `--color-interdit` / `--color-obstacle`.
 - `.type-dot` : pastille inline (10 px, `margin-right: 4px`, `vertical-align: -1px`) utilisée
   pour le type dans les **popups carte**, les **libellés RELEVÉ** (« ● OBSTACLES »,
-  « ● ZONES INTERDITES »), l'**historique** des sessions et la **cible caméra**.
+  « ● ZONES INTERDITES ») et l'**historique** des sessions.
   Elle remplace l'affichage des emoji 🟢/🔴/🟡 : le champ `point.icon` reste intact dans les
   données et l'export GeoJSON.
+- `.obstacle-type-icon` : icône Lucide inline d'un **type d'obstacle** (16 px, `margin-right:
+  4px`, `vertical-align: -3px`, couleur `--color-obstacle`), produite par
+  `getObstacleIconMarkup(subtype)` (`js/app.js`). Utilisée dans la liste des points, les
+  popups carte, le sélecteur d'import des parcelles et la cible caméra. `.obstacle-option-icon`
+  est la variante de la modale « Type d'obstacle » (26 px, 20 px ≤ 360 px, même couleur).
+  Le `<select>` natif `#targetSelect` reste en texte (pas de SVG dans un `<option>`).
 - **Onglet HISTORIQUE** : `.history-screen` (padding 12 px) contient deux `.history-section`
   (marge basse 18 px) :
   1. `#pointsSection` — en-tête `.points-section-head` : `« PARCELLE : »`

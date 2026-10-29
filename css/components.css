@@ -353,9 +353,11 @@
 .trace-fab-item-icon.project  { color: var(--color-primary); }
 
 /* ─── MENU OBSTACLE (bottom sheet) ─────────────────────────── */
+/* Six types seulement (Arbre, Perso, Souche, Talus, Poteau, Forage) :
+   3 colonnes = 2 lignes pleines, cibles plus larges au doigt. */
 .obstacle-grid {
   display:               grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap:                   8px;
   margin-top:            8px;
 }
@@ -380,7 +382,22 @@
   background:   var(--color-warning-pale);
 }
 
-.obstacle-option-icon { font-size: 24px; }
+/* Icône du type d'obstacle : SVG Lucide (24-26 px), jamais d'emoji.
+   `color` porte le trait (`stroke: currentColor` dans le markup). */
+.obstacle-option-icon {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--color-obstacle);
+}
+
+.obstacle-option-icon svg {
+  display:     block;
+  width:       26px;
+  height:      26px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
 
 .obstacle-option-label {
   font-size:   10px;
@@ -866,7 +883,19 @@
   accent-color: var(--color-primary);
 }
 
-.import-obstacle-icon { font-size: 15px; flex-shrink: 0; }
+.import-obstacle-icon {
+  display:     inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color:       var(--color-obstacle);
+}
+
+.import-obstacle-icon svg {
+  display:     block;
+  width:       16px;
+  height:      16px;
+  pointer-events: none;
+}
 
 .import-obstacle-name {
   flex:          1 1 auto;
@@ -1095,6 +1124,25 @@
 .type-dot.tonte    { background: var(--color-tonte); }
 .type-dot.interdit { background: var(--color-interdit); }
 .type-dot.obstacle { background: var(--color-obstacle); }
+
+/* Icône Lucide d'un type d'obstacle (liste des points, popups carte, cible
+   caméra, sélecteur d'import). Remplace les emoji 🌳 / 🪵 / 🪝 … */
+.obstacle-type-icon {
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  margin-right:   4px;
+  color:          var(--color-obstacle);
+  vertical-align: -3px;
+}
+
+.obstacle-type-icon svg {
+  display:     block;
+  width:       16px;
+  height:      16px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
 
 .point-info { flex: 1; min-width: 0; }
 
@@ -1691,9 +1739,9 @@
 /* ─── RESPONSIVE MOBILE COMPACT ──────────────────────────────── */
 @media (max-width: 360px) {
   .data-value               { font-size: 19px; }
-  .obstacle-grid            { grid-template-columns: repeat(4, 1fr); }
+  .obstacle-grid            { grid-template-columns: repeat(3, 1fr); }
   .obstacle-option          { padding: 10px 4px; }
-  .obstacle-option-icon     { font-size: 20px; }
+  .obstacle-option-icon svg { width: 20px; height: 20px; }
   .trace-fab-menu           { min-width: 220px; }
 }
 
