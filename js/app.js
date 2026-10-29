@@ -366,7 +366,7 @@ function checkBleSupport() {
     showAlert('⚠️ Web Bluetooth non supporté — utilisez Chrome sur Android', 'danger', 0);
     const btn = document.getElementById('btnBle');
     if (btn) {
-      const icon = typeof getBleIconMarkup === 'function' ? getBleIconMarkup() : '';
+      const icon = typeof getBleIconMarkup === 'function' ? getBleIconMarkup(false) : '';
       btn.classList.remove('connected');
       btn.classList.add('disconnected');
       btn.disabled = true;

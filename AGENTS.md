@@ -219,6 +219,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   modale `#obstacleModal` (`.obstacle-option-icon`), la liste des points, les popups carte,
   le sélecteur d'import des parcelles et la cible caméra (`.obstacle-type-icon`). Seul le
   `<select>` natif `#targetSelect` reste en texte (un `<option>` ne peut pas contenir de SVG).
+  Le bouton BLE `#btnBle` suit la même règle : `getBleIconMarkup(connected)` (`js/ble.js`)
+  renvoie `bluetooth` quand la connexion est active et `bluetooth-off` sinon (état par défaut
+  d'`index.html` / `menu-test.html`), avec les trois ondes animées et **sans encadrement**
+  (`border: none`, fond transparent). `setBleStatus()` transmet l'état : `connected` seul est
+  vrai, `disconnected` / `scanning` / `connecting` restent sur l'icône barrée.
   Restent volontairement en emoji : le logo `🌾` et les textes (toasts, messages d'état) ;
   l'emoji d'un obstacle n'est plus qu'une donnée interne (`point.icon`).
 - **Tiroir Parcelles** : le bandeau `#projectBar` n'existe plus. `#btnProjectDrawer` (libellé
@@ -937,6 +942,14 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.camera-voice-btn` (+ états `.on` / `.off`). Vérifié par banc Node (65 vérifications) et
   Chrome headless/CDP (28 vérifications : bouton 42 × 42 px, 6 icônes de 26 px, bascule
   persistée `1 → 0`, liste « Arbre #1 » / « Pierre #2 » sans emoji, aucune exception JS).
+  **Bouton BLE** : `getBleIconMarkup(connected)` (`js/ble.js`) renvoie `bluetooth`
+  (connecté) ou `bluetooth-off` (`m17 17-5 5V12l-5 5`, `m2 2 20 20`, `M14.5 9.5 17 7l-5-5v4.5`)
+  hors connexion, avec les trois ondes animées ; `setBleStatus()` marque `connected` vrai
+  uniquement pour l'état `connected` (`scanning` / `connecting` restent barrés) et le bouton
+  n'a **ni bordure ni fond** (`border: none`, `background: transparent`, 44 × 44 px,
+  `.ble-svg` 18 px). `index.html` et `menu-test.html` portent `bluetooth-off` par défaut ;
+  `checkBleSupport()` force l'état barré. Vérifié par banc Node (38 vérifications) et
+  Chrome/CDP (46 vérifications, captures des deux états).
 
 ## 9. Langue et communication
 

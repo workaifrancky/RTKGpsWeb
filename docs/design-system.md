@@ -136,8 +136,11 @@ Overrides de lisibilité :
   Feedback par l'opacité (`0.8` au survol, `0.62` à l'appui) et `focus-visible` (contour 3 px).
   Le thème affiche **20 px** `ICON_MOON` / `ICON_SUN`, injectés directement dans `#btnTheme`
   par `applyTheme()` (lune en clair, soleil en sombre) ; le BLE affiche
-  `getBleIconMarkup()` (SVG + trois ondes). Couleurs d'état `#btnBle.connected` /
-  `.disconnected` dans `components.css`.
+  `getBleIconMarkup(connected)` (SVG + trois ondes), soit **`bluetooth`** connecté, soit
+  **`bluetooth-off`** déconnecté (repli par défaut). Couleurs d'état `#btnBle.connected` /
+  `.disconnected` dans `components.css` (`--color-ble-connected` vert,
+  `--color-ble-disconnected` bleu). Aucun encadrement : `#btnBle` conserve
+  `border: none` / `background: transparent` ; `.ble-svg` fait 18 × 18 px dans le header.
 - `#headerMenuOverlay` (`.header-menu-overlay`) et `#headerMenu` (`.header-menu`) sont placés
   **hors de `.app-wrapper`** pour que leur `z-index` (3999 / 4000) passe au-dessus du
   verrouillage d'écran (3000) et des FAB (1002). Le menu est fixé **sous le header mesuré**

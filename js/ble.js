@@ -86,17 +86,17 @@ function onBleDataReceived(event) {
 
 function setBleStatus(status) {
   const btn=document.getElementById('btnBle');
-  // Icône seule dans le header : la couleur (bleu / vert) et le title portent
-  // l'état, sans texte additionnel.
+  // Icône seule dans le header : la couleur (bleu / vert), le pictogramme
+  // (bluetooth / bluetooth-off) et le title portent l'état, sans texte.
   const states = {
-    disconnected:{ label:'Connecter le module BLE', btnCls:'disconnected' },
-    scanning:    { label:'Recherche RTK_Mower...',  btnCls:'disconnected' },
-    connecting:  { label:'Connexion en cours...',   btnCls:'disconnected' },
-    connected:   { label:'Connecté à RTK_Mower',    btnCls:'connected' },
+    disconnected:{ label:'Connecter le module BLE', btnCls:'disconnected', connected:false },
+    scanning:    { label:'Recherche RTK_Mower...',  btnCls:'disconnected', connected:false },
+    connecting:  { label:'Connexion en cours...',   btnCls:'disconnected', connected:false },
+    connected:   { label:'Connecté à RTK_Mower',    btnCls:'connected',    connected:true  },
   };
   const s = states[status] || states.disconnected;
   if (btn) {
-    btn.innerHTML = getBleIconMarkup();
+    btn.innerHTML = getBleIconMarkup(s.connected);
     btn.classList.remove('connected', 'disconnected');
     btn.classList.add(s.btnCls);
     btn.title = s.label;
@@ -104,13 +104,23 @@ function setBleStatus(status) {
   }
 }
 
+// Pictogrammes Lucide du bouton BLE (aucun emoji, aucun encadrement) :
+// « bluetooth » une fois connecté, « bluetooth-off » hors connexion.
+const BLE_ICON_PATHS = {
+  connected:    '<path d="m7 7 10 10-5 5V2l5 5L7 17"/>',
+  disconnected: '<path d="m17 17-5 5V12l-5 5"/><path d="m2 2 20 20"/><path d="M14.5 9.5 17 7l-5-5v4.5"/>',
+};
+
 // Markup de l'icône Bluetooth : SVG Lucide + trois ondes animées.
-function getBleIconMarkup() {
+// `connected` vaut false par défaut (repli sur l'icône barrée).
+function getBleIconMarkup(connected) {
+  const paths = connected ? BLE_ICON_PATHS.connected : BLE_ICON_PATHS.disconnected;
   return '<div class="ble-icon-container" aria-hidden="true">'
     + '<div class="ble-waves"></div><div class="ble-waves"></div><div class="ble-waves"></div>'
     + '<svg class="ble-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"'
-    + ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
-    + '<path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg></div>';
+    + ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+    + ' aria-hidden="true" focusable="false">'
+    + paths + '</svg></div>';
 }
 
 function updateTerrainButtons() {
