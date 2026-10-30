@@ -9,8 +9,11 @@ const MAP_BASE_LAYER_KEY = 'rtkMapBaseLayer';
 let map=null, layerTonte=null, layerInterdit=null, layerObstacle=null;
 let reliefLayer=null, satelliteLayer=null, activeBaseLayer='relief';
 let liveMarker=null, liveTrail=[], livePolyline=null;
-// Métré temporaire du segment en cours de tracé (zone de tonte à 2 points).
+// Métré temporaire du segment en cours de tracé (zone à 2 points), séparé par
+// type : une zone de tonte et une zone interdite peuvent être en cours en même
+// temps sans que la suppression de l'une efface la ligne de l'autre.
 let tempMeasureLine = null;
+let tempMeasureLineInterdit = null;
 // Labels permanents de zone (ZT1, ZT2, ZI1…), visibles à partir du zoom
 // ZONE_LABEL_MIN_ZOOM pour ne pas surcharger la carte. La surface n'est plus
 // écrite sur la carte : elle reste dans la popup de la zone.
@@ -156,17 +159,23 @@ function syncMapBaseLayerButtons() {
 }
 
 // Supprime la polyligne de métré temporaire (segment en cours de tracé).
-function clearTempMeasureLine() {
-  if (!tempMeasureLine) return;
-  if (layerTonte) layerTonte.removeLayer(tempMeasureLine);
-  else if (map) map.removeLayer(tempMeasureLine);
-  tempMeasureLine = null;
+// `type` cible le bon layer : tonte (défaut) ou interdit.
+function clearTempMeasureLine(type = 'tonte') {
+  const isInterdit = type === 'interdit';
+  const line = isInterdit ? tempMeasureLineInterdit : tempMeasureLine;
+  if (!line) return;
+  const layer = isInterdit ? layerInterdit : layerTonte;
+  if (layer) layer.removeLayer(line);
+  else if (map) map.removeLayer(line);
+  if (isInterdit) tempMeasureLineInterdit = null;
+  else tempMeasureLine = null;
 }
 
 function renderMap() {
   if (!map) return;
   // Le métré temporaire est recréé à chaque rendu (zone à 2 points).
-  clearTempMeasureLine();
+  clearTempMeasureLine('tonte');
+  clearTempMeasureLine('interdit');
   layerTonte.clearLayers();
   layerInterdit.clearLayers();
   layerObstacle.clearLayers();
@@ -216,7 +225,7 @@ function renderMap() {
     // leaflet-measure-path, on crée donc la polyligne temporaire qui porte la
     // distance du segment. Elle est supprimée dès le 3e point (polygone).
     if (zonePts.length === 2) {
-      clearTempMeasureLine();
+      clearTempMeasureLine('tonte');
       tempMeasureLine = L.polyline(zonePts.map(p => [p.lat, p.lon]), {
         color:       palette.stroke,
         weight:      2.5,
@@ -257,6 +266,20 @@ function renderMap() {
         .bindPopup(zonePopup('interdit', zoneId, area));
 
       addZoneLabel('interdit', zoneId, zonePts);
+    }
+
+    // Zone interdite en cours de tracé (2 points) : même métré temporaire que
+    // pour la tonte, supprimé dès le 3e point où le polygone prend le relais.
+    if (zonePts.length === 2) {
+      clearTempMeasureLine('interdit');
+      tempMeasureLineInterdit = L.polyline(zonePts.map(p => [p.lat, p.lon]), {
+        color:       COLORS.interdit.stroke,
+        weight:      2.5,
+        interactive: false,
+      }).addTo(layerInterdit);
+      if (typeof tempMeasureLineInterdit.showMeasurements === 'function') {
+        tempMeasureLineInterdit.showMeasurements(ZONE_MEASUREMENT_OPTIONS);
+      }
     }
 
     // Points numérotés de 1 à N dans leur zone interdite.

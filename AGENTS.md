@@ -362,11 +362,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
-  dans `<head>`, JS après `leaflet.js`). Les polygones de tonte passent
-  `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
+  dans `<head>`, JS après `leaflet.js`). Les polygones de tonte **et des zones interdites**
+  passent `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
   `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
-  `renderMap()` crée une `L.polyline` temporaire (`tempMeasureLine`) mesurée, supprimée dès
-  le 3ᵉ point par `clearTempMeasureLine()`. Ne pas retirer ces deux balises CDN.
+  `renderMap()` crée une `L.polyline` temporaire mesurée par type (`tempMeasureLine` pour la
+  tonte, `tempMeasureLineInterdit` pour l'interdit), supprimée dès le 3ᵉ point où le polygone
+  prend le relais (`clearTempMeasureLine('tonte'|'interdit')`). Ne pas retirer ces deux
+  balises CDN.
 - **Labels de zone et numéros de points** : `addZoneLabel(type, zoneId, zonePts)` pose un
   `L.tooltip` permanent au centre de chaque zone, **avec le code seul** (`ZT1`, `ZT2`, `ZI1`…,
   classe `.zone-name-label`, zoom ≥ `ZONE_LABEL_MIN_ZOOM = 18`). La **surface n'est jamais
@@ -1257,6 +1259,17 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   pré-sélectionné, nom pré-rempli, nom enregistré, vibrations 50 / `[100,50,100]`, Gants
   52 × 52 px / 16 px, HUD et bouton Stakeout, annonces 10/5/1 m + arrivée, zéro exception) ;
   `node --check` OK.
+- **3.75 — Métré des zones interdites dès le 2ᵉ point** : `renderMap()` applique désormais aux
+  zones interdites la même polyligne temporaire qu'aux zones de tonte : à **2 points**, une
+  `L.polyline` (`tempMeasureLineInterdit`, couleur `COLORS.interdit.stroke`) est ajoutée à
+  `layerInterdit` et reçoit `showMeasurements(ZONE_MEASUREMENT_OPTIONS)` (`showDistances`,
+  sans surface ni longueur totale) ; dès le 3ᵉ point, `clearTempMeasureLine('interdit')` la
+  retire et le polygone mesuré prend le relais. Le métré temporaire est séparé par type
+  (`tempMeasureLine` / `tempMeasureLineInterdit`) pour qu'une zone de tonte et une zone
+  interdite en cours ne s'effacent pas mutuellement. Contrat GeoJSON inchangé. Vérifié
+  Chrome/CDP : à 2 points, les deux lignes existent sur leurs layers et deux étiquettes
+  `22.2 m` sont rendues ; après ajout du 3ᵉ point interdit, la polyligne temporaire disparaît
+  et un polygone est créé ; `node --check js/map.js` OK.
 
 ## 9. Langue et communication
 
