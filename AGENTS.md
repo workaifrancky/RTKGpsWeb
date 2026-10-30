@@ -1196,6 +1196,15 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   carte reste vide jusqu'à la sélection. Vérifié Chrome/CDP : FAB visible au démarrage, menu
   contenant « Parcelle : Aucune », ouverture du tiroir, absence du bouton dans Connexion,
   sélection puis chargement normal.
+- **3.72 — Splash screen** : `#splashScreen` (`.splash-screen`) est ajouté au début du
+  `<body>` d'`index.html` et de `menu-test.html` avec le logo `🌾 RTK Mower`. Voile plein
+  écran `position: fixed`, `inset: 0`, `z-index: 5000` (au-dessus du menu Connexion 4000, du
+  verrouillage 3000 et des toasts 1200), fond `--color-primary`, logo blanc centré (28 à
+  42 px). Animation CSS `splash-hide` : visible 1 s puis fondu de 0,35 s
+  (`visibility: hidden`), avec variante instantanée en `prefers-reduced-motion: reduce`.
+  Aucun script n'est nécessaire. Vérifié Chrome/CDP (7/7 : plein écran, centré, vert,
+  z-index 5000, visible au chargement, masqué après le fondu, application cliquable, zéro
+  exception).
 
 ## 9. Langue et communication
 

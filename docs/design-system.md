@@ -99,6 +99,11 @@ Overrides de lisibilité :
 
 ### Indicateur de sauvegarde et verrouillage
 
+- `#splashScreen` (`.splash-screen`) : voile plein écran (`position: fixed`, `inset: 0`,
+  `z-index: 5000`), fond `--color-primary`, logo centré `.splash-logo` « 🌾 RTK Mower »
+  (clamp 28–42 px, blanc). Animation `splash-hide` : visible 1 s, puis fondu de 0,35 s et
+  `visibility: hidden` (`animation-fill-mode: forwards`). En `prefers-reduced-motion: reduce`,
+  la durée du fondu tombe à 0,01 s (le délai de 1 s est conservé).
 - `#saveIndicator` (`.save-indicator`) : **pastille verte** de la 1re ligne du panneau
   Connexion (à droite de la station NTRIP), fond `--color-primary-pale`, texte
   `--color-primary-deep` (thème nuit : `--color-primary-accent`), icône Lucide `save` de

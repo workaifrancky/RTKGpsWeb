@@ -14,6 +14,7 @@ Fonctionnalités principales :
 
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
 - **verrouillage d'écran** anti-fausse manip (glissement horizontal pour déverrouiller) ;
+- **splash screen** vert avec le logo `🌾 RTK Mower` pendant 1 s au chargement ;
 - **partage natif** sur mobile (`navigator.share`) : un GeoJSON pour une parcelle, un ZIP unique
   pour plusieurs (contourne le bug Android du multi-fichiers) ;
 - **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;

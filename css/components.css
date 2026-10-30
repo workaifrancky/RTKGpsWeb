@@ -3,6 +3,41 @@
    RTKGpsWeb v2 — RTK Mower
    ============================================================ */
 
+/* ─── SPLASH SCREEN ─────────────────────────────────────────── */
+/* Voile vert plein écran avec le logo, visible 1 s puis effacé.
+   z-index supérieur au header (200), au verrouillage (3000), au menu
+   Connexion (4000) et aux toasts (1200). */
+.splash-screen {
+  position:        fixed;
+  inset:           0;
+  z-index:         5000;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  background:      var(--color-primary);
+  color:           white;   /* logo sur fond vert : exception documentée */
+  animation:       splash-hide 0.35s ease 1s forwards;
+}
+
+.splash-logo {
+  display:        flex;
+  align-items:    center;
+  gap:            10px;
+  font-size:      clamp(28px, 8vw, 42px);
+  font-weight:    800;
+  letter-spacing: 0.4px;
+  white-space:    nowrap;
+}
+
+@keyframes splash-hide {
+  from { opacity: 1; visibility: visible; }
+  to   { opacity: 0; visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-screen { animation-duration: 0.01s; }
+}
+
 /* ─── BADGES DE FIX ─────────────────────────────────────────── */
 .badge-rtk   { background:var(--color-primary-pale-bg); color:var(--color-primary-deep); border-color:var(--color-primary-accent); }
 .badge-float { background:var(--color-warning-pale); color:#78350f; border-color:var(--color-warning-strong); }
