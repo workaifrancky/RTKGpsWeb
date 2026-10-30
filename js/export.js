@@ -420,11 +420,12 @@ function closeTransferModal() {
   transferShowOptions();                 // la prochaine ouverture repart des options
   transferSelectionIds = [];             // la sélection groupée ne survit pas à la fermeture
 
-  const fromFocused = transferPreviousFocus;
+  const target = transferPreviousFocus;
   transferPreviousFocus = null;
-  const trigger = document.getElementById('btnTransfer');
-  const target = trigger && trigger.offsetParent !== null ? trigger : fromFocused;
-  if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
+  if (target && target.isConnected && target.offsetParent !== null
+      && typeof target.focus === 'function') {
+    target.focus({ preventScroll: true });
+  }
 }
 
 // Vue « options » = état par défaut de la modale.

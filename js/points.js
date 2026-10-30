@@ -700,24 +700,23 @@ function renderPointsList() {
   const obstacle      = pts.filter(p => p.type === 'obstacle');
 
   const interditGroups = Object.keys(interditZones).map(Number).sort((a, b) => a - b)
-    .map(zoneId => renderGroup(getZoneDisplayName('interdit', zoneId), interditZones[zoneId], '#dc2626', 'interdit'))
+    .map(zoneId => renderGroup(getZoneDisplayName('interdit', zoneId), interditZones[zoneId], '#dc2626'))
     .join('');
 
   container.innerHTML =
     Object.keys(zones).map(Number).sort((a, b) => a - b)
-      .map(zoneId => renderGroup(getZoneDisplayName('tonte', zoneId), zones[zoneId], getZonePalette(zoneId).stroke, 'tonte'))
+      .map(zoneId => renderGroup(getZoneDisplayName('tonte', zoneId), zones[zoneId], getZonePalette(zoneId).stroke))
       .join('') +
     interditGroups +
-    renderGroup('Obstacles isolés', obstacle,'#d97706', 'obstacle');
+    renderGroup('Obstacles isolés', obstacle,'#d97706');
 }
 
-function renderGroup(title, pts, color, type) {
+function renderGroup(title, pts, color) {
   if (pts.length === 0) return '';
   return `
     <div class="points-group">
       <div class="points-group-header" style="border-left-color:${color}">
         <span>${title}</span>
-        <span class="points-group-count" style="background:${color}">${pts.length}</span>
       </div>
       ${pts.map(p => renderPointItem(p)).join('')}
     </div>`;

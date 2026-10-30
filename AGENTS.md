@@ -266,7 +266,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
 - **Export / transfert** : plus aucun bouton d'export dans la liste des parcelles ni dans la
   vue détail (le bouton de ligne « Exporter » a été retiré en 3.66). Le seul point d'entrée est
-  le hub `#transferModal` (bouton « Transférer » du détail ou de la barre de sélection) :
+  le hub `#transferModal` (bouton « Transférer » de la barre de sélection) :
   - une parcelle : « Télécharger le fichier » applique le format du panneau Connexion
     (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) via
     `exportProjectDefaultFormat()` → `exportProjectGeoJSON()` / `exportCSV(projet)` /
@@ -276,8 +276,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
     partage multi-fichiers), avec repli en téléchargement.
   `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
   `version_app` / `source` ajoutées à **toutes** les features (contrat GeoJSON inchangé).
-- **Hub de transfert** : `#btnTransfer` (`.transfer-trigger`, icône `share-2` + « Transférer »)
-  ouvre `#transferModal` (`js/export.js`), qui propose **quatre canaux redondants** :
+- **Hub de transfert** : `#btnSelectionTransfer` (barre de sélection de PARCELLES : icône
+  `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose **quatre
+  canaux redondants** :
   1. `transferViaNativeShare()` → `shareGeoJSON()` pour une parcelle, `shareProjectsZip()` pour
      plusieurs (un seul fichier ZIP) ;
   2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
@@ -291,14 +292,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `openTransferModal({ projectIds })` ouvre le hub en mode sélection multiple (sous-titre
   « Sélection : N parcelles »). La modale se ferme au voile, avec Échap (prioritaire sur le menu
   d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
-  de focus et retour du focus sur `#btnTransfer`. Sans point, `openTransferModal()` affiche
-  « Aucun point à transférer ».
+  de focus et retour du focus sur le bouton déclencheur de la barre de sélection. Sans point,
+  `openTransferModal()` affiche « Aucun point à transférer ».
 - **Onglet HISTORIQUE en deux vues** : la vue **racine** `#historyListView` porte le titre
   `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
   (`openHistoryDetail(id)`) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
-  (`hidden` par défaut) contient l'en-tête `.history-detail-header` — `#btnHistoryBack`
-  (« ← Parcelles », `closeHistoryDetail()`) à gauche et `#btnTransfer` à droite, **sur la même
-  ligne** (`justify-content: space-between`) — puis `#pointsSection`.
+  (`hidden` par défaut) contient l'en-tête `.history-detail-header` — uniquement
+  `#btnHistoryBack` (« ← Parcelles », `closeHistoryDetail()`) — puis `#pointsSection`.
+  Le bouton « Transférer » a été retiré de cette vue (3.67) : le transfert est accessible par
+  la barre de sélection de la vue PARCELLES.
   `syncHistoryView('list' | 'detail')` bascule les deux vues par `hidden` ;
   `showTab('tab-history')` revient **toujours** sur la racine.
   `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
@@ -316,16 +318,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `deleteProjects(ids)` (`js/projects.js`) demande **une seule** confirmation puis passe par
   `removeProjectsByIds()` (cœur commun avec `deleteProject()`).
   L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
-  titre et le nom (`gap: 0` + `margin-left: 0`), sans bouton (le transfert est remonté dans
-  `.history-detail-header`). `#pointsSection` contient `#pointCount` et `#pointsList`.
+  titre et le nom (`gap: 0` + `margin-left: 0`), sans bouton. `#pointsSection` contient
+  `#pointCount` et `#pointsList`.
   **Plus de badge « Zone #N »** :
   la rangée `.points-view-meta` ne porte que `#pointCount`, aligné à droite
   (`margin-left: auto`) ; `updateZoneBadge()` subsiste mais ne fait rien (élément absent).
+  Les en-têtes de groupe (`renderGroup()`) n'affichent **plus de compteur à droite** (3.67) :
+  seuls le libellé (`Zone de tonte (ZT)`, `Obstacles isolés`…) et le compteur global
+  `#pointCount` subsistent.
   Les obstacles sont affichés **sans numéro d'ordre** (« Arbre », « Divers ») dans la liste et
   la popup : `point.index` reste dans les données (cible CAMÉRA, exports). La vue détail réserve la barre de
   navigation basse (`#historyDetailView { padding-bottom: calc(var(--bottom-nav-height, 64px)
-  + 16px) }`) pour que les exports restent entièrement accessibles ; le parent `.screen` assure
-  `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
+  + 16px) }`) pour que la fin de la liste des points reste accessible ; le parent `.screen`
+  assure `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
   `openPointsView()` et ses alias (`closePointsView()`, `togglePointsView()`,
   `scrollToPointsPanel()`) sont supprimés — ne pas les réintroduire.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
@@ -1134,6 +1139,17 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   GeoJSON de chaque entrée inchangé. Vérifié Chrome/CDP (14/14 : lignes sans Exporter, hub
   1/N, 1 fichier ZIP partagé, 3 entrées GeoJSON `source: rtk-mower`, téléchargement ZIP,
   format CSV pour une parcelle, zéro exception) ; `node --check` OK.
+- **3.67 — Détail sans « Transférer » et groupes sans compteur** : le bouton `#btnTransfer`
+  (`.transfer-trigger`) est retiré de `#historyDetailView` dans `index.html` et
+  `menu-test.html` ; l'en-tête `.history-detail-header` ne garde que `#btnHistoryBack`
+  (« ← Parcelles »). Le hub reste accessible par `transferSelectedProjects()` depuis la barre
+  de sélection de PARCELLES. `closeTransferModal()` rend le focus au déclencheur mémorisé
+  (plus de recherche de `#btnTransfer`). `renderGroup()` ne rend plus de pastille
+  `.points-group-count` : les en-têtes affichent uniquement « Zone de tonte (ZT) »,
+  « Zone interdite (ZI) » ou « Obstacles isolés » ; le compteur global `#pointCount` reste
+  affiché. Vérifié Chrome/CDP (9/9 : un seul bouton retour, `#btnTransfer` absent, aucun
+  « Transférer » dans le détail, en-têtes sans chiffre, compteur global « 6 point(s) », hub
+  accessible depuis la barre de sélection, zéro exception) ; `node --check` OK.
 
 ## 9. Langue et communication
 

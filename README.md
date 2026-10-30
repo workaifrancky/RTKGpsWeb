@@ -110,11 +110,11 @@ peut être isolé.
    « ← Parcelles » revient à la liste. `⛶` affiche la carte en plein écran. Cliquer sur
    une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
    l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
-5. **Transférer / exporter** avec le bouton **Transférer** (vue détail ou barre de sélection) :
-   partage natif, serveur local, cloud ou téléchargement. Une parcelle utilise le format choisi
-   dans Connexion (GeoJSON / CSV / GPX), plusieurs parcelles produisent un **ZIP** contenant un
-   GeoJSON par parcelle. Le GeoJSON suit le contrat décrit dans
-   [docs/format-geojson.md](docs/format-geojson.md).
+5. **Transférer / exporter** avec le bouton **Transférer** de la barre de sélection
+   (vue PARCELLES) : partage natif, serveur local, cloud ou téléchargement. Une parcelle
+   utilise le format choisi dans Connexion (GeoJSON / CSV / GPX), plusieurs parcelles
+   produisent un **ZIP** contenant un GeoJSON par parcelle. Le GeoJSON suit le contrat décrit
+   dans [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet
 

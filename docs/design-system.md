@@ -87,10 +87,9 @@ Overrides de lisibilité :
 - `.export-primary` : style de bouton principal conservé pour un usage futur ; **aucun bouton
   principal d'export n'est affiché** depuis la session 3.65 (la vue détail n'a plus d'actions
   d'export).
-- `.transfer-trigger` (`#btnTransfer`) : bouton pleine pastille de l'en-tête de la vue POINTS
-  (44 px, fond `--color-primary`, texte blanc, 13 px / 800) avec l'icône Lucide `share-2` et le
-  libellé « Transférer » ; hover `--color-primary-deep`, `active` à 0,98. Il ouvre le hub de
-  transfert (voir plus bas).
+- `.transfer-trigger` : supprimé en 3.67 avec le bouton « Transférer » de la vue détail ; le
+  hub s'ouvre désormais par l'action `.selection-action` « Transférer » de la barre de
+  sélection de PARCELLES.
 - `.action-button-simulation` : violet `#7c3aed`, pleine largeur, visible sans BLE.
   **Inutilisé** : les boutons de simulation sont retirés de l'interface terrain, la classe est
   conservée pour une réactivation (voir [simulation.md](simulation.md)).
@@ -433,8 +432,7 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `#historyListView` (vue racine) et `#historyDetailView` (vue détail, `hidden` par défaut),
   basculées par `syncHistoryView()`.
   1. **Racine** : titre `.section-title` « PARCELLES » puis `#historyList`
-     (`.session-item` : case à cocher, nom, compteur, méta, actions `Ouvrir` / `GeoJSON` /
-     `Suppr.`).
+     (`.session-item` : case à cocher, nom, compteur, méta, actions `Ouvrir` / `Suppr.`).
      La sélection multiple affiche `#historySelectionBar` (`.history-selection-bar`,
      `position: sticky; top: 0`, fond `--color-primary-deep`, texte blanc) : bouton retour
      `.selection-back` (44 px, icône `arrow-left`), `#selectionCount`
@@ -444,17 +442,17 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
      `--color-danger-strong`. Les cases `.session-select` (20 px, `accent-color:
      --color-primary`) sont dans `.session-select-label` (zone cliquable) ; une carte cochée
      reçoit `.session-item.selected` (`outline` vert de 2 px).
-  2. **Détail** : en-tête `.history-detail-header` (`flex`, `justify-content: space-between`,
-     `gap: 10px`, `margin-bottom: 10px`) avec `.history-back` (« ← Parcelles », 44 px, pilule,
-     icône `arrow-left`) à gauche et `#btnTransfer` (pilule verte, icône `share-2`) à droite,
-     **sur la même ligne** ; puis `#pointsSection` — en-tête `.points-section-head` :
+  2. **Détail** : en-tête `.history-detail-header` (`display: flex`, `gap: 10px`,
+     `margin-bottom: 10px`) qui ne contient plus que `.history-back` (« ← Parcelles », 44 px,
+     pilule, icône `arrow-left`) — le bouton « Transférer » a été retiré en 3.67. Puis
+     `#pointsSection` — en-tête `.points-section-head` :
      `« PARCELLE : »` (`.section-title` sans filet) suivi **immédiatement** de
      `#historyProjectName` (`.project-name` : 12 px / 800, uppercase, vert foncé, ellipse ;
      `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#pointCount` seul, aligné à droite
      par `margin-left: auto` — le badge « Zone #N » a été retiré),
      `#pointsList` dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui
      défile). **Aucune action d'export ni « Effacer » dans le détail** (3.65) : le transfert
-     et le téléchargement passent par le hub `#transferModal`.
+     et le téléchargement passent par le hub `#transferModal` depuis la barre de sélection.
      `#historyDetailView` réserve `calc(var(--bottom-nav-height, 64px) + 16px)` de
      `padding-bottom` pour que la fin de la liste des points reste au-dessus de la barre de
      navigation.
