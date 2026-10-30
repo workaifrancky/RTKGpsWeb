@@ -450,8 +450,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Navigation basse** : `#bottomNav` (`.tabs-wrapper.bottom-nav`) est **fixe hors de
   `.app-wrapper`**, avec `z-index: 900` (sous le tiroir 1050, les modales 1100 et les toasts
   1200). `.screen` réserve `--bottom-nav-height` + `env(safe-area-inset-bottom)` : ne pas
-  retirer ce padding, sinon le FAB et la vue POINTS passent dessous. La barre est
-  masquée en plein écran par `body.map-ui-fullscreen .tabs-wrapper` et
+  retirer ce padding, sinon le FAB et la vue POINTS passent dessous. `#tab-stats` ajoute
+  **24 px** de marge et borne son défilement (`flex: 1 1 0`, `min-height: 0`,
+  `overflow-y: auto`) pour que « Actualiser » reste visible sur les écrans Android/Samsung.
+  La barre est masquée en plein écran par `body.map-ui-fullscreen .tabs-wrapper` et
   `body.camera-ui-fullscreen .tabs-wrapper`.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
 - **Zones interdites** : une Feature `zone_interdite` **par zone** (`zone_id`), nommée
@@ -1150,6 +1152,13 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   affiché. Vérifié Chrome/CDP (9/9 : un seul bouton retour, `#btnTransfer` absent, aucun
   « Transférer » dans le détail, en-têtes sans chiffre, compteur global « 6 point(s) », hub
   accessible depuis la barre de sélection, zéro exception) ; `node --check` OK.
+- **3.68 — Bouton Actualiser sur Android/Samsung** : `#tab-stats` reçoit `flex: 1 1 0`,
+  `min-height: 0` et `overflow-y: auto` (le parent `.app-wrapper` est un flex column) pour
+  garantir un défilement interne borné sur Chrome Android. La marge de sécurité passe de
+  16 à **24 px** :
+  `padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px)`.
+  Vérifié sous Chrome headless à plusieurs hauteurs d'écran (360 × 640, 393 × 851,
+  412 × 915) : défilement actif et bouton « Actualiser » entièrement au-dessus de la barre.
 
 ## 9. Langue et communication
 

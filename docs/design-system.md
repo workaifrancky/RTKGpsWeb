@@ -182,9 +182,11 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.screen` réserve `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px))` en
   `padding-bottom` : la carte, le FAB, la vue POINTS et le contenu des autres onglets
   restent au-dessus de la barre.
-- `#tab-stats` (RELEVÉ) ajoute **16 px** à cette réserve
-  (`padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 16px)`)
-  pour que le dernier bouton « Actualiser » reste entièrement visible au-dessus de la barre.
+- `#tab-stats` (RELEVÉ) borne son défilement (`flex: 1 1 0`, `min-height: 0`,
+  `overflow-y: auto`) et ajoute **24 px** à cette réserve
+  (`padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px)`)
+  pour que le dernier bouton « Actualiser » reste entièrement visible au-dessus de la barre,
+  y compris sur les écrans Android/Samsung où la safe-area est nulle.
 - `.bottom-nav .tab-label` : quatre boutons de largeur égale (`flex: 1 1 0`), en colonne
   (icône 20 px au-dessus du libellé), `min-height: 52px`, libellés **visibles** à toutes les
   largeurs (12 px, 11 px ≤ 340 px), couleur inactive `--text3`, fond transparent, sans bordure

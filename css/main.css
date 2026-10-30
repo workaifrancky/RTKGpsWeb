@@ -683,11 +683,17 @@ header {
   /* padding-top: var(--header-height, 104px); */
 }
 
-/* RELEVÉ : le bouton « Actualiser » est le dernier élément de l'onglet. La
-   réserve commune de `.screen` (64 px + safe-area) le laissait partiellement
-   sous la barre de navigation basse : on ajoute 16 px de marge de sécurité. */
+/* RELEVÉ : le bouton « Actualiser » est le dernier élément de l'onglet.
+   `.app-wrapper` est un conteneur flex en colonne : `flex: 1 1 0` +
+   `min-height: 0` bornent la hauteur de l'écran et garantissent le défilement
+   interne (Chrome Android / Samsung). La réserve couvre la barre de navigation,
+   la safe-area et une marge de sécurité de 24 px. */
 #tab-stats {
-  padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 16px);
+  flex:            1 1 0;
+  min-height:      0;
+  overflow-y:      auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom:  calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px);
 }
 
 /* TRACÉS : carte plein écran (100 % de la zone visible) + panneau qui défile
