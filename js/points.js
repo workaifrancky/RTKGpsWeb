@@ -730,22 +730,20 @@ function renderPointsList() {
 
 function renderGroup(title, pts, color, type) {
   if (pts.length === 0) return '';
-  const numberedZone = type === 'tonte' || type === 'interdit';
   return `
     <div class="points-group">
       <div class="points-group-header" style="border-left-color:${color}">
         <span>${title}</span>
         <span class="points-group-count" style="background:${color}">${pts.length}</span>
       </div>
-      ${pts.map((p, i) => renderPointItem(p, numberedZone ? i + 1 : null)).join('')}
+      ${pts.map(p => renderPointItem(p)).join('')}
     </div>`;
 }
 
-function renderPointItem(p, zoneIndex = null) {
+function renderPointItem(p) {
   const date = new Date(p.timestamp).toLocaleDateString('fr-FR');
   const time  = fmtTime(p.timestamp);
   const inZone = p.type === 'tonte' || p.type === 'interdit';
-  const number = inZone && Number.isInteger(zoneIndex) ? zoneIndex : p.index;
   const customName = p.name ? ` — ${p.name}` : '';
   // Le type est porté par la pastille `.point-dot` à gauche : plus d'emoji
   // `p.icon` dans l'interface (le champ reste intact pour l'export GeoJSON).
@@ -753,10 +751,13 @@ function renderPointItem(p, zoneIndex = null) {
   const obstacleIcon = !inZone && p.type === 'obstacle' && typeof getObstacleIconMarkup === 'function'
     ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(p.subtype)}</span>`
     : '';
-  // Obstacle : « Arbre 2 » (numéro d'ordre sans dièse, plus léger à lire).
+  // Libellés SANS numéro d'ordre : « Arbre » pour un obstacle, « Point » (ou
+  // « Point — Nom ») dans une zone. Le numéro d'ordre reste dans `point.index`
+  // (cible CAMÉRA, export CSV / GPX / GeoJSON) : il n'est plus affiché dans la
+  // liste des points de HISTORIQUE.
   const name = inZone
-    ? `Point ${number}${customName}`
-    : `${obstacleIcon}${getPointDisplayName(p)} ${p.index}`;
+    ? `Point${customName}`
+    : `${obstacleIcon}${getPointDisplayName(p)}`;
   const zoneMeta = inZone ? `${getZoneCode(p.type, p.zoneId)} &nbsp;·&nbsp; ` : '';
   const fix   = getFixMeta(p.fix);
   return `

@@ -501,8 +501,8 @@
           </div>
 
           <div class="points-view-actions">
-            <button class="action-button export-primary" onclick="exportGeoJSON()"
-              title="Exporter en GeoJSON">
+            <button id="btnExportPrimary" class="action-button export-primary"
+              onclick="exportDefaultFormat()" title="Exporter en GeoJSON">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                 stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -510,7 +510,7 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" x2="12" y1="15" y2="3"/>
               </svg>
-              GeoJSON
+              <span id="exportPrimaryLabel">GeoJSON</span>
             </button>
             <button class="action-button" onclick="exportCSV()"
               title="Exporter en CSV">
@@ -605,13 +605,14 @@
       <span id="saveIndicator" class="save-indicator menu-save-indicator"
         title="Sauvegarde locale automatique" aria-label="Sauvegarde locale automatique"
         aria-live="polite">
-        <svg class="save-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+        <svg class="save-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
           <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
           <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/>
           <path d="M7 3v4a1 1 0 0 0 1 1h7"/>
         </svg>
+        <span id="saveIndicatorLabel" class="save-label">Sauvegardé</span>
       </span>
     </div>
 
@@ -627,6 +628,18 @@
         </span>
         <span class="menu-switch-label">Numéros des points</span>
       </button>
+    </div>
+
+    <!-- Bloc 3 : format d'export par défaut. Le bouton principal de la section
+         POINTS (HISTORIQUE) reprend ce format (libellé et action). -->
+    <div class="menu-row menu-row-context">
+      <label class="menu-label" for="exportFormatSelect">Format d'export</label>
+      <select id="exportFormatSelect" class="menu-export-select"
+        onchange="setExportFormat(this.value)" aria-label="Format d'export par défaut">
+        <option value="geojson" selected>GeoJSON</option>
+        <option value="csv">CSV</option>
+        <option value="gpx">GPX</option>
+      </select>
     </div>
   </div>
 </div>

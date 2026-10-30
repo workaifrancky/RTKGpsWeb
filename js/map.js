@@ -400,8 +400,9 @@ function pointPopup(p, idx) {
     </div>`;
   // Popup allégée : pas d'horodatage (l'heure reste dans la liste des points
   // et l'export), uniquement zone, fix, altitude et satellites.
-  // Numéro d'ordre sans dièse (« Arbre 2 »), comme dans la liste des points.
-  return `<b>${dot}${label} ${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
+  // Le numéro d'ordre (`point.index`, reçu en `idx`) n'est plus affiché :
+  // il reste dans les données et les exports.
+  return `<b>${dot}${label}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
 }
 
 // Popup d'une zone (tonte ou interdite) : nom personnalisé + actions.

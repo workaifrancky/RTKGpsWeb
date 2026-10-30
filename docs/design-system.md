@@ -85,7 +85,9 @@ Overrides de lisibilité :
 - `.points-view-actions` : grille 2 × 2 des actions de la vue POINTS (GeoJSON, CSV, GPX,
   Effacer), boutons pleine largeur.
 - `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
-  hover `--color-primary-deep`, utilisé pour GeoJSON.
+  hover `--color-primary-deep`. Son libellé (`#exportPrimaryLabel`) et son action
+  (`exportDefaultFormat()`) suivent le format choisi dans le panneau Connexion (GeoJSON par
+  défaut, CSV ou GPX).
 - `.transfer-trigger` (`#btnTransfer`) : bouton pleine pastille de l'en-tête de la vue POINTS
   (44 px, fond `--color-primary`, texte blanc, 13 px / 800) avec l'icône Lucide `share-2` et le
   libellé « Transférer » ; hover `--color-primary-deep`, `active` à 0,98. Il ouvre le hub de
@@ -99,11 +101,13 @@ Overrides de lisibilité :
 
 ### Indicateur de sauvegarde et verrouillage
 
-- `#saveIndicator` (`.save-indicator`) : indicateur discret de la 1re ligne du panneau
-  Connexion (à droite de la station NTRIP), icône Lucide `save` de 14 px, `title` /
-  `aria-label` = « Sauvegarde locale automatique ». `flashSaveIndicator()` relance
-  l'animation `saveFlash` (0,9 s) à chaque écriture locale et complète le `title` avec l'heure
-  de la dernière sauvegarde. L'écriture réelle est centralisée par `persistProjectStorage()` /
+- `#saveIndicator` (`.save-indicator`) : **pastille verte** de la 1re ligne du panneau
+  Connexion (à droite de la station NTRIP), fond `--color-primary-pale`, texte
+  `--color-primary-deep` (thème nuit : `--color-primary-accent`), icône Lucide `save` de
+  16 px et libellé `.save-label` « Sauvegardé » (11 px / 800). `title` / `aria-label` =
+  « Sauvegardé localement à HH:MM:SS ». `flashSaveIndicator()` relance l'animation
+  `saveFlash` (0,9 s, opacité + `scale(1.06)` + fond `--color-primary-accent`) à chaque
+  écriture locale. L'écriture réelle est centralisée par `persistProjectStorage()` /
   `flushProjectStorage()`.
 - `#lockOverlay` (`.lock-overlay`) : voile plein écran `z-index: 3000` (au-dessus de la barre
   basse, du tiroir, des modales et des toasts), fond sombre + `backdrop-filter`. Affiché par
@@ -150,12 +154,14 @@ Overrides de lisibilité :
   par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
   de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
   `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- **Deux blocs distincts** `.menu-row` séparés par 14 px (`.header-menu-content` en colonne,
+- **Trois blocs distincts** `.menu-row` séparés par 14 px (`.header-menu-content` en colonne,
   filet supérieur `.menu-row-context`) : (1) libellé `NTRIP` + station `.menu-ntrip-select` +
   `#saveIndicator` (icône Lucide `save`) ; (2) libellé `Affichage` + switch
   `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
-  pastille `.menu-switch-knob`, état porté par `aria-checked`). La parcelle n'est **pas** dans
-  ce panneau (elle est en 1re ligne du menu FAB de TRACÉS) : aucune ligne de repli.
+  pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
+  + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
+  44 px, 12 px / 600), options GeoJSON / CSV / GPX. La parcelle n'est **pas** dans ce panneau
+  (elle est en 1re ligne du menu FAB de TRACÉS) : aucune ligne de repli.
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
   (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
   Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le
@@ -178,6 +184,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.screen` réserve `calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px))` en
   `padding-bottom` : la carte, le FAB, la vue POINTS et le contenu des autres onglets
   restent au-dessus de la barre.
+- `#tab-stats` (RELEVÉ) ajoute **16 px** à cette réserve
+  (`padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 16px)`)
+  pour que le dernier bouton « Actualiser » reste entièrement visible au-dessus de la barre.
 - `.bottom-nav .tab-label` : quatre boutons de largeur égale (`flex: 1 1 0`), en colonne
   (icône 20 px au-dessus du libellé), `min-height: 52px`, libellés **visibles** à toutes les
   largeurs (12 px, 11 px ≤ 340 px), couleur inactive `--text3`, fond transparent, sans bordure
@@ -448,8 +457,9 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   droite). Le badge `.zone-badge` (« Zone #N ») a été supprimé en 3.61, avec ses règles CSS.
 - **Libellés de zones** : sans nom personnalisé, `getZoneDisplayName()` renvoie
   « Zone de tonte (ZT) » / « Zone interdite (ZI) » — **sans numéro**. Le code complet
-  (`ZT1`, `ZI2`…) reste dans la méta de chaque point et sur la carte. Les obstacles sont
-  numérotés sans dièse (« Arbre 1 ») dans la liste et la popup.
+  (`ZT1`, `ZI2`…) reste dans la méta de chaque point et sur la carte. Les obstacles et les
+  points de zone sont affichés **sans numéro d'ordre** dans la liste (« Arbre », « Point »,
+  « Point — Nom ») et dans la popup ; `point.index` reste dans les données et les exports.
 - `.zone-label` : médaillon circulaire `ZN` centré sur chaque polygone de tonte.
 - `.leaflet-measure-path-measurement` : longueurs de segments affichées sur les polygones de
   tonte par `leaflet-measure-path` (11 px / 800, `--font` ; halo blanc/texte noir du plugin,

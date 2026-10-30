@@ -3,6 +3,70 @@
 // RTKGpsWeb v2
 // ============================================================
 
+// ─── FORMAT D'EXPORT PAR DÉFAUT ─────────────────────────────
+// Choisi dans le panneau Connexion (roue dentée), persisté dans
+// `localStorage` (clé `rtkExportFormat`). Le bouton principal de la section
+// POINTS reprend ce format : libellé ET action. Les boutons CSV / GPX / GeoJSON
+// restent disponibles individuellement et le contrat GeoJSON est inchangé.
+const EXPORT_FORMAT_KEY = 'rtkExportFormat';
+const EXPORT_FORMAT_LABELS = { geojson: 'GeoJSON', csv: 'CSV', gpx: 'GPX' };
+let exportFormat = 'geojson';
+
+function normalizeExportFormat(value) {
+  return EXPORT_FORMAT_LABELS[value] ? value : 'geojson';
+}
+
+function getStoredExportFormat() {
+  try {
+    return normalizeExportFormat(localStorage.getItem(EXPORT_FORMAT_KEY));
+  } catch {
+    return 'geojson';
+  }
+}
+
+function getExportFormatLabel(format = exportFormat) {
+  return EXPORT_FORMAT_LABELS[normalizeExportFormat(format)];
+}
+
+// Met à jour la liste du panneau Connexion et le bouton d'export principal.
+function syncExportFormatUI() {
+  const select = document.getElementById('exportFormatSelect');
+  if (select) select.value = exportFormat;
+
+  const button = document.getElementById('btnExportPrimary');
+  const label  = document.getElementById('exportPrimaryLabel');
+  const text   = getExportFormatLabel();
+  if (label) label.textContent = text;
+  if (button) {
+    button.title = `Exporter en ${text} (format par défaut)`;
+    button.setAttribute('aria-label', `Exporter en ${text}`);
+  }
+}
+
+// Appelée par #exportFormatSelect (onchange).
+function setExportFormat(value) {
+  exportFormat = normalizeExportFormat(value);
+  try {
+    localStorage.setItem(EXPORT_FORMAT_KEY, exportFormat);
+  } catch { /* stockage indisponible : le choix reste valable pour la session */ }
+  syncExportFormatUI();
+  if (typeof showToast === 'function') {
+    showToast(`Format d'export : ${getExportFormatLabel()}`, 'info');
+  }
+}
+
+// Action du bouton principal (section POINTS de HISTORIQUE).
+function exportDefaultFormat() {
+  if (exportFormat === 'csv') return exportCSV();
+  if (exportFormat === 'gpx') return exportGPX();
+  return exportGeoJSON();
+}
+
+function initExportFormat() {
+  exportFormat = getStoredExportFormat();
+  syncExportFormatUI();
+}
+
 function exportCSV() {
   const pts = getPoints();
   if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
@@ -448,6 +512,10 @@ function closeExportMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Restaure le format d'export choisi (GeoJSON par défaut) et aligne le
+  // libellé du bouton principal de la section POINTS.
+  initExportFormat();
+
   // Ferme le menu au clic extérieur et avec Échap.
   document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;

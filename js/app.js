@@ -854,8 +854,11 @@ function flashSaveIndicator() {
   if (!el) return;
 
   const time = new Date().toLocaleTimeString('fr-FR');
-  // Le libellé de base (« Sauvegarde locale automatique ») reste explicite.
-  el.title = `Sauvegarde locale automatique — dernière sauvegarde à ${time}`;
+  // Le libellé visible (« Sauvegardé ») reste court ; le titre et
+  // l'aria-label portent l'heure de la dernière sauvegarde (survol).
+  const label = document.getElementById('saveIndicatorLabel');
+  if (label) label.textContent = 'Sauvegardé';
+  el.title = `Sauvegardé localement à ${time}`;
   el.setAttribute('aria-label', el.title);
 
   el.classList.remove('flash');

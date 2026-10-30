@@ -177,12 +177,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
   `toggleConnectionPanel()` → `toggleHeaderMenu()` — ne contient plus que la station NTRIP
-  avec `#saveIndicator` (ligne 1) puis le switch `#btnPointNumbers` « Numéros des points »
-  (ligne 2, `role="switch"` + `aria-checked`) : le thème et le BLE sont **dans le header**, la
-  parcelle courante **dans le menu FAB de TRACÉS**, ne pas les remettre dans le menu (doublons
-  d'ID interdits). Le panneau est organisé en **deux blocs séparés** (`gap` 14 px,
-  `.menu-row-context` avec filet supérieur) : (1) NTRIP + `#saveIndicator` ; (2) « Affichage »
-  + switch `#btnPointNumbers`. **Aucune ligne Parcelle** dans ce panneau (ni bouton de repli) :
+  avec `#saveIndicator` (ligne 1), le switch `#btnPointNumbers` « Numéros des points »
+  (ligne 2, `role="switch"` + `aria-checked`) et la liste `#exportFormatSelect`
+  « Format d'export » (ligne 3 : GeoJSON / CSV / GPX, `rtkExportFormat`) : le thème et le BLE
+  sont **dans le header**, la parcelle courante **dans le menu FAB de TRACÉS**, ne pas les
+  remettre dans le menu (doublons d'ID interdits). Le panneau est organisé en **trois blocs
+  séparés** (`gap` 14 px, `.menu-row-context` avec filet supérieur) : (1) NTRIP +
+  `#saveIndicator` ; (2) « Affichage » + switch `#btnPointNumbers` ; (3) « Format d'export » +
+  `#exportFormatSelect`. **Aucune ligne Parcelle** dans ce panneau (ni bouton de repli) :
   la parcelle est uniquement dans la 1re ligne du menu FAB de TRACÉS.
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
@@ -261,10 +263,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir `deleteProject()` ailleurs
   (doublon historique supprimé de `js/history.js`).
 - **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la section POINTS de
-  l'onglet HISTORIQUE (`#pointsSection`), avec l'icône Lucide `download`. `buildGeoJSON()`
-  centralise la construction et les métadonnées `date_creation` / `version_app` / `source`
-  ajoutées à **toutes** les features. Le partage natif passe par `shareGeoJSON()` /
-  `navigator.share({ files })` (fallback toast sur desktop).
+  l'onglet HISTORIQUE (`#pointsSection`), avec l'icône Lucide `download`. Le **bouton
+  principal** (`#btnExportPrimary` / `exportDefaultFormat()`) suit le format choisi dans le
+  panneau Connexion (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) : son
+  libellé (`#exportPrimaryLabel`) et son action changent ensemble (GeoJSON / CSV / GPX).
+  `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
+  `version_app` / `source` ajoutées à **toutes** les features (contrat inchangé). Le partage
+  natif passe par `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
 - **Hub de transfert** : `#btnTransfer` (`.transfer-trigger`, icône `share-2` + « Transférer »)
   ouvre `#transferModal` (`js/export.js`), qui propose **quatre canaux redondants** :
   1. `transferViaNativeShare()` → `shareGeoJSON()` (Quick Share, Gmail…) ;
@@ -295,8 +300,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `#pointsList`, les exports GeoJSON/CSV/GPX et « Effacer ». **Plus de badge « Zone #N »** :
   la rangée `.points-view-meta` ne porte que `#pointCount`, aligné à droite
   (`margin-left: auto`) ; `updateZoneBadge()` subsiste mais ne fait rien (élément absent).
-  Les obstacles sont numérotés **sans dièse** (« Arbre 1 », « Divers 3 ») dans la liste et la
-  popup, à partir de `point.index`. La vue détail réserve la barre de
+  Les obstacles sont affichés **sans numéro d'ordre** (« Arbre », « Divers ») dans la liste et
+  la popup : `point.index` reste dans les données (cible CAMÉRA, exports). La vue détail réserve la barre de
   navigation basse (`#historyDetailView { padding-bottom: calc(var(--bottom-nav-height, 64px)
   + 16px) }`) pour que les exports restent entièrement accessibles ; le parent `.screen` assure
   `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
@@ -307,9 +312,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `setMapInteractionEnabled(false)` coupe les gestes Leaflet et `canRecordPoints()` bloque
   l'enregistrement ; le FAB est sous le voile `z-index: 3000`.
 - **Sauvegarde locale** : `saveProjects()` écrit via `persistProjectStorage()` ; l'indicateur
-  `#saveIndicator` clignote (`flashSaveIndicator()`) et porte
-  `title` / `aria-label` = « Sauvegarde locale automatique » (complété par l'heure de la
-  dernière sauvegarde au moment du flash). `autosaveInterval` réécrit toutes les
+  `#saveIndicator` est une **pastille verte** (`.save-indicator`) avec l'icône Lucide `save`
+  16 px et le libellé `#saveIndicatorLabel` « Sauvegardé » (11 px / 800, fond
+  `--color-primary-pale`). Il clignote (`flashSaveIndicator()`) et porte
+  `title` / `aria-label` = « Sauvegardé localement à HH:MM:SS » (heure de la dernière
+  sauvegarde au survol). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
@@ -364,10 +371,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `#btnBle`, `#headerGpsStatus`, `#headerMenu`, `#headerMenuOverlay`, `.tabs-wrapper` et du
   tiroir : aucun bouton du header ne doit rester visible. Le bouton `#btnMapFullscreen` passe
   d'`ICON_MAXIMIZE` à `ICON_MINIMIZE`. Fermeture au changement d'onglet.
-- **Popups de points** : `pointPopup()` (`js/map.js`) affiche l'icône, le nom/sous-type et le
-  numéro, la zone (`ZT1` / `ZI1`), le fix, l'altitude et les satellites, puis les actions
-  (renommer / supprimer). **Pas d'horodatage** : l'heure reste dans la liste des points
-  (`renderPointsList()`) et dans les exports.
+- **Popups de points** : `pointPopup()` (`js/map.js`) affiche l'icône, le nom/sous-type,
+  la zone (`ZT1` / `ZI1`), le fix, l'altitude et les satellites, puis les actions
+  (renommer / supprimer). **Pas de numéro d'ordre** (conservé dans `point.index`) ni
+  d'horodatage : l'heure reste dans la liste des points (`renderPointsList()`) et dans les
+  exports.
 - **Header non compressible** : `header { flex-shrink: 0 }` (`css/main.css`) est
   **indispensable**. Le header est un élément flex de `.app-wrapper` : sans cette règle, il
   était écrasé (110 → 85 px mesuré) quand l'écran courant est chargé (HISTORIQUE), ses deux
@@ -1051,6 +1059,21 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `Zone interdite #N` de l'export). Vérifié par Chrome/CDP (112 vérifications : badge absent,
   libellés sans chiffre, « Arbre 1 / Pierre 2 / Divers 3 », compteur aligné à droite) et
   captures.
+- **3.63 — Numéros masqués, format d'export par défaut, Actualiser et indicateur de
+  sauvegarde** : `renderPointItem()` n'affiche plus le numéro d'ordre (`Arbre`, `Point`,
+  `Point — Nom`) et `pointPopup()` non plus ; `point.index` reste dans les données et les
+  exports (CSV/GPX/GeoJSON, cible CAMÉRA). Le panneau Connexion gagne un **3ᵉ bloc**
+  « Format d'export » (`#exportFormatSelect`, `menu-export-select`) persisté dans
+  `rtkExportFormat` (défaut `geojson`) ; `setExportFormat()` / `initExportFormat()` /
+  `exportDefaultFormat()` (`js/export.js`) alignent le libellé (`#exportPrimaryLabel`) **et
+  l'action** du bouton principal `#btnExportPrimary` de la section POINTS. `#tab-stats`
+  reçoit `padding-bottom: calc(var(--bottom-nav-height, 64px) + safe-area + 16px)` pour que
+  le bouton « Actualiser » reste entièrement au-dessus de la barre basse. `#saveIndicator`
+  devient une pastille verte (`--color-primary-pale`) avec l'icône `save` 16 px et le libellé
+  « Sauvegardé » (`.save-label`, 11 px / 800) ; `title` / `aria-label` portent l'heure de la
+  dernière sauvegarde. `index.html` et `menu-test.html` alignés ; contrat GeoJSON inchangé ;
+  `node --check` OK et vérification Chrome/CDP (16/16 : libellés sans chiffre, CSV → GPX,
+  panneau sans débordement, `padding-bottom` 80 px, Actualiser au-dessus de la barre).
 
 ## 9. Langue et communication
 
