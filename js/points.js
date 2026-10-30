@@ -672,23 +672,6 @@ async function renamePoint(pointId) {
   showToast(`Point renommé : ${name}`, 'info');
 }
 
-// ─── TOUT EFFACER ────────────────────────────────────────────
-async function clearAllPoints() {
-  const pts = getPoints();
-  if (pts.length === 0) { showToast('Aucun point à effacer', 'info'); return; }
-  const ok = await customConfirm(
-    `Effacer les ${pts.length} points de cette parcelle ?`,
-    { title: 'Effacer les points', confirmText: 'Effacer', danger: true },
-  );
-  if (!ok) return;
-  clearCurrentProjectPoints();
-  counters = { tonte:0, interdit:0, obstacle:0 };
-  renderPointsList();
-  if (typeof renderMap === 'function') renderMap();
-  if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
-  showToast('Points effacés', 'info');
-}
-
 // La section POINTS ENREGISTRÉS reste accessible par l'onglet HISTORIQUE
 // (bouton de navigation basse). Elle n'a plus de raccourci depuis le menu FAB
 // de TRACÉS, qui ne contient que les tracés et la parcelle courante.

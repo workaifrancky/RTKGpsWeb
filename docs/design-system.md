@@ -82,12 +82,12 @@ Overrides de lisibilité :
 - `.action-button-danger` : fond `--color-danger`, hover `#b71c1c`.
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
-- `.points-view-actions` : grille 2 × 2 des actions de la vue POINTS (GeoJSON, CSV, GPX,
-  Effacer), boutons pleine largeur.
-- `.export-primary` : bouton principal plein (`--color-primary`, texte blanc, 14 px / 800),
-  hover `--color-primary-deep`. Son libellé (`#exportPrimaryLabel`) et son action
-  (`exportDefaultFormat()`) suivent le format choisi dans le panneau Connexion (GeoJSON par
-  défaut, CSV ou GPX).
+- `.btn-history-export` : bouton « Exporter » de chaque ligne de **PARCELLES** (icône Lucide
+  `download`). Le format appliqué est celui du panneau Connexion (GeoJSON / CSV / GPX) via
+  `exportProjectDefaultFormat(projectId)`.
+- `.export-primary` : style de bouton principal conservé pour un usage futur ; **aucun bouton
+  principal d'export n'est affiché** depuis la session 3.65 (la vue détail n'a plus d'actions
+  d'export).
 - `.transfer-trigger` (`#btnTransfer`) : bouton pleine pastille de l'en-tête de la vue POINTS
   (44 px, fond `--color-primary`, texte blanc, 13 px / 800) avec l'icône Lucide `share-2` et le
   libellé « Transférer » ; hover `--color-primary-deep`, `active` à 0,98. Il ouvre le hub de
@@ -231,9 +231,10 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.transfer-local` (vue « mode serveur local ») : `.transfer-badge` (« Bientôt », ambre),
   `.transfer-local-url` (encadré pointillé, URL en 13 px / 800), `.transfer-local-hint` et
   deux `.btn-secondary` de largeur égale (« Copier », « Retour »).
-- `.points-view-actions.is-highlight` : animation `transfer-highlight` (halo
-  `--color-primary-accent`, 2 × 0,9 s) déclenchée par l'option « Télécharger » du hub ;
-  remplacée par un contour fixe en `prefers-reduced-motion: reduce`.
+- `.session-actions.is-highlight` : animation `transfer-highlight` (halo
+  `--color-primary-accent`, 2 × 0,9 s) déclenchée par l'option « Télécharger » du hub sur le
+  bouton « Exporter » de la parcelle ; remplacée par un contour fixe en
+  `prefers-reduced-motion: reduce`.
 
 ### Tiroir Parcelles
 
@@ -433,7 +434,17 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `#historyListView` (vue racine) et `#historyDetailView` (vue détail, `hidden` par défaut),
   basculées par `syncHistoryView()`.
   1. **Racine** : titre `.section-title` « PARCELLES » puis `#historyList`
-     (`.session-item` : nom, compteur, méta, actions `Ouvrir` / `GeoJSON` / `Suppr.`).
+     (`.session-item` : case à cocher, nom, compteur, méta, actions `Ouvrir` / `GeoJSON` /
+     `Suppr.`).
+     La sélection multiple affiche `#historySelectionBar` (`.history-selection-bar`,
+     `position: sticky; top: 0`, fond `--color-primary-deep`, texte blanc) : bouton retour
+     `.selection-back` (44 px, icône `arrow-left`), `#selectionCount`
+     (« N sélectionné(s) ») et deux actions `.selection-action` de 44 px (fond
+     `--color-white`, texte `--color-primary-deep` ; variante `.danger` en
+     `--color-danger`). En thème nuit, le texte passe en `--color-primary-accent` /
+     `--color-danger-strong`. Les cases `.session-select` (20 px, `accent-color:
+     --color-primary`) sont dans `.session-select-label` (zone cliquable) ; une carte cochée
+     reçoit `.session-item.selected` (`outline` vert de 2 px).
   2. **Détail** : en-tête `.history-detail-header` (`flex`, `justify-content: space-between`,
      `gap: 10px`, `margin-bottom: 10px`) avec `.history-back` (« ← Parcelles », 44 px, pilule,
      icône `arrow-left`) à gauche et `#btnTransfer` (pilule verte, icône `share-2`) à droite,
@@ -443,9 +454,11 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
      `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#pointCount` seul, aligné à droite
      par `margin-left: auto` — le badge « Zone #N » a été retiré),
      `#pointsList` dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui
-     défile) et `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer).
+     défile). **Aucune action d'export ni « Effacer » dans le détail** (3.65) : l'export est
+     porté par le bouton « Exporter » de chaque ligne de la vue PARCELLES.
      `#historyDetailView` réserve `calc(var(--bottom-nav-height, 64px) + 16px)` de
-     `padding-bottom` pour que les exports ne passent pas sous la barre de navigation.
+     `padding-bottom` pour que la fin de la liste des points reste au-dessus de la barre de
+     navigation.
   L'ancien panneau `#pointsViewOverlay` (`.points-view-box`, `.points-view-head`,
   `.points-view-title`, `.points-view-close`) a été supprimé en 3.45 ; les boutons d'action
   conservent leur `focus-visible` vert.

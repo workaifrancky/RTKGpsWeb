@@ -366,6 +366,8 @@ function showTab(tabId) {
   if (tabId === 'tab-history') {
     // L'onglet s'ouvre toujours sur la vue racine : la liste des parcelles
     // (le détail des points s'ouvre via « Ouvrir » sur une parcelle).
+    // La sélection multiple repart de zéro à chaque entrée dans l'onglet.
+    if (typeof clearHistorySelection === 'function') clearHistorySelection({ silent: true });
     if (typeof renderPointsList === 'function') renderPointsList();
     if (typeof loadHistory === 'function') loadHistory();
     if (typeof syncHistoryView === 'function') syncHistoryView('list');

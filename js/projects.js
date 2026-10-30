@@ -241,32 +241,24 @@ function addProject(name, renderAfter = true, importIds = []) {
   return project;
 }
 
-// ─── SUPPRIMER UN PROJET ─────────────────────────────────────
-async function deleteProject(projectId) {
-  const proj = projects.find(p => p.id === projectId);
-  if (!proj) return;
-  const ok = await customConfirm(
-    `Supprimer la parcelle « ${proj.name} » et tous ses points ?`,
-    { title: 'Supprimer la parcelle', confirmText: 'Supprimer', danger: true },
-  );
-  if (!ok) return;
+// ─── SUPPRIMER UN OU PLUSIEURS PROJETS ──────────────────────
+// Cœur commun (sans confirmation) : met à jour l'état, la persistance et tous
+// les écrans. Utilisé par deleteProject() et deleteProjects() (sélection
+// multiple de l'onglet HISTORIQUE).
+function removeProjectsByIds(projectIds) {
+  const targets = new Set((Array.isArray(projectIds) ? projectIds : []).map(String));
+  if (!targets.size) return 0;
 
-  // Aucune exception pour la dernière parcelle : l'état « aucune parcelle »
-  // est désormais valide et le FAB doit disparaître.
-  const wasCurrent = !currentProject || currentProject.id === projectId;
-  const isLastProject = projects.length === 1;
+  const removed = projects.filter(p => targets.has(p.id));
+  if (!removed.length) return 0;
 
-  if (isLastProject) {
-    projects = [];
-    currentProject = null;
-    localStorage.removeItem(CURRENT_KEY);
-  } else {
-    projects = projects.filter(p => p.id !== projectId);
-    if (wasCurrent) {
-      currentProject = projects[0] || null;
-      if (currentProject) saveCurrentProject();
-      else localStorage.removeItem(CURRENT_KEY);
-    }
+  const wasCurrent = !currentProject || targets.has(currentProject.id);
+  projects = projects.filter(p => !targets.has(p.id));
+
+  if (wasCurrent) {
+    currentProject = projects[0] || null;
+    if (currentProject) saveCurrentProject();
+    else localStorage.removeItem(CURRENT_KEY);
   }
 
   saveProjects();          // persiste + rafraîchit tiroir et libellé du header
@@ -284,7 +276,49 @@ async function deleteProject(projectId) {
   } else if (APP.currentTab === 'tab-history' && typeof loadHistory === 'function') {
     loadHistory();
   }
-  showToast('Parcelle supprimée', 'info');
+
+  return removed.length;
+}
+
+async function deleteProject(projectId) {
+  const proj = projects.find(p => p.id === projectId);
+  if (!proj) return 0;
+  const ok = await customConfirm(
+    `Supprimer la parcelle « ${proj.name} » et tous ses points ?`,
+    { title: 'Supprimer la parcelle', confirmText: 'Supprimer', danger: true },
+  );
+  if (!ok) return 0;
+
+  const count = removeProjectsByIds([projectId]);
+  if (count) showToast('Parcelle supprimée', 'info');
+  return count;
+}
+
+// Suppression groupée : une seule confirmation pour toutes les parcelles
+// cochées dans la liste HISTORIQUE (au lieu d'une modale par parcelle).
+async function deleteProjects(projectIds) {
+  const ids = Array.isArray(projectIds) ? projectIds.map(String) : [];
+  const targets = projects.filter(p => ids.includes(p.id));
+  if (!targets.length) return 0;
+
+  const isOne = targets.length === 1;
+  const ok = await customConfirm(
+    isOne
+      ? `Supprimer la parcelle « ${targets[0].name} » et tous ses points ?`
+      : `Supprimer les ${targets.length} parcelles sélectionnées et tous leurs points ?`,
+    {
+      title: isOne ? 'Supprimer la parcelle' : 'Supprimer les parcelles',
+      confirmText: 'Supprimer',
+      danger: true,
+    },
+  );
+  if (!ok) return 0;
+
+  const count = removeProjectsByIds(targets.map(p => p.id));
+  if (count) {
+    showToast(count === 1 ? 'Parcelle supprimée' : `${count} parcelles supprimées`, 'info');
+  }
+  return count;
 }
 
 function deleteCurrentProject() {

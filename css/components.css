@@ -430,8 +430,8 @@
 }
 
 /* Vue détail : réserve la barre de navigation basse (64 px) + une marge pour
-   que les boutons d'export (GeoJSON, CSV, GPX, Effacer) restent entièrement
-   accessibles au défilement. Le parent `.screen` assure `overflow-y: auto`. */
+   que la fin de la liste des points reste entièrement accessible au
+   défilement. Le parent `.screen` assure `overflow-y: auto`. */
 #historyDetailView {
   padding-bottom: calc(var(--bottom-nav-height, 64px) + 16px);
 }
@@ -521,49 +521,20 @@
   min-height: 0;
 }
 
-.points-view-actions {
-  display:               grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap:                   8px;
-  flex-shrink:           0;
-  padding-top:           12px;
-  margin-top:            4px;
-  border-top:            1px solid var(--border);
-}
-
-.points-view-actions .action-button,
-.points-view-actions .action-button-danger,
-.points-view-actions .export-primary {
-  width:           100%;
-  min-width:       0;
-  padding:         10px 8px;
-  font-size:       13px;
-  display:         inline-flex;
-  align-items:     center;
-  justify-content: center;
-  gap:             6px;
-}
-
-/* Icône SVG de « Effacer » (corbeille) : centrée avec le libellé. */
-.points-view-actions svg {
-  display:        block;
-  flex-shrink:    0;
-  pointer-events: none;
-}
-
-/* Surbrillance temporaire des exports (option « Télécharger » du hub). */
+/* Surbrillance temporaire du bouton « Exporter » de la parcelle
+   (option « Télécharger » du hub de transfert). */
 @keyframes transfer-highlight {
   0%, 100% { box-shadow: none; }
   40%      { box-shadow: 0 0 0 3px var(--color-primary-accent); }
 }
 
-.points-view-actions.is-highlight {
+.session-actions.is-highlight {
   border-radius: var(--radius-md);
   animation:     transfer-highlight 0.9s ease 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .points-view-actions.is-highlight {
+  .session-actions.is-highlight {
     animation:      none;
     outline:        3px solid var(--color-primary-accent);
     outline-offset: 2px;
@@ -1550,6 +1521,159 @@
   display:  flex;
   gap:      6px;
   flex-wrap:wrap;
+}
+
+/* ─── SÉLECTION MULTIPLE DE L'HISTORIQUE ────────────────────── */
+/* Barre contextuelle collante, affichée par syncHistorySelectionUI() dès
+   qu'une case est cochée. `hidden` est prioritaire sur `display: flex`. */
+.history-selection-bar {
+  position:      sticky;
+  top:           0;
+  z-index:       20;
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  margin-bottom: 8px;
+  padding:       8px 10px;
+  border-radius: var(--radius-lg);
+  background:    var(--color-primary-deep);
+  color:         white;   /* texte sur fond vert : exception documentée */
+  box-shadow:    var(--shadow-md);
+}
+
+.history-selection-bar[hidden] {
+  display: none !important;
+}
+
+.selection-back {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  flex:            0 0 auto;
+  width:           44px;
+  height:          44px;
+  padding:         0;
+  border:          none;
+  border-radius:   50%;
+  background:      var(--color-primary);
+  color:           white;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.selection-back:hover  { opacity: 0.85; }
+.selection-back:active { transform: scale(0.95); }
+
+.selection-back svg {
+  display:        block;
+  pointer-events: none;
+}
+
+.selection-count {
+  flex:          1 1 auto;
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+  font-size:     12px;
+  font-weight:   800;
+  letter-spacing: 0.2px;
+}
+
+.selection-actions {
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+  flex:        0 0 auto;
+}
+
+.selection-action {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  min-height:    44px;
+  padding:       0 10px;
+  border:        1px solid transparent;
+  border-radius: 999px;
+  background:    var(--color-white);
+  color:         var(--color-primary-deep);
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   800;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.selection-action:hover  { filter: brightness(0.95); }
+.selection-action:active { transform: scale(0.98); }
+
+.selection-action.danger {
+  color: var(--color-danger);
+}
+
+.selection-action svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
+}
+
+.selection-action:focus-visible,
+.selection-back:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+/* Cases à cocher des parcelles : devant le nom, sur toute la zone du titre. */
+.session-select-label {
+  display:     inline-flex;
+  align-items: center;
+  gap:         10px;
+  flex:        1 1 auto;
+  min-width:   0;
+  min-height:  32px;
+  cursor:      pointer;
+}
+
+.session-select {
+  width:         20px;
+  height:        20px;
+  flex:          0 0 auto;
+  margin:        0;
+  accent-color:  var(--color-primary);
+  cursor:        pointer;
+}
+
+.session-select:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+.session-select-label .session-name {
+  min-width:     0;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+/* Carte sélectionnée : liseré vert sans déplacement (outline négatif). */
+.session-item.selected {
+  outline:        2px solid var(--color-primary-light);
+  outline-offset: -2px;
+}
+
+/* Thème nuit : la pastille des boutons passe sur surface sombre, le texte
+   reprend les verts/rouges clairs lisibles. */
+[data-theme="dark"] .selection-action {
+  color: var(--color-primary-accent);
+}
+
+[data-theme="dark"] .selection-action.danger {
+  color: var(--color-danger-strong);
+}
+
+@media (max-width: 360px) {
+  .selection-action { padding: 0 8px; font-size: 10px; }
+  .selection-count  { font-size: 11px; }
 }
 
 /* ─── BOUTONS D'OUTILS CARTE (caméra) ───────────────────────── */

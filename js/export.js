@@ -28,19 +28,16 @@ function getExportFormatLabel(format = exportFormat) {
   return EXPORT_FORMAT_LABELS[normalizeExportFormat(format)];
 }
 
-// Met à jour la liste du panneau Connexion et le bouton d'export principal.
+// Met à jour la liste du panneau Connexion et les boutons « Exporter » de la
+// liste des parcelles (le titre reflète le format courant).
 function syncExportFormatUI() {
   const select = document.getElementById('exportFormatSelect');
   if (select) select.value = exportFormat;
 
-  const button = document.getElementById('btnExportPrimary');
-  const label  = document.getElementById('exportPrimaryLabel');
-  const text   = getExportFormatLabel();
-  if (label) label.textContent = text;
-  if (button) {
-    button.title = `Exporter en ${text} (format par défaut)`;
-    button.setAttribute('aria-label', `Exporter en ${text}`);
-  }
+  const text = getExportFormatLabel();
+  document.querySelectorAll('#historyList .btn-history-export').forEach(rowBtn => {
+    rowBtn.title = `Exporter en ${text}`;
+  });
 }
 
 // Appelée par #exportFormatSelect (onchange).
@@ -55,11 +52,12 @@ function setExportFormat(value) {
   }
 }
 
-// Action du bouton principal (section POINTS de HISTORIQUE).
+// Export de la parcelle courante dans le format choisi (API de commodité).
+// L'interface utilise exportProjectDefaultFormat(projectId) depuis la liste.
 function exportDefaultFormat() {
-  if (exportFormat === 'csv') return exportCSV();
-  if (exportFormat === 'gpx') return exportGPX();
-  return exportGeoJSON();
+  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+  if (!project) { showToast('Aucune parcelle sélectionnée', 'error'); return; }
+  return exportProjectDefaultFormat(project.id);
 }
 
 function initExportFormat() {
@@ -67,10 +65,10 @@ function initExportFormat() {
   syncExportFormatUI();
 }
 
-function exportCSV() {
-  const pts = getPoints();
+function exportCSV(projectArg) {
+  const pts = Array.isArray(projectArg?.points) ? projectArg.points : getPoints();
   if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
-  const proj = getCurrentProjectData();
+  const proj = projectArg || getCurrentProjectData();
   const headers = 'Point,Type,SousType,Latitude,Longitude,Altitude,Fix,Satellites,HDOP,Horodatage\n';
   const rows = pts.map(p =>
     `${p.index},${p.type},${p.subtype||''},${p.lat},${p.lon},${p.alt||''},${p.fix},${p.satellites||''},${p.hdop||''},${p.timestamp}`
@@ -79,10 +77,10 @@ function exportCSV() {
   showToast(`✅ CSV exporté — ${pts.length} points`,'info');
 }
 
-function exportGPX() {
-  const pts = getPoints();
+function exportGPX(projectArg) {
+  const pts = Array.isArray(projectArg?.points) ? projectArg.points : getPoints();
   if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
-  const proj = getCurrentProjectData();
+  const proj = projectArg || getCurrentProjectData();
   const wpts = pts.map(p=>`
   <wpt lat="${p.lat}" lon="${p.lon}">
     <ele>${p.alt||0}</ele><time>${p.timestamp}</time>
@@ -289,7 +287,7 @@ function exportGeoJSON() {
 }
 
 // Export GeoJSON d'une parcelle précise, depuis la liste de l'onglet
-// HISTORIQUE (bouton « GeoJSON » d'une ligne), sans changer la parcelle
+// HISTORIQUE (bouton « Exporter » d'une ligne), sans changer la parcelle
 // courante. Le contrat de sortie est identique à exportGeoJSON().
 function exportProjectGeoJSON(projectId) {
   const projects = typeof loadProjects === 'function' ? loadProjects() : [];
@@ -305,6 +303,21 @@ function exportProjectGeoJSON(projectId) {
     'application/json',
   );
   showToast(`✅ GeoJSON exporté — ${payload.geojson.features.length} feature(s)`,'info');
+}
+
+// Export d'une parcelle dans le format choisi dans le panneau Connexion
+// (GeoJSON / CSV / GPX), depuis le bouton « Exporter » de la liste HISTORIQUE.
+// Le GeoJSON conserve exactement le contrat de buildGeoJSON().
+function exportProjectDefaultFormat(projectId) {
+  const list = typeof loadProjects === 'function' ? loadProjects() : [];
+  const project = list.find(p => p.id === projectId);
+  if (!project) return;
+  const points = Array.isArray(project.points) ? project.points : [];
+  if (!points.length) { showToast('Aucun point à exporter','error'); return; }
+
+  if (exportFormat === 'csv') return exportCSV(project);
+  if (exportFormat === 'gpx') return exportGPX(project);
+  return exportProjectGeoJSON(projectId);
 }
 
 async function shareGeoJSON() {
@@ -415,20 +428,37 @@ function transferViaCloud() {
   return shareGeoJSON();
 }
 
-// Option 4 — téléchargement manuel : on ramène l'utilisateur sur les boutons
-// d'export déjà présents dans la section POINTS et on les met en évidence.
+// Option 4 — téléchargement manuel : on revient sur la liste des parcelles et
+// on met en évidence le bouton « Exporter » de la parcelle consultée.
 function transferOpenDownloads() {
+  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+  const projectId = project ? project.id : '';
+
   closeTransferModal();
 
-  const actions = document.querySelector('.points-view-actions');
-  if (!actions) return;
-  if (typeof actions.scrollIntoView === 'function') {
-    actions.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (typeof isHistoryDetailOpen === 'function' && isHistoryDetailOpen()
+      && typeof closeHistoryDetail === 'function') {
+    closeHistoryDetail();
   }
+
+  const selector = projectId
+    ? `#historyList .btn-history-export[data-project-id="${projectId}"]`
+    : '#historyList .btn-history-export';
+  const button = document.querySelector(selector);
+  if (!button) {
+    showToast('Utilisez « Exporter » sur une parcelle de la liste', 'info', 3200);
+    return;
+  }
+
+  if (typeof button.scrollIntoView === 'function') {
+    button.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  const actions = button.closest('.session-actions') || button;
   actions.classList.remove('is-highlight');
   void actions.offsetWidth;              // relance l'animation
   actions.classList.add('is-highlight');
   setTimeout(() => actions.classList.remove('is-highlight'), 2000);
+  if (typeof button.focus === 'function') button.focus({ preventScroll: true });
 }
 
 // Option 2 — mode serveur local. L'adresse LAN est fournie par

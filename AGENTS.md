@@ -260,16 +260,18 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   elle autorise la suppression de la **dernière** parcelle : `currentProject` devient `null`,
   `rtkCurrentProject` est retiré, le FAB est masqué, la carte est vidée,
   le header affiche « Aucune » et le tiroir montre la liste vide avec « ＋ Nouvelle parcelle ».
-  `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir `deleteProject()` ailleurs
-  (doublon historique supprimé de `js/history.js`).
-- **Export** : GeoJSON, CSV et GPX sont trois boutons explicites de la section POINTS de
-  l'onglet HISTORIQUE (`#pointsSection`), avec l'icône Lucide `download`. Le **bouton
-  principal** (`#btnExportPrimary` / `exportDefaultFormat()`) suit le format choisi dans le
-  panneau Connexion (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) : son
-  libellé (`#exportPrimaryLabel`) et son action changent ensemble (GeoJSON / CSV / GPX).
-  `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
-  `version_app` / `source` ajoutées à **toutes** les features (contrat inchangé). Le partage
-  natif passe par `shareGeoJSON()` / `navigator.share({ files })` (fallback toast sur desktop).
+  `deleteProjects(ids)` applique la même logique à plusieurs parcelles (une confirmation) via
+  `removeProjectsByIds()` ; `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
+  `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
+- **Export** : chaque ligne de la vue **PARCELLES** possède un bouton **« Exporter »**
+  (`.btn-history-export`, icône Lucide `download`) qui applique le format choisi dans le panneau
+  Connexion (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) à la parcelle
+  visée : `exportProjectDefaultFormat(projectId)` → `exportProjectGeoJSON()` /
+  `exportCSV(projet)` / `exportGPX(projet)`. **Aucun bouton d'export ni « Effacer » dans la vue
+  détail** (retirés en 3.65). `buildGeoJSON()` centralise la construction et les métadonnées
+  `date_creation` / `version_app` / `source` ajoutées à **toutes** les features (contrat
+  inchangé). Le partage natif passe par `shareGeoJSON()` / `navigator.share({ files })`
+  (fallback toast sur desktop).
 - **Hub de transfert** : `#btnTransfer` (`.transfer-trigger`, icône `share-2` + « Transférer »)
   ouvre `#transferModal` (`js/export.js`), qui propose **quatre canaux redondants** :
   1. `transferViaNativeShare()` → `shareGeoJSON()` (Quick Share, Gmail…) ;
@@ -278,8 +280,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
      internes) et un bouton « Copier » (`copyTransferLocalUrl()`) ; le **QR code** est un
      placeholder « Bientôt » ;
   3. `transferViaCloud()` → `shareGeoJSON()` (le menu Android propose Drive) ;
-  4. `transferOpenDownloads()` → ferme la modale, ramène `.points-view-actions` à l'écran et
-     le met en surbrillance (`is-highlight`, animation `transfer-highlight`).
+  4. `transferOpenDownloads()` → ferme la modale, revient à la liste des parcelles et met en
+     surbrillance (`.session-actions.is-highlight`, animation `transfer-highlight`) le bouton
+     « Exporter » de la parcelle consultée.
   La modale se ferme au voile, avec Échap (prioritaire sur le menu d'export) et au changement
   d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège de focus et retour du focus
   sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
@@ -294,10 +297,21 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `showTab('tab-history')` revient **toujours** sur la racine.
   `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
   (ZT, ZI, obstacles) et laisse la main aux exports de la section POINTS.
+  Chaque ligne porte une **case à cocher** (`.session-select` dans `.session-select-label`) :
+  `toggleHistorySelection()` alimente `historySelection` (Set) et `syncHistorySelectionUI()`
+  affiche la barre contextuelle `#historySelectionBar` (`.history-selection-bar`, sticky,
+  `hidden` sans sélection) avec `#btnSelectionBack` (« annuler », `clearHistorySelection()`),
+  `#selectionCount` et les actions `transferSelectedProjects()` / `deleteSelectedProjects()`.
+  La sélection est purgée à l'ouverture du détail (`syncHistoryView('detail')`), à l'entrée
+  dans l'onglet (`showTab`) et après suppression. **Transfert** : une seule parcelle → hub
+  existant sur cette parcelle ; plusieurs → un GeoJSON par parcelle (contrat conservé) dans
+  un partage natif multi-fichiers, avec repli en téléchargement. **Suppression** :
+  `deleteProjects(ids)` (`js/projects.js`) demande **une seule** confirmation puis passe par
+  `removeProjectsByIds()` (cœur commun avec `deleteProject()`).
   L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
   titre et le nom (`gap: 0` + `margin-left: 0`), sans bouton (le transfert est remonté dans
-  `.history-detail-header`). `#pointsSection` contient `#pointCount`,
-  `#pointsList`, les exports GeoJSON/CSV/GPX et « Effacer ». **Plus de badge « Zone #N »** :
+  `.history-detail-header`). `#pointsSection` contient `#pointCount` et `#pointsList`.
+  **Plus de badge « Zone #N »** :
   la rangée `.points-view-meta` ne porte que `#pointCount`, aligné à droite
   (`margin-left: auto`) ; `updateZoneBadge()` subsiste mais ne fait rien (élément absent).
   Les obstacles sont affichés **sans numéro d'ordre** (« Arbre », « Divers ») dans la liste et
@@ -334,8 +348,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   défaut**), pilotée par le switch `#btnPointNumbers` du panneau Connexion
   (`togglePointNumbers()` → persistance + `renderMap()`).
 - **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
-  Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; Exporter et
-  Effacer sont dans la section POINTS de l'onglet HISTORIQUE (`#pointsSection`).
+  Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; l'export
+  reste accessible par le bouton « Exporter » de chaque ligne de PARCELLES (HISTORIQUE), la
+  vue détail ne contient plus ni export ni « Effacer » (3.65).
 - **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
   `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
   `#traceFab` reste visible sur TRACÉS : son clic principal ouvre directement `#projectDrawer`
@@ -414,7 +429,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `renamePoint(id)` utilisent `customPrompt()` (modale `#customModal`), refusent un nom vide
   sans fermer la modale et persistent via `saveProjects()`. Le nom d'un point est stocké dans
   `point.name` (indépendant de `subtype`) et exporté dans `properties.name` pour les obstacles.
-  `deleteProject()`, `deleteZone()`, `renamePoint()`, `renameZone()` et `clearAllPoints()` sont
+  `deleteProject()`, `deleteZone()`, `renamePoint()` et `renameZone()` sont
   **asynchrones** (`await customConfirm/customPrompt`) : les appels programmatiques doivent
   attendre leur promesse.
 - **Modales** : ne plus utiliser `confirm()` / `prompt()` natifs. `customConfirm()` et
@@ -1074,6 +1089,32 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   dernière sauvegarde. `index.html` et `menu-test.html` alignés ; contrat GeoJSON inchangé ;
   `node --check` OK et vérification Chrome/CDP (16/16 : libellés sans chiffre, CSV → GPX,
   panneau sans débordement, `padding-bottom` 80 px, Actualiser au-dessus de la barre).
+- **3.64 — Sélection multiple et barre d'action contextuelle (HISTORIQUE)** : chaque parcelle
+  de la vue racine possède une **case à cocher** (`.session-select` / `.session-select-label`)
+  et la barre `#historySelectionBar` (`.history-selection-bar`, sticky, `hidden` sans
+  sélection) regroupe `#btnSelectionBack`, `#selectionCount` (« N sélectionné(s) »),
+  `#btnSelectionTransfer` et `#btnSelectionDelete` (icônes Lucide, 44 px). `historySelection`
+  (Set) est synchronisé par `toggleHistorySelection()` / `syncHistorySelectionUI()` ;
+  `clearHistorySelection()` est appelé au retour, à l'ouverture du détail, à l'entrée dans
+  l'onglet et après suppression. `transferSelectedProjects()` ouvre le hub pour une parcelle
+  et partage N GeoJSON (repli téléchargement) pour plusieurs ;
+  `deleteSelectedProjects()` → `deleteProjects(ids)` (une confirmation) →
+  `removeProjectsByIds()` (`js/projects.js`). Vérifié par Chrome/CDP (24/24 : 3 cases,
+  compteur, sélection/surlignage, sans débordement, transfert 1/N, annulation de confirmation,
+  suppression de 2 parcelles puis de la dernière, sélection libérée en vue détail, zéro
+  exception JS) ; `node --check` OK et contrat GeoJSON inchangé.
+- **3.65 — Vue détail allégée, export depuis la liste** : le bloc `.points-view-actions`
+  (GeoJSON, CSV, GPX, « Effacer ») est retiré de `#historyDetailView` dans `index.html` et
+  `menu-test.html` ; `clearAllPoints()` (plus aucun appelant) est supprimé de `js/points.js`
+  (`clearCurrentProjectPoints()` reste utilisé par la simulation). L'export reste accessible
+  depuis chaque ligne de **PARCELLES** : bouton « Exporter » (`.btn-history-export`) →
+  `exportProjectDefaultFormat(projectId)`, qui applique le format du panneau Connexion et
+  appelle `exportProjectGeoJSON()`, `exportCSV(projet)` ou `exportGPX(projet)` (ces deux
+  dernières acceptent désormais une parcelle en argument). L'option « Télécharger » du hub
+  revient à la liste et met en évidence le bouton « Exporter » de la parcelle
+  (`.session-actions.is-highlight`). Vérifié par Chrome/CDP (22/22 : aucun bouton export /
+  Effacer dans le détail, GeoJSON/CSV/GPX depuis la ligne, contrat `source` + `[lon,lat]` +
+  anneau fermé, retour du hub, suppression de ligne, zéro exception) ; `node --check` OK.
 
 ## 9. Langue et communication
 

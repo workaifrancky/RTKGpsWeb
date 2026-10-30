@@ -456,6 +456,51 @@ localStorage.setItem("rtkCurrentProject","proj_test");
       <!-- Vue 1 — PARCELLES (racine) : liste des parcelles enregistrées. -->
       <div id="historyListView" class="history-view">
         <div class="section-title">PARCELLES</div>
+
+        <!-- Barre d'action contextuelle : visible dès qu'une parcelle est cochée. -->
+        <div id="historySelectionBar" class="history-selection-bar" hidden
+          role="toolbar" aria-label="Actions sur la sélection">
+          <button type="button" id="btnSelectionBack" class="selection-back"
+            onclick="clearHistorySelection()" title="Annuler la sélection"
+            aria-label="Annuler la sélection">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="m12 19-7-7 7-7"/>
+              <path d="M19 12H5"/>
+            </svg>
+          </button>
+          <span id="selectionCount" class="selection-count" aria-live="polite">0 sélectionné(s)</span>
+          <div class="selection-actions">
+            <button type="button" id="btnSelectionTransfer" class="selection-action"
+              onclick="transferSelectedProjects()" title="Transférer les parcelles sélectionnées">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+                <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+              </svg>
+              Transférer
+            </button>
+            <button type="button" id="btnSelectionDelete" class="selection-action danger"
+              onclick="deleteSelectedProjects()" title="Supprimer les parcelles sélectionnées">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3 6h18"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" x2="10" y1="11" y2="17"/>
+                <line x1="14" x2="14" y1="11" y2="17"/>
+              </svg>
+              Supprimer
+            </button>
+          </div>
+        </div>
+
         <div id="historyList"></div>
       </div>
 
@@ -501,55 +546,6 @@ localStorage.setItem("rtkCurrentProject","proj_test");
 
           <div class="points-view-body">
             <div id="pointsList"></div>
-          </div>
-
-          <div class="points-view-actions">
-            <button id="btnExportPrimary" class="action-button export-primary"
-              onclick="exportDefaultFormat()" title="Exporter en GeoJSON">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" x2="12" y1="15" y2="3"/>
-              </svg>
-              <span id="exportPrimaryLabel">GeoJSON</span>
-            </button>
-            <button class="action-button" onclick="exportCSV()"
-              title="Exporter en CSV">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" x2="12" y1="15" y2="3"/>
-              </svg>
-              CSV
-            </button>
-            <button class="action-button" onclick="exportGPX()"
-              title="Exporter en GPX">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" x2="12" y1="15" y2="3"/>
-              </svg>
-              GPX
-            </button>
-            <button class="action-button-danger" onclick="clearAllPoints()"
-              title="Effacer tous les points de la parcelle">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true" focusable="false">
-                <path d="M3 6h18"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                <line x1="10" x2="10" y1="11" y2="17"/>
-                <line x1="14" x2="14" y1="11" y2="17"/>
-              </svg>
-              Effacer
-            </button>
           </div>
         </section>
       </div>
@@ -922,7 +918,7 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         </span>
         <span class="transfer-option-text">
           <span class="transfer-option-title">Télécharger le fichier</span>
-          <span class="transfer-option-desc">GeoJSON, CSV ou GPX — boutons ci-dessous</span>
+          <span class="transfer-option-desc">Format choisi (GeoJSON, CSV ou GPX) — bouton « Exporter » de la parcelle</span>
         </span>
         <span class="transfer-option-chevron" aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
