@@ -683,11 +683,11 @@ header {
   /* padding-top: var(--header-height, 104px); */
 }
 
-/* RELEVÉ : le bouton « Actualiser » est le dernier élément de l'onglet.
-   `.app-wrapper` est un conteneur flex en colonne : `flex: 1 1 0` +
-   `min-height: 0` bornent la hauteur de l'écran et garantissent le défilement
-   interne (Chrome Android / Samsung). La réserve couvre la barre de navigation,
-   la safe-area et une marge de sécurité de 24 px. */
+/* RELEVÉ et HISTORIQUE : `flex: 1 1 0` + `min-height: 0` bornent la hauteur
+   de l'écran et garantissent le défilement interne (Chrome Android / Samsung).
+   La réserve couvre la barre de navigation, la safe-area et une marge de
+   sécurité de 24 px pour que le dernier bandeau reste visible. */
+#tab-history,
 #tab-stats {
   flex:            1 1 0;
   min-height:      0;

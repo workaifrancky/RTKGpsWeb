@@ -211,7 +211,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Aucun emoji dans un contrôle : `map` (Relief), `satellite`, `maximize` / `minimize`
   (plein écran carte **et** caméra), `lock` / `unlock` (verrouillage), `plus` (FAB neutre,
   « Nouvelle parcelle », « Créer la parcelle »), `check` (FAB secondaire), `x` (tiroir),
-  `refresh-cw` (Actualiser), `compass` (boussole du HUD), `chevron-down` (sélecteur de cible),
+  `compass` (boussole du HUD), `chevron-down` (sélecteur de cible),
   `save` (indicateur de sauvegarde), `share-2` / `download` (exports et hub de transfert),
   `folder-open` (historique). Dans l'interface, le **type d'un point** est rendu par une
   pastille CSS : `.point-dot` (14 px, listes) ou `.type-dot` (10 px inline : popups carte,
@@ -327,10 +327,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   seuls le libellé (`Zone de tonte (ZT)`, `Obstacles isolés`…) et le compteur global
   `#pointCount` subsistent.
   Les obstacles sont affichés **sans numéro d'ordre** (« Arbre », « Divers ») dans la liste et
-  la popup : `point.index` reste dans les données (cible CAMÉRA, exports). La vue détail réserve la barre de
-  navigation basse (`#historyDetailView { padding-bottom: calc(var(--bottom-nav-height, 64px)
-  + 16px) }`) pour que la fin de la liste des points reste accessible ; le parent `.screen`
-  assure `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
+  la popup : `point.index` reste dans les données (cible CAMÉRA, exports). La réserve de la
+  barre de navigation est portée par `#tab-history` (`flex: 1 1 0`, `min-height: 0`,
+  `padding-bottom: 64 px + safe-area + 24 px`) : pas de padding supplémentaire dans
+  `#historyDetailView`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
   `openPointsView()` et ses alias (`closePointsView()`, `togglePointsView()`,
   `scrollToPointsPanel()`) sont supprimés — ne pas les réintroduire.
 - **Verrouillage d'écran** : bouton flottant `#btnLock` (carte), voile `#lockOverlay` affiché
@@ -450,9 +450,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Navigation basse** : `#bottomNav` (`.tabs-wrapper.bottom-nav`) est **fixe hors de
   `.app-wrapper`**, avec `z-index: 900` (sous le tiroir 1050, les modales 1100 et les toasts
   1200). `.screen` réserve `--bottom-nav-height` + `env(safe-area-inset-bottom)` : ne pas
-  retirer ce padding, sinon le FAB et la vue POINTS passent dessous. `#tab-stats` ajoute
-  **24 px** de marge et borne son défilement (`flex: 1 1 0`, `min-height: 0`,
-  `overflow-y: auto`) pour que « Actualiser » reste visible sur les écrans Android/Samsung.
+  retirer ce padding, sinon le FAB et la vue POINTS passent dessous. `#tab-history` et
+  `#tab-stats` ajoutent **24 px** de marge et bornent leur défilement (`flex: 1 1 0`,
+  `min-height: 0`, `overflow-y: auto`) pour que le dernier bandeau reste visible sur les
+  écrans Android/Samsung.
   La barre est masquée en plein écran par `body.map-ui-fullscreen .tabs-wrapper` et
   `body.camera-ui-fullscreen .tabs-wrapper`.
 - **Surfaces** : `calculateArea()` attend des objets `{ lat, lon }` (pas des tableaux GeoJSON).
@@ -1159,6 +1160,16 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `padding-bottom: calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 24px)`.
   Vérifié sous Chrome headless à plusieurs hauteurs d'écran (360 × 640, 393 × 851,
   412 × 915) : défilement actif et bouton « Actualiser » entièrement au-dessus de la barre.
+- **3.69 — Bouton Actualiser retiré et scroll HISTORIQUE** : le bouton « Actualiser » est
+  supprimé de `#tab-stats` (`index.html` et `menu-test.html`) ; `updateStatsDisplay()` reste
+  appelée automatiquement par `showTab('tab-stats')`, `switchProject()` et chaque
+  ajout/suppression/renommage de point ou de zone. `#tab-history` reçoit les mêmes règles que
+  `#tab-stats` (`flex: 1 1 0`, `min-height: 0`, `overflow-y: auto`, `padding-bottom: 64 px +
+  safe-area + 24 px`) ; `#historyDetailView` ne porte plus de padding propre pour éviter un
+  double espace. Vérifié Chrome/CDP (10/10 à 360 × 640 : aucun bouton dans RELEVÉ, stats
+  rafraîchies au changement de parcelle, liste de 14 parcelles défilable jusqu'au dernier
+  élément, 26 points de détail défilables jusqu'au dernier, aucun double padding, dernière
+  ligne au-dessus de la barre, zéro exception).
 
 ## 9. Langue et communication
 

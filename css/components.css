@@ -429,12 +429,8 @@
   display: none !important;
 }
 
-/* Vue détail : réserve la barre de navigation basse (64 px) + une marge pour
-   que la fin de la liste des points reste entièrement accessible au
-   défilement. Le parent `.screen` assure `overflow-y: auto`. */
-#historyDetailView {
-  padding-bottom: calc(var(--bottom-nav-height, 64px) + 16px);
-}
+/* Vue détail : la réserve de la barre de navigation est portée par
+   `#tab-history` (flex + padding-bottom) ; pas de double padding ici. */
 
 .history-section {
   margin-bottom: 18px;
