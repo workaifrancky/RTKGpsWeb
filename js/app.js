@@ -8,8 +8,9 @@ const APP = {
   currentTab:   'tab-points',
   tracesMode:   'lecture',   // 'lecture' (consultation) | 'creation' (tracé)
   currentTraceMode: null,    // 'tonte' | 'interdit' | 'obstacle' | null
-  pendingObstacle:  null,    // { type, icon } choisi, en attente de positionnement
+  pendingObstacle:  null,    // { type, icon, name } en attente de positionnement
   theme:        'light',
+  glovesMode:   false,       // confort terrain (boutons agrandis, contraste renforcé)
   bleConnected: false,
   hasGpsData:   false,
   lastUpdate:   null,
@@ -166,6 +167,9 @@ const OBSTACLE_ICON_SVG = {
 // « Divers » : la valeur stockée dans `point.subtype` (et exportée en
 // `categorie` / `name` du GeoJSON) reste « Perso ».
 const OBSTACLE_TYPE_LABELS = { Perso: 'Divers' };
+const OBSTACLE_TYPES = ['Arbre', 'Forage', 'Poteau', 'Souche', 'Talus', 'Perso'];
+const LAST_OBSTACLE_TYPE_KEY = 'rtkLastObstacleType';
+const LAST_OBSTACLE_NAME_KEY = 'rtkLastObstacleName';
 
 function getObstacleTypeLabel(subtype) {
   const key = typeof subtype === 'string' ? subtype.trim() : '';
@@ -183,6 +187,7 @@ function getObstacleIconMarkup(subtype) {
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
   initTheme();
+  initGlovesMode();
   initCustomModal();
   initObstacleModal();
   initScreenLock();
@@ -219,6 +224,48 @@ function applyTheme(theme) {
 
 function toggleTheme() {
   applyTheme(APP.theme === 'dark' ? 'light' : 'dark');
+}
+
+// ─── MODE GANTS / SOLEIL ─────────────────────────────────────
+// Agrandit les cibles tactiles et renforce le contraste pour l'usage avec
+// des gants ou en plein soleil. La préférence est locale à l'appareil.
+const GLOVES_MODE_KEY = 'rtkGlovesMode';
+
+function initGlovesMode() {
+  let enabled = false;
+  try {
+    enabled = localStorage.getItem(GLOVES_MODE_KEY) === '1';
+  } catch (error) {
+    enabled = false;
+  }
+  applyGlovesMode(enabled, false);
+}
+
+function applyGlovesMode(enabled, persist = true) {
+  const active = !!enabled;
+  APP.glovesMode = active;
+  document.body.classList.toggle('gloves-mode', active);
+
+  const btn = document.getElementById('btnGlovesMode');
+  if (btn) btn.setAttribute('aria-checked', active ? 'true' : 'false');
+
+  if (persist) {
+    try {
+      localStorage.setItem(GLOVES_MODE_KEY, active ? '1' : '0');
+    } catch (error) {
+      // Stockage indisponible : le mode reste actif pour la session.
+    }
+  }
+}
+
+function toggleGlovesMode() {
+  const active = !document.body.classList.contains('gloves-mode');
+  applyGlovesMode(active);
+  showToast(
+    active ? 'Mode Gants/Soleil activé' : 'Mode Gants/Soleil désactivé',
+    'info',
+    2200
+  );
 }
 
 // ─── NAVIGATION ──────────────────────────────────────────────
@@ -421,6 +468,47 @@ function hideAlert() {
   if (a) a.classList.remove('show');
 }
 
+// Type le plus fréquent de la base globale : sert de repli quand aucun
+// « dernier type utilisé » n'est encore mémorisé. La bibliothèque est amorcée
+// depuis les parcelles au premier lancement (js/projects.js).
+function getMostFrequentObstacleType() {
+  const counts = {};
+  const list = (typeof globalObstacles !== 'undefined' && Array.isArray(globalObstacles))
+    ? globalObstacles
+    : [];
+  list.forEach(obstacle => {
+    const subtype = obstacle && obstacle.subtype;
+    if (!OBSTACLE_TYPES.includes(subtype)) return;
+    counts[subtype] = (counts[subtype] || 0) + 1;
+  });
+  const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return best ? best[0] : 'Arbre';
+}
+
+// Pré-remplit la modale : dernier type utilisé (ou type le plus fréquent) mis
+// en évidence, et dernier nom personnalisé proposé. Aucun effet sur les données.
+function applyObstacleModalDefaults() {
+  let lastType = null;
+  let lastName = '';
+  try {
+    lastType = localStorage.getItem(LAST_OBSTACLE_TYPE_KEY);
+    lastName = localStorage.getItem(LAST_OBSTACLE_NAME_KEY) || '';
+  } catch (error) {
+    // Stockage indisponible : on garde les replis.
+  }
+
+  const preferred = OBSTACLE_TYPES.includes(lastType)
+    ? lastType
+    : getMostFrequentObstacleType();
+
+  document.querySelectorAll('.obstacle-option[data-obstacle-type]').forEach(option => {
+    option.classList.toggle('pre-selected', option.dataset.obstacleType === preferred);
+  });
+
+  const input = document.getElementById('obstacleNameInput');
+  if (input) input.value = lastName;
+}
+
 // ─── MODAL OBSTACLE ──────────────────────────────────────────
 // Flux : menu FAB → « Obstacle » → modale du type → choix du type (mémorisé,
 // modale fermée) → l'utilisateur place la cible → clic sur le FAB = validation.
@@ -446,6 +534,7 @@ function openObstacleMenu() {
 
 // Affiche / masque uniquement la modale (aucun effet sur le mode de tracé).
 function showObstacleModal() {
+  applyObstacleModalDefaults();
   const modal = document.getElementById('obstacleModal');
   if (modal) modal.classList.add('show');
 }
@@ -499,7 +588,9 @@ function selectObstacleType(type, icon) {
   }
 
   if (typeof APP !== 'undefined') {
-    APP.pendingObstacle = { type, icon: icon || '🟡' };
+    const nameInput = document.getElementById('obstacleNameInput');
+    const customName = nameInput ? nameInput.value.trim() : '';
+    APP.pendingObstacle = { type, icon: icon || '🟡', name: customName || null };
     APP.tracesMode = 'creation';
     APP.currentTraceMode = 'obstacle';
   }

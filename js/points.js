@@ -52,6 +52,32 @@ function getPointPosition() {
   return null;
 }
 
+// Retour haptique des captures : courte vibration quand le point est
+// enregistré avec un fix exploitable (Float RTK / RTK Fix), motif long si le
+// récepteur est connecté mais que la précision est insuffisante.
+function vibratePointFeedback(success = true) {
+  if (!navigator.vibrate) return;
+  try {
+    navigator.vibrate(success ? 50 : [100, 50, 100]);
+  } catch (error) {
+    // Vibration indisponible : aucune conséquence sur l'enregistrement.
+  }
+}
+
+function hasWeakGpsFix() {
+  // Un point reste enregistrable dès Float RTK (score 3), mais le retour
+  // haptique long signale que l'on n'est pas en RTK Fix (score 4).
+  return typeof APP !== 'undefined'
+    && APP.bleConnected
+    && typeof lastGpsData !== 'undefined'
+    && lastGpsData
+    && Number(lastGpsData.score || 0) < 4;
+}
+
+function signalPointRecorded() {
+  vibratePointFeedback(!hasWeakGpsFix());
+}
+
 // En mode lecture, aucun point ne peut être ajouté (carte consultable).
 function canRecordPoints() {
   if (document.body?.classList.contains('locked')) {
@@ -74,6 +100,198 @@ const TRACE_TYPE_LABELS = {
   obstacle: 'Obstacle',
 };
 
+// ─── STAKEOUT : GUIDAGE VERS LE PREMIER SOMMET ───────────────
+// Pendant un tracé de zone, le bouton dédié (à droite du FAB) guide vers le
+// premier point de la zone, c'est-à-dire le sommet de fermeture. Il ne
+// remplace pas le FAB d'ajout de point : il fonctionne en parallèle.
+const STAKEOUT_THRESHOLDS_M = [10, 5, 2, 1];
+const STAKEOUT_HYSTERESIS_M = 0.5;
+const STAKEOUT_ARRIVAL_M = 0.5;
+const STAKEOUT_REARM_M = 1.5;
+let stakeoutActive = false;
+let stakeoutTimer = null;
+let stakeoutThresholdsArmed = {};
+let stakeoutArrivalAnnounced = false;
+
+function getCurrentZoneTracePoints() {
+  const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  if (type === 'tonte') return getZones()[getCurrentZoneId()] || [];
+  if (type === 'interdit') return getInterditZones()[getCurrentInterditZoneId()] || [];
+  return [];
+}
+
+function getStakeoutTarget() {
+  return getCurrentZoneTracePoints()[0] || null;
+}
+
+function getStakeoutPosition() {
+  if (typeof APP !== 'undefined' && APP.bleConnected
+      && typeof lastGpsData !== 'undefined' && isPositionValid(lastGpsData)) {
+    return { lat: lastGpsData.lat, lon: lastGpsData.lon };
+  }
+  if (typeof getTargetCoords === 'function') {
+    const target = getTargetCoords();
+    if (target && Number.isFinite(target.lat) && Number.isFinite(target.lon)) {
+      return { lat: target.lat, lon: target.lon };
+    }
+  }
+  return null;
+}
+
+function getStakeoutBearing(lat1, lon1, lat2, lon2) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180)
+    - Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+
+function formatStakeoutDistance(distance) {
+  if (distance < 1) return `${Math.max(0, Math.round(distance * 100))} cm`;
+  if (distance < 10) return `${distance.toFixed(1)} m`;
+  return `${Math.round(distance)} m`;
+}
+
+function speakStakeout(text) {
+  if (!text || typeof window === 'undefined') return;
+  if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance !== 'function') return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(text));
+    utterance.lang = 'fr-FR';
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    // Synthèse indisponible : le HUD et les vibrations restent actifs.
+  }
+}
+
+function vibrateStakeout(pattern) {
+  if (!navigator.vibrate) return;
+  try {
+    navigator.vibrate(pattern);
+  } catch (error) {
+    // Vibration indisponible.
+  }
+}
+
+function resetStakeoutThresholds() {
+  stakeoutThresholdsArmed = {};
+  STAKEOUT_THRESHOLDS_M.forEach(threshold => {
+    stakeoutThresholdsArmed[threshold] = true;
+  });
+  stakeoutArrivalAnnounced = false;
+}
+
+function updateStakeoutGuidance() {
+  if (!stakeoutActive) return;
+
+  const target = getStakeoutTarget();
+  if (!target) {
+    stopStakeout(false);
+    showToast('Stakeout arrêté : plus aucun sommet dans la zone', 'info');
+    return;
+  }
+
+  const distanceEl = document.getElementById('stakeoutDistance');
+  const bearingEl = document.getElementById('stakeoutBearing');
+  const pos = getStakeoutPosition();
+  if (!pos) {
+    if (distanceEl) distanceEl.textContent = 'En attente de position';
+    if (bearingEl) bearingEl.textContent = 'GPS ou cible de carte';
+    return;
+  }
+
+  const distance = haversine(pos.lat, pos.lon, target.lat, target.lon);
+  const bearing = getStakeoutBearing(pos.lat, pos.lon, target.lat, target.lon);
+
+  if (distanceEl) distanceEl.textContent = `Sommet : ${formatStakeoutDistance(distance)}`;
+  if (bearingEl) bearingEl.textContent = `Cap ${bearing.toFixed(0)}°`;
+
+  let crossedThreshold = null;
+  STAKEOUT_THRESHOLDS_M.forEach(threshold => {
+    if (distance <= threshold) {
+      if (stakeoutThresholdsArmed[threshold] !== false) {
+        stakeoutThresholdsArmed[threshold] = false;
+        crossedThreshold = threshold;
+      }
+    } else if (distance > threshold + STAKEOUT_HYSTERESIS_M) {
+      stakeoutThresholdsArmed[threshold] = true;
+    }
+  });
+
+  if (crossedThreshold !== null) {
+    const metres = `${crossedThreshold} mètre${crossedThreshold > 1 ? 's' : ''}`;
+    speakStakeout(`Avance de ${metres} vers le sommet`);
+    vibrateStakeout(60);
+  }
+
+  if (distance < STAKEOUT_ARRIVAL_M) {
+    if (!stakeoutArrivalAnnounced) {
+      stakeoutArrivalAnnounced = true;
+      speakStakeout('Sommet atteint');
+      vibrateStakeout([40, 60, 120]);
+    }
+  } else if (distance > STAKEOUT_REARM_M) {
+    stakeoutArrivalAnnounced = false;
+  }
+}
+
+function startStakeout() {
+  const type = (typeof APP !== 'undefined' && APP.currentTraceMode) || null;
+  if (type !== 'tonte' && type !== 'interdit') {
+    showToast('Stakeout disponible pendant un tracé de zone', 'info');
+    return;
+  }
+  const target = getStakeoutTarget();
+  if (!target) {
+    showToast('Ajoutez au moins un point avant de lancer le Stakeout', 'info');
+    return;
+  }
+
+  closeTraceFabMenu();
+  stakeoutActive = true;
+  resetStakeoutThresholds();
+
+  const btn = document.getElementById('traceFabStakeout');
+  if (btn) btn.setAttribute('aria-pressed', 'true');
+  const hud = document.getElementById('stakeoutHud');
+  if (hud) hud.hidden = false;
+
+  if (stakeoutTimer) clearInterval(stakeoutTimer);
+  stakeoutTimer = setInterval(updateStakeoutGuidance, 750);
+
+  speakStakeout('Guidage vers le premier sommet activé');
+  updateStakeoutGuidance();
+}
+
+function stopStakeout(notify = true) {
+  if (stakeoutTimer) {
+    clearInterval(stakeoutTimer);
+    stakeoutTimer = null;
+  }
+  const wasActive = stakeoutActive;
+  stakeoutActive = false;
+  resetStakeoutThresholds();
+
+  const btn = document.getElementById('traceFabStakeout');
+  if (btn) btn.setAttribute('aria-pressed', 'false');
+  const hud = document.getElementById('stakeoutHud');
+  if (hud) hud.hidden = true;
+
+  if (wasActive && notify) {
+    speakStakeout('Guidage arrêté');
+    showToast('Stakeout arrêté', 'info', 1800);
+  }
+}
+
+function toggleStakeout() {
+  if (stakeoutActive) stopStakeout();
+  else startStakeout();
+}
+
 function syncTraceFabUI() {
   const fab = document.getElementById('traceFab');
   if (!fab) return;
@@ -92,6 +310,16 @@ function syncTraceFabUI() {
   const pendingObstacle = (typeof APP !== 'undefined' && APP.pendingObstacle) || null;
   const main = document.getElementById('traceFabMain');
   const secondary = document.getElementById('traceFabSecondary');
+  const stakeout = document.getElementById('traceFabStakeout');
+  const zonePointsForStakeout = hasProject && (type === 'tonte' || type === 'interdit')
+    ? getCurrentZoneTracePoints()
+    : [];
+  const stakeoutEligible = visible && hasProject && !!type && type !== 'obstacle'
+    && zonePointsForStakeout.length > 0;
+  if (stakeout) {
+    stakeout.hidden = !stakeoutEligible;
+    if (!stakeoutEligible && stakeoutActive) stopStakeout(false);
+  }
 
   if (main) {
     main.className = `trace-fab-main ${type || 'neutral'}`;
@@ -126,6 +354,10 @@ function openTraceFabMenu() {
   const menu = document.getElementById('traceFabMenu');
   const main = document.getElementById('traceFabMain');
   if (!menu) return;
+
+  // Le HUD de Stakeout occupe la même zone que le menu : on arrête le guidage
+  // avant d'ouvrir le choix du tracé.
+  if (stakeoutActive) stopStakeout(false);
 
   // Un toast de gestion (création de parcelle, nouvelle zone…) peut
   // recouvrir la dernière option du menu.
@@ -276,7 +508,7 @@ function onTraceFabMainClick() {
     // à la position de la cible. Sinon, on (re)demande le type.
     const pending = (typeof APP !== 'undefined' && APP.pendingObstacle) || null;
     if (pending && typeof recordObstacle === 'function') {
-      recordObstacle(pending.type, pending.icon);
+      recordObstacle(pending.type, pending.icon, pending.name);
       return;
     }
     openObstacleMenu();
@@ -346,11 +578,13 @@ function recordTonte() {
   if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
+    vibratePointFeedback(false);
     showToast('Position indisponible — placez la cible sur la carte', 'error');
     return;
   }
   const pt = buildPoint('tonte', null, '🟢', pos);
   savePoint(pt);
+  signalPointRecorded();
 }
 
 // ─── ZONES DE TONTE ──────────────────────────────────────────
@@ -560,26 +794,38 @@ function recordInterdit() {
   if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
+    vibratePointFeedback(false);
     showToast('Position indisponible — placez la cible sur la carte', 'error');
     return;
   }
   const pt = buildPoint('interdit', null, '🔴', pos);
   // buildPoint() rattache le point à getCurrentInterditZoneId().
   savePoint(pt);
+  signalPointRecorded();
 }
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
-function recordObstacle(subtype, icon) {
+function recordObstacle(subtype, icon, name) {
   if (!canRecordPoints()) return;
   const pos = getPointPosition();
   if (!pos) {
+    vibratePointFeedback(false);
     showToast('Position indisponible — placez la cible sur la carte', 'error');
     return;
   }
   const pt = buildPoint('obstacle', subtype, icon || '🟡', pos);
+  pt.name = name && String(name).trim() ? String(name).trim() : null;
   savePoint(pt);
   // Ajoute aussi l'obstacle à la bibliothèque globale (réutilisable).
   if (typeof addGlobalObstacle === 'function') addGlobalObstacle(pt);
+  // Mémorise le dernier type et le dernier nom pour pré-remplir la modale.
+  try {
+    if (subtype) localStorage.setItem(LAST_OBSTACLE_TYPE_KEY, subtype);
+    if (pt.name) localStorage.setItem(LAST_OBSTACLE_NAME_KEY, pt.name);
+  } catch (error) {
+    // Stockage indisponible : valeurs par défaut conservées.
+  }
+  signalPointRecorded();
   // Un obstacle est un tracé ponctuel : on revient à l'état sans type actif.
   if (typeof APP !== 'undefined') {
     APP.pendingObstacle = null;
@@ -627,6 +873,8 @@ function savePoint(pt) {
   renderPointsList();
   if (typeof addPointToMap === 'function') addPointToMap(pt);
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+  // Le bouton Stakeout apparaît dès le premier point de la zone.
+  syncTraceFabUI();
 }
 
 // ─── SUPPRIMER ───────────────────────────────────────────────

@@ -344,6 +344,17 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   pour l'icône sur ambre), avec texte blanc sauf obstacle.
 - `.trace-fab-secondary` : cercle de **48 px** à gauche du FAB, « ✓ », fond
   `--color-white`, bordure `--border`, ombre `--shadow-md` ; masqué sans mode actif.
+- `.trace-fab-stakeout` : cercle de **48 px** à droite du FAB, visible dès qu'une zone
+  `tonte` ou `interdit` contient au moins un point. Il ne remplace pas l'ajout de point :
+  il lance `startStakeout()` vers le **premier sommet** de la zone courante et passe en
+  `[aria-pressed="true"]` (fond `--color-primary`). Le HUD `.stakeout-hud` s'affiche
+  au-dessus du FAB (distance, cap, bouton d'arrêt) ; les seuils 10 / 5 / 2 / 1 m sont
+  annoncés en `fr-FR` et vibrés, avec hystérésis 0,5 m.
+- **Mode Gants/Soleil** (`body.gloves-mode`) : activé par `#btnGlovesMode` du panneau
+  Connexion (`rtkGlovesMode`). Il renforce les tokens de contraste, porte les boutons à
+  `min-height: 52px` / `font-size: 16px` / `border-width: 2px`, élargit les contrôles ronds
+  (header 52 px, FAB 64 px, secondaires 56 px) et laisse les libellés de la barre basse à
+  13 px pour éviter la troncature.
 - `.trace-fab-menu` : panneau vertical au-dessus du FAB (`left: 50%`,
   `transform: translateX(-50%)`, `bottom: calc(100% + 12px)`), fond `--color-white`,
   rayon `--radius-lg`, ombre `--shadow-xl`, largeur minimale 232 px ; options

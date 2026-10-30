@@ -67,6 +67,10 @@
   --color-info-text:           #1e3a8a;
   --color-neutral-pale:        #f3f4f6;
   --color-neutral-text:        #374151;
+  /* Contrôles translucides du HUD Stakeout (sur fond vert foncé) */
+  --stakeout-control-border:   rgba(255,255,255,0.45);
+  --stakeout-control-bg:       rgba(255,255,255,0.12);
+  --stakeout-control-bg-hover: rgba(255,255,255,0.22);
 
   /* Tokens complémentaires (boutons / modales — Mower Planner) */
   --shadow-xl:           0 8px 24px rgba(0,0,0,0.22);
@@ -1095,4 +1099,116 @@ header {
   }
 
   .tabs-wrapper.bottom-nav .tab-icon { font-size: 18px; }
+}
+
+/* ============================================================
+   MODE GANTS / SOLEIL
+   Usage terrain avec gants ou plein soleil : cibles tactiles plus
+   grandes (52 px minimum), texte plus lisible et contraste renforcé.
+   La classe est posée sur <body> par applyGlovesMode() (js/app.js).
+   ============================================================ */
+body.gloves-mode {
+  --color-primary-deep:         #0b3d0f;
+  --color-primary:              #1b5e20;
+  --color-primary-light:        #2e7d32;
+  --color-primary-pale:         #a5d6a7;
+  --color-primary-pale-bg:      #c8e6c9;
+  --color-primary-accent:       #16a34a;
+  --color-danger:               #b91c1c;
+  --color-danger-pale:          #fecaca;
+  --color-danger-text:          #7f1d1d;
+  --color-warning:              #b45309;
+  --color-warning-pale:         #fde68a;
+  --color-warning-text:         #78350f;
+  --color-info:                 #0f4c9c;
+  --color-teal:                 #00695c;
+  --text:                       #111827;
+  --text2:                      #1f2937;
+  --text3:                      #374151;
+  --text4:                      #4b5563;
+  --border:                     #4b5563;
+  --border2:                    #1f2937;
+}
+
+[data-theme="dark"] body.gloves-mode {
+  --color-primary-deep:         #052e16;
+  --color-primary:              #15803d;
+  --color-primary-light:        #22c55e;
+  --color-primary-pale:         #166534;
+  --color-primary-pale-bg:      #14532d;
+  --color-primary-accent:       #4ade80;
+  --color-danger:               #ef4444;
+  --color-danger-pale:          #7f1d1d;
+  --color-danger-text:          #fecaca;
+  --color-warning:              #f59e0b;
+  --color-warning-pale:         #78350f;
+  --color-warning-text:         #fef3c7;
+  --color-info:                 #60a5fa;
+  --color-teal:                 #2dd4bf;
+  --text:                       #f9fafb;
+  --text2:                      #f3f4f6;
+  --text3:                      #d1d5db;
+  --text4:                      #9ca3af;
+  --border:                     #9ca3af;
+  --border2:                    #d1d5db;
+}
+
+body.gloves-mode button {
+  min-height:   52px;
+  font-size:    16px;
+  border-width: 2px;
+}
+
+/* Contrôles ronds : conserver une forme circulaire malgré le min-height. */
+body.gloves-mode .header-icon-btn,
+body.gloves-mode .header-connection-btn {
+  width:      52px;
+  height:     52px;
+  min-height: 52px;
+}
+
+body.gloves-mode .trace-fab {
+  width:  64px;
+  height: 64px;
+}
+
+body.gloves-mode .trace-fab-main {
+  width:      64px;
+  height:     64px;
+  min-height: 64px;
+}
+
+body.gloves-mode .trace-fab-secondary,
+body.gloves-mode .trace-fab-stakeout {
+  width:      56px;
+  height:     56px;
+  min-height: 56px;
+}
+
+body.gloves-mode .map-float-btn,
+body.gloves-mode .map-gps-btn,
+body.gloves-mode .map-lock-btn {
+  width:      52px;
+  height:     52px;
+  min-height: 52px;
+}
+
+body.gloves-mode .obstacle-option {
+  border-width: 3px;
+}
+
+body.gloves-mode .stakeout-stop {
+  width:      40px;
+  height:     40px;
+  min-height: 40px;
+}
+
+/* Un libellé plus grand ne doit jamais être tronqué dans les barres. */
+body.gloves-mode .tab-text {
+  font-size: 13px;
+}
+
+body.gloves-mode .menu-switch-label,
+body.gloves-mode .drawer-project-name {
+  font-size: 15px;
 }

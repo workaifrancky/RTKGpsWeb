@@ -1234,6 +1234,30 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   événement `online`, 3 téléchargements + 1 partage, file vidée, indicateur masqué, toast,
   demandes multiples ZIP avec `projectIds`, zéro exception) ; `node --check` OK.
 
+- **3.74 — Bonus terrain : valeurs par défaut, Gants/Soleil, haptique et Stakeout** : la modale
+  « Type d'obstacle » gagne un champ `#obstacleNameInput` et pré-sélectionne le **dernier type
+  utilisé** (`rtkLastObstacleType`, repli sur le type le plus fréquent de `globalObstacles`,
+  puis `Arbre`) avec `.obstacle-option.pre-selected` ; le **dernier nom personnalisé**
+  (`rtkLastObstacleName`) est reproposé. `selectObstacleType()` transmet le nom dans
+  `APP.pendingObstacle.name` et `recordObstacle(type, icon, name)` le stocke dans `point.name`
+  puis mémorise type + nom après l'enregistrement. Le panneau Connexion gagne
+  `#btnGlovesMode` (`role="switch"`, clé `rtkGlovesMode`) : `body.gloves-mode` (tokens de
+  contraste renforcés, boutons 52 px / 16 px, bordures épaisses, FAB 64 px) est appliqué par
+  `applyGlovesMode()` / `toggleGlovesMode()` (`js/app.js`). Les captures émettent une vibration
+  courte (`50 ms`) en RTK Fix et un motif long `[100, 50, 100]` si le récepteur est connecté
+  mais sans RTK Fix (`vibratePointFeedback()`, `hasWeakGpsFix()`, `signalPointRecorded()`).
+  Un bouton `#traceFabStakeout` (à droite du FAB, visible dès qu'une zone tonte/interdite a
+  ≥ 1 point) lance un guidage vers le **premier sommet** de la zone courante : HUD
+  `#stakeoutHud` (distance + cap), annonces vocales `fr-FR` et vibrations aux seuils
+  **10 / 5 / 2 / 1 m** avec hystérésis 0,5 m, « Sommet atteint » sous 0,5 m
+  (`startStakeout()` / `stopStakeout()` / `updateStakeoutGuidance()` dans `js/points.js`).
+  Le tracé normal (ajout de points, ✓ Terminer) est conservé : le Stakeout est une action
+  parallèle, arrêtée à l'ouverture du menu FAB ou au changement de type. `index.html` et
+  `menu-test.html` alignés ; contrat GeoJSON inchangé. Vérifié Chrome/CDP (type `Perso`
+  pré-sélectionné, nom pré-rempli, nom enregistré, vibrations 50 / `[100,50,100]`, Gants
+  52 × 52 px / 16 px, HUD et bouton Stakeout, annonces 10/5/1 m + arrivée, zéro exception) ;
+  `node --check` OK.
+
 ## 9. Langue et communication
 
 - Écrire en **français** (interface, commentaires, documentation, messages de commit).

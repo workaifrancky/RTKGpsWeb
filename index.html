@@ -214,6 +214,22 @@
           </button>
         </div>
 
+        <div id="stakeoutHud" class="stakeout-hud" hidden role="status" aria-live="polite">
+          <div class="stakeout-hud-text">
+            <span id="stakeoutDistance">—</span>
+            <span id="stakeoutBearing">—</span>
+          </div>
+          <button type="button" class="stakeout-stop" onclick="stopStakeout()"
+            title="Arrêter le guidage" aria-label="Arrêter le guidage">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M18 6 6 18"/>
+              <path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+
         <button type="button" id="traceFabSecondary" class="trace-fab-secondary"
           hidden title="Terminer le tracé (appui long : menu)"
           aria-label="Terminer le tracé">
@@ -221,6 +237,16 @@
             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
             stroke-linejoin="round" aria-hidden="true" focusable="false">
             <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </button>
+        <button type="button" id="traceFabStakeout" class="trace-fab-stakeout"
+          hidden onclick="toggleStakeout()" aria-pressed="false"
+          title="Guidage vers le premier sommet" aria-label="Guidage vers le premier sommet">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
           </svg>
         </button>
         <button type="button" id="traceFabMain" class="trace-fab-main neutral"
@@ -603,7 +629,20 @@
       </button>
     </div>
 
-    <!-- Bloc 3 : format d'export par défaut. Le bouton principal de la section
+    <!-- Bloc 3 : confort terrain (gants / soleil). -->
+    <div class="menu-row menu-row-context">
+      <span class="menu-label">Confort</span>
+      <button type="button" id="btnGlovesMode" class="menu-switch" role="switch"
+        aria-checked="false" onclick="toggleGlovesMode()"
+        title="Agrandir les boutons et renforcer le contraste">
+        <span class="menu-switch-track" aria-hidden="true">
+          <span class="menu-switch-knob"></span>
+        </span>
+        <span class="menu-switch-label">Mode Gants/Soleil</span>
+      </button>
+    </div>
+
+    <!-- Bloc 4 : format d'export par défaut. Le bouton principal de la section
          POINTS (HISTORIQUE) reprend ce format (libellé et action). -->
     <div class="menu-row menu-row-context">
       <label class="menu-label" for="exportFormatSelect">Format d'export</label>
@@ -690,42 +729,45 @@
   <div class="modal-box">
     <div class="modal-handle"></div>
     <div class="modal-title">Type d'obstacle</div>
+    <input type="text" id="obstacleNameInput" class="form-input obstacle-name-input"
+      placeholder="Nom personnalisé (facultatif)" aria-label="Nom personnalisé de l'obstacle"
+      autocomplete="off">
     <div class="obstacle-grid">
       <!-- Six types, dans l'ordre d'affichage : Arbre, Forage, Poteau, Souche,
            Talus, Divers. L'icône est un SVG Lucide ; le 2e paramètre conserve
            l'emoji dans `point.icon` (donnée historique) et le sous-type stocké
            de « Divers » reste « Perso ». -->
-      <div class="obstacle-option" onclick="selectObstacleType('Arbre','🌳')">
+      <div class="obstacle-option" data-obstacle-type="Arbre" onclick="selectObstacleType('Arbre','🌳')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>
         </div>
         <div class="obstacle-option-label">Arbre</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Forage','🕳️')">
+      <div class="obstacle-option" data-obstacle-type="Forage" onclick="selectObstacleType('Forage','🕳️')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0"/><path d="M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7"/><path d="M21.82 10.1a9.93 9.93 0 0 1 0 3.8"/><path d="M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69"/><path d="M13.9 21.82a9.94 9.94 0 0 1-3.8 0"/><path d="M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7"/><path d="M2.18 13.9a9.93 9.93 0 0 1 0-3.8"/><path d="M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69"/><circle cx="12" cy="12" r="1"/></svg>
         </div>
         <div class="obstacle-option-label">Forage</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Poteau','🪝')">
+      <div class="obstacle-option" data-obstacle-type="Poteau" onclick="selectObstacleType('Poteau','🪝')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2v20"/><path d="M2 5h20"/><path d="M3 3v2"/><path d="M7 3v2"/><path d="M17 3v2"/><path d="M21 3v2"/><path d="m19 5-7 7-7-7"/></svg>
         </div>
         <div class="obstacle-option-label">Poteau</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Souche','🪵')">
+      <div class="obstacle-option" data-obstacle-type="Souche" onclick="selectObstacleType('Souche','🪵')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M15 13 9 7l4-4 6 6h3a8 8 0 0 1-7 7z"/></svg>
         </div>
         <div class="obstacle-option-label">Souche</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Talus','⛰')">
+      <div class="obstacle-option" data-obstacle-type="Talus" onclick="selectObstacleType('Talus','⛰')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
         </div>
         <div class="obstacle-option-label">Talus</div>
       </div>
-      <div class="obstacle-option" onclick="selectObstacleType('Perso','📍')">
+      <div class="obstacle-option" data-obstacle-type="Perso" onclick="selectObstacleType('Perso','📍')">
         <div class="obstacle-option-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
