@@ -39,6 +39,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 |---|---|
 | UI | Vanilla JS, CSS pur (pas de framework, pas de Tailwind) |
 | Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
+| ZIP | JSZip 3.10.2 via CDN (partage multi-parcelles, `js/export.js`) |
 | Bluetooth | Web Bluetooth API |
 | Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
@@ -263,40 +264,45 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `deleteProjects(ids)` applique la même logique à plusieurs parcelles (une confirmation) via
   `removeProjectsByIds()` ; `deleteCurrentProject()` reste un raccourci. Ne pas redéfinir
   `deleteProject()` ailleurs (doublon historique supprimé de `js/history.js`).
-- **Export** : chaque ligne de la vue **PARCELLES** possède un bouton **« Exporter »**
-  (`.btn-history-export`, icône Lucide `download`) qui applique le format choisi dans le panneau
-  Connexion (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) à la parcelle
-  visée : `exportProjectDefaultFormat(projectId)` → `exportProjectGeoJSON()` /
-  `exportCSV(projet)` / `exportGPX(projet)`. **Aucun bouton d'export ni « Effacer » dans la vue
-  détail** (retirés en 3.65). `buildGeoJSON()` centralise la construction et les métadonnées
-  `date_creation` / `version_app` / `source` ajoutées à **toutes** les features (contrat
-  inchangé). Le partage natif passe par `shareGeoJSON()` / `navigator.share({ files })`
-  (fallback toast sur desktop).
+- **Export / transfert** : plus aucun bouton d'export dans la liste des parcelles ni dans la
+  vue détail (le bouton de ligne « Exporter » a été retiré en 3.66). Le seul point d'entrée est
+  le hub `#transferModal` (bouton « Transférer » du détail ou de la barre de sélection) :
+  - une parcelle : « Télécharger le fichier » applique le format du panneau Connexion
+    (`#exportFormatSelect`, clé `rtkExportFormat`, défaut `geojson`) via
+    `exportProjectDefaultFormat()` → `exportProjectGeoJSON()` / `exportCSV(projet)` /
+    `exportGPX(projet)` ;
+  - plusieurs parcelles : un **ZIP unique** (`buildProjectsZip()`, JSZip 3.10.2) contenant un
+    GeoJSON par parcelle. Le partage natif n'envoie que ce ZIP (contourne le bug Android du
+    partage multi-fichiers), avec repli en téléchargement.
+  `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
+  `version_app` / `source` ajoutées à **toutes** les features (contrat GeoJSON inchangé).
 - **Hub de transfert** : `#btnTransfer` (`.transfer-trigger`, icône `share-2` + « Transférer »)
   ouvre `#transferModal` (`js/export.js`), qui propose **quatre canaux redondants** :
-  1. `transferViaNativeShare()` → `shareGeoJSON()` (Quick Share, Gmail…) ;
+  1. `transferViaNativeShare()` → `shareGeoJSON()` pour une parcelle, `shareProjectsZip()` pour
+     plusieurs (un seul fichier ZIP) ;
   2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
      par **`GET /api/local-info`** (`serve-http.cjs`, `os.networkInterfaces()`, IPv4 non
      internes) et un bouton « Copier » (`copyTransferLocalUrl()`) ; le **QR code** est un
      placeholder « Bientôt » ;
-  3. `transferViaCloud()` → `shareGeoJSON()` (le menu Android propose Drive) ;
-  4. `transferOpenDownloads()` → ferme la modale, revient à la liste des parcelles et met en
-     surbrillance (`.session-actions.is-highlight`, animation `transfer-highlight`) le bouton
-     « Exporter » de la parcelle consultée.
-  La modale se ferme au voile, avec Échap (prioritaire sur le menu d'export) et au changement
-  d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège de focus et retour du focus
-  sur `#btnTransfer`. Sans point, `openTransferModal()` affiche « Aucun point à transférer ».
+  3. `transferViaCloud()` → `shareGeoJSON()` / `shareProjectsZip()` (le menu Android propose
+     Drive) ;
+  4. `transferOpenDownloads()` → téléchargement direct : format choisi pour une parcelle, ZIP
+     GeoJSON pour plusieurs.
+  `openTransferModal({ projectIds })` ouvre le hub en mode sélection multiple (sous-titre
+  « Sélection : N parcelles »). La modale se ferme au voile, avec Échap (prioritaire sur le menu
+  d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
+  de focus et retour du focus sur `#btnTransfer`. Sans point, `openTransferModal()` affiche
+  « Aucun point à transférer ».
 - **Onglet HISTORIQUE en deux vues** : la vue **racine** `#historyListView` porte le titre
   `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
-  (`openHistoryDetail(id)`), `GeoJSON` (`exportProjectGeoJSON(id)` — remplace l'ancien CSV de
-  ligne) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
+  (`openHistoryDetail(id)`) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
   (`hidden` par défaut) contient l'en-tête `.history-detail-header` — `#btnHistoryBack`
   (« ← Parcelles », `closeHistoryDetail()`) à gauche et `#btnTransfer` à droite, **sur la même
   ligne** (`justify-content: space-between`) — puis `#pointsSection`.
   `syncHistoryView('list' | 'detail')` bascule les deux vues par `hidden` ;
   `showTab('tab-history')` revient **toujours** sur la racine.
   `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
-  (ZT, ZI, obstacles) et laisse la main aux exports de la section POINTS.
+  (ZT, ZI, obstacles) et laisse la main au hub de transfert.
   Chaque ligne porte une **case à cocher** (`.session-select` dans `.session-select-label`) :
   `toggleHistorySelection()` alimente `historySelection` (Set) et `syncHistorySelectionUI()`
   affiche la barre contextuelle `#historySelectionBar` (`.history-selection-bar`, sticky,
@@ -304,8 +310,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `#selectionCount` et les actions `transferSelectedProjects()` / `deleteSelectedProjects()`.
   La sélection est purgée à l'ouverture du détail (`syncHistoryView('detail')`), à l'entrée
   dans l'onglet (`showTab`) et après suppression. **Transfert** : une seule parcelle → hub
-  existant sur cette parcelle ; plusieurs → un GeoJSON par parcelle (contrat conservé) dans
-  un partage natif multi-fichiers, avec repli en téléchargement. **Suppression** :
+  existant sur cette parcelle ; plusieurs → `openTransferModal({ projectIds })`, le hub
+  produit alors un **ZIP GeoJSON unique** (partage natif du ZIP, repli téléchargement).
+  **Suppression** :
   `deleteProjects(ids)` (`js/projects.js`) demande **une seule** confirmation puis passe par
   `removeProjectsByIds()` (cœur commun avec `deleteProject()`).
   L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
@@ -1115,6 +1122,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`.session-actions.is-highlight`). Vérifié par Chrome/CDP (22/22 : aucun bouton export /
   Effacer dans le détail, GeoJSON/CSV/GPX depuis la ligne, contrat `source` + `[lon,lat]` +
   anneau fermé, retour du hub, suppression de ligne, zéro exception) ; `node --check` OK.
+- **3.66 — Bouton Exporter retiré et partage multiple en ZIP** : le bouton « Exporter » de
+  chaque ligne de PARCELLES est supprimé (seules les actions `Ouvrir` et `Suppr.` restent) ;
+  l'export est centralisé dans le hub `#transferModal`. `exportProjectDefaultFormat()` est
+  conservé pour l'option « Télécharger le fichier » (une parcelle → format du panneau Connexion,
+  plusieurs → ZIP). `transferSelectedProjects()` ouvre **toujours** le hub : une parcelle
+  normalement, plusieurs via `openTransferModal({ projectIds })` (« Sélection : N parcelles »).
+  `buildProjectsZip()` (JSZip 3.10.2) crée `RTK_parcelles_<date>.zip` avec un GeoJSON par
+  parcelle ; `transferViaNativeShare()` / `transferViaCloud()` partagent **un seul ZIP** (le
+  partage natif multi-fichiers échoue sur Android) avec repli `downloadProjectsZip()`. Contrat
+  GeoJSON de chaque entrée inchangé. Vérifié Chrome/CDP (14/14 : lignes sans Exporter, hub
+  1/N, 1 fichier ZIP partagé, 3 entrées GeoJSON `source: rtk-mower`, téléchargement ZIP,
+  format CSV pour une parcelle, zéro exception) ; `node --check` OK.
 
 ## 9. Langue et communication
 

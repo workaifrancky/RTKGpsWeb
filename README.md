@@ -14,7 +14,8 @@ Fonctionnalités principales :
 
 - connexion BLE à l'ESP32 (`RTK_Mower`) et affichage du fix (RTK Fix / Float RTK / DGPS / GPS) ;
 - **verrouillage d'écran** anti-fausse manip (glissement horizontal pour déverrouiller) ;
-- **partage natif** du GeoJSON sur mobile (`navigator.share`) ;
+- **partage natif** sur mobile (`navigator.share`) : un GeoJSON pour une parcelle, un ZIP unique
+  pour plusieurs (contourne le bug Android du multi-fichiers) ;
 - **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit` et `obstacle` ;
@@ -33,8 +34,8 @@ Fonctionnalités principales :
 - six types d'obstacles dans l'ordre **Arbre, Forage, Poteau, Souche, Talus et Divers**
   (sous-type stocké `Perso`), illustrés par des icônes SVG (modale, listes, popups, cible
   caméra) ;
-- export **GeoJSON** (format principal, contrat Mower Planner), **CSV** et **GPX** via le menu
-  secondaire de l'onglet TRACÉS ;
+- export **GeoJSON** (format principal, contrat Mower Planner) et **ZIP multi-parcelles**, plus
+  **CSV** / **GPX** pour une parcelle, via le hub **Transférer** ;
 - outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les
   tests terrain, réactivables via `ENABLE_SIMULATION` (voir [docs/simulation.md](docs/simulation.md)).
 
@@ -104,13 +105,15 @@ peut être isolé.
    Un appui long sur le FAB ou sur `✓` rouvre le menu. L'icône crayon d'une ligne de la
    vue détail (onglet HISTORIQUE) ou d'une popup carte permet de renommer un point.
 4. **Consulter** : l'onglet **HISTORIQUE** s'ouvre sur la liste **PARCELLES** (nom, compteur,
-   date, actions `Ouvrir` / `GeoJSON` / `Suppr.`). `Ouvrir` affiche la vue détail avec les
-   points de la parcelle (zone, compteur, liste, exports et « Effacer ») ; le bouton
+   date, actions `Ouvrir` / `Suppr.`, case à cocher pour la sélection multiple). `Ouvrir`
+   affiche la vue détail avec les points de la parcelle (zone, compteur, liste) ; le bouton
    « ← Parcelles » revient à la liste. `⛶` affiche la carte en plein écran. Cliquer sur
    une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
    l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
-5. **Exporter** depuis la section POINTS avec `⬇ GeoJSON` (format principal), `⬇ CSV`,
-   `⬇ GPX` et `📤 Partager`. Le GeoJSON suit le contrat décrit dans
+5. **Transférer / exporter** avec le bouton **Transférer** (vue détail ou barre de sélection) :
+   partage natif, serveur local, cloud ou téléchargement. Une parcelle utilise le format choisi
+   dans Connexion (GeoJSON / CSV / GPX), plusieurs parcelles produisent un **ZIP** contenant un
+   GeoJSON par parcelle. Le GeoJSON suit le contrat décrit dans
    [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet

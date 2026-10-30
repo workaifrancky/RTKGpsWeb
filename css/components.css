@@ -521,26 +521,6 @@
   min-height: 0;
 }
 
-/* Surbrillance temporaire du bouton « Exporter » de la parcelle
-   (option « Télécharger » du hub de transfert). */
-@keyframes transfer-highlight {
-  0%, 100% { box-shadow: none; }
-  40%      { box-shadow: 0 0 0 3px var(--color-primary-accent); }
-}
-
-.session-actions.is-highlight {
-  border-radius: var(--radius-md);
-  animation:     transfer-highlight 0.9s ease 2;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .session-actions.is-highlight {
-    animation:      none;
-    outline:        3px solid var(--color-primary-accent);
-    outline-offset: 2px;
-  }
-}
-
 /* ─── HUB DE TRANSFERT (#transferModal) ────────────────────── */
 /* Déclencheur : bouton « Transférer » de la section POINTS. */
 .transfer-trigger {

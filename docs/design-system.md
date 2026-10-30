@@ -82,9 +82,8 @@ Overrides de lisibilité :
 - `.action-button-danger` : fond `--color-danger`, hover `#b71c1c`.
 - `.btn-secondary` : bordure `--color-primary`, fond `--color-white`, texte `--color-primary-deep`.
 - `.action-button-compact` : variante barre d'actions (padding 8 px, 12 px, `flex: 1`).
-- `.btn-history-export` : bouton « Exporter » de chaque ligne de **PARCELLES** (icône Lucide
-  `download`). Le format appliqué est celui du panneau Connexion (GeoJSON / CSV / GPX) via
-  `exportProjectDefaultFormat(projectId)`.
+- `.btn-history-export` : supprimé en 3.66. Plus aucun bouton d'export dans la liste des
+  parcelles ni dans le détail ; le téléchargement passe par le hub de transfert.
 - `.export-primary` : style de bouton principal conservé pour un usage futur ; **aucun bouton
   principal d'export n'est affiché** depuis la session 3.65 (la vue détail n'a plus d'actions
   d'export).
@@ -219,7 +218,8 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 
 - `#transferModal` réutilise `.modal-overlay` / `.modal-box` (z-index 1100) avec
   `.transfer-box` en colonne. En-tête `.transfer-head` : titre + `.transfer-subtitle`
-  (« Parcelle : … ») et `.transfer-close` (38 px, rond, icône Lucide `x`).
+  (`Parcelle : …` pour une parcelle, `Sélection : N parcelles` en transfert groupé) et
+  `.transfer-close` (38 px, rond, icône Lucide `x`).
 - `.transfer-options` : quatre `.transfer-option` (min-height 66 px) composées de
   `.transfer-option-icon` (42 px, `--color-white`, couleur par canal : `share` vert,
   `local` teal, `cloud` bleu info, `download` vert foncé), `.transfer-option-text`
@@ -231,10 +231,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.transfer-local` (vue « mode serveur local ») : `.transfer-badge` (« Bientôt », ambre),
   `.transfer-local-url` (encadré pointillé, URL en 13 px / 800), `.transfer-local-hint` et
   deux `.btn-secondary` de largeur égale (« Copier », « Retour »).
-- `.session-actions.is-highlight` : animation `transfer-highlight` (halo
-  `--color-primary-accent`, 2 × 0,9 s) déclenchée par l'option « Télécharger » du hub sur le
-  bouton « Exporter » de la parcelle ; remplacée par un contour fixe en
-  `prefers-reduced-motion: reduce`.
+- **Partage / téléchargement multiple** : pour plusieurs parcelles, le hub produit un **ZIP**
+  unique (JSZip 3.10.2, un GeoJSON par parcelle) partagé via `navigator.share({ files: [zip] })`
+  ou téléchargé. Le partage natif multi-fichiers n'est plus utilisé (bug Android).
 
 ### Tiroir Parcelles
 
@@ -454,8 +453,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
      `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#pointCount` seul, aligné à droite
      par `margin-left: auto` — le badge « Zone #N » a été retiré),
      `#pointsList` dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui
-     défile). **Aucune action d'export ni « Effacer » dans le détail** (3.65) : l'export est
-     porté par le bouton « Exporter » de chaque ligne de la vue PARCELLES.
+     défile). **Aucune action d'export ni « Effacer » dans le détail** (3.65) : le transfert
+     et le téléchargement passent par le hub `#transferModal`.
      `#historyDetailView` réserve `calc(var(--bottom-nav-height, 64px) + 16px)` de
      `padding-bottom` pour que la fin de la liste des points reste au-dessus de la barre de
      navigation.

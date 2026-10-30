@@ -5,9 +5,10 @@
 
 // ─── FORMAT D'EXPORT PAR DÉFAUT ─────────────────────────────
 // Choisi dans le panneau Connexion (roue dentée), persisté dans
-// `localStorage` (clé `rtkExportFormat`). Le bouton principal de la section
-// POINTS reprend ce format : libellé ET action. Les boutons CSV / GPX / GeoJSON
-// restent disponibles individuellement et le contrat GeoJSON est inchangé.
+// `localStorage` (clé `rtkExportFormat`). Il s'applique à l'option
+// « Télécharger le fichier » du hub de transfert pour une seule parcelle
+// (GeoJSON / CSV / GPX). Le partage et les transferts multiples restent en
+// GeoJSON (ZIP), conformément au contrat Mower Planner.
 const EXPORT_FORMAT_KEY = 'rtkExportFormat';
 const EXPORT_FORMAT_LABELS = { geojson: 'GeoJSON', csv: 'CSV', gpx: 'GPX' };
 let exportFormat = 'geojson';
@@ -28,16 +29,10 @@ function getExportFormatLabel(format = exportFormat) {
   return EXPORT_FORMAT_LABELS[normalizeExportFormat(format)];
 }
 
-// Met à jour la liste du panneau Connexion et les boutons « Exporter » de la
-// liste des parcelles (le titre reflète le format courant).
+// Met à jour la liste du panneau Connexion.
 function syncExportFormatUI() {
   const select = document.getElementById('exportFormatSelect');
   if (select) select.value = exportFormat;
-
-  const text = getExportFormatLabel();
-  document.querySelectorAll('#historyList .btn-history-export').forEach(rowBtn => {
-    rowBtn.title = `Exporter en ${text}`;
-  });
 }
 
 // Appelée par #exportFormatSelect (onchange).
@@ -53,7 +48,7 @@ function setExportFormat(value) {
 }
 
 // Export de la parcelle courante dans le format choisi (API de commodité).
-// L'interface utilise exportProjectDefaultFormat(projectId) depuis la liste.
+// L'interface l'utilise via l'option « Télécharger le fichier » du hub.
 function exportDefaultFormat() {
   const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
   if (!project) { showToast('Aucune parcelle sélectionnée', 'error'); return; }
@@ -306,7 +301,7 @@ function exportProjectGeoJSON(projectId) {
 }
 
 // Export d'une parcelle dans le format choisi dans le panneau Connexion
-// (GeoJSON / CSV / GPX), depuis le bouton « Exporter » de la liste HISTORIQUE.
+// (GeoJSON / CSV / GPX), depuis l'option « Télécharger le fichier » du hub.
 // Le GeoJSON conserve exactement le contrat de buildGeoJSON().
 function exportProjectDefaultFormat(projectId) {
   const list = typeof loadProjects === 'function' ? loadProjects() : [];
@@ -367,22 +362,46 @@ async function shareGeoJSON() {
 // afin de ne jamais dupliquer la construction du GeoJSON.
 let transferPreviousFocus = null;
 let transferLocalUrls = [];
+// Parcelles sélectionnées pour un transfert groupé (vide = parcelle courante).
+let transferSelectionIds = [];
 
-function openTransferModal() {
+// Parcelles concernées par le hub : la sélection multiple si elle existe, sinon
+// la parcelle courante. Les parcelles sans point sont ignorées.
+function getTransferProjects() {
+  const list = typeof loadProjects === 'function' ? loadProjects() : [];
+  let projects;
+  if (transferSelectionIds.length) {
+    projects = list.filter(p => transferSelectionIds.includes(p.id));
+  } else {
+    const current = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+    projects = current ? [current] : [];
+  }
+  return projects.filter(p => Array.isArray(p.points) && p.points.length > 0);
+}
+
+function openTransferModal(options = {}) {
   const overlay = document.getElementById('transferModal');
   if (!overlay) return;
 
-  // Sans point, aucun fichier à produire : même garde-fou que les exports.
-  if (typeof getPoints === 'function' && getPoints().length === 0) {
+  transferSelectionIds = Array.isArray(options.projectIds)
+    ? options.projectIds.map(String)
+    : [];
+
+  const projects = getTransferProjects();
+  if (!projects.length) {
+    transferSelectionIds = [];
     showToast('Aucun point à transférer', 'error');
     return;
   }
 
   transferShowOptions();
 
-  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
   const nameEl = document.getElementById('transferProjectName');
-  if (nameEl) nameEl.textContent = project?.name || 'Parcelle courante';
+  if (nameEl) {
+    nameEl.textContent = projects.length > 1
+      ? `Sélection : ${projects.length} parcelles`
+      : `Parcelle : ${projects[0].name || 'Parcelle courante'}`;
+  }
 
   transferPreviousFocus = document.activeElement;
   overlay.classList.add('show');
@@ -399,6 +418,7 @@ function closeTransferModal() {
   overlay.classList.remove('show');
   overlay.setAttribute('aria-hidden', 'true');
   transferShowOptions();                 // la prochaine ouverture repart des options
+  transferSelectionIds = [];             // la sélection groupée ne survit pas à la fermeture
 
   const fromFocused = transferPreviousFocus;
   transferPreviousFocus = null;
@@ -416,49 +436,121 @@ function transferShowOptions() {
 }
 
 // Option 1 — partage natif (Quick Share, Gmail, Drive…).
+// Une parcelle : GeoJSON seul. Plusieurs parcelles : un ZIP unique (le partage
+// natif multi-fichiers échoue sur Android).
 async function transferViaNativeShare() {
+  const projects = getTransferProjects();
   closeTransferModal();
+  if (projects.length > 1) return shareProjectsZip(projects);
   await shareGeoJSON();
 }
 
 // Option 3 — cloud : c'est le menu de partage Android qui propose Drive.
 function transferViaCloud() {
+  const projects = getTransferProjects();
   closeTransferModal();
   showToast('Choisissez Drive / Cloud dans le menu de partage', 'info', 3200);
+  if (projects.length > 1) return shareProjectsZip(projects);
   return shareGeoJSON();
 }
 
-// Option 4 — téléchargement manuel : on revient sur la liste des parcelles et
-// on met en évidence le bouton « Exporter » de la parcelle consultée.
-function transferOpenDownloads() {
-  const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
-  const projectId = project ? project.id : '';
-
+// Option 4 — téléchargement direct.
+// Une parcelle : format choisi dans le panneau Connexion (GeoJSON / CSV / GPX).
+// Plusieurs parcelles : ZIP GeoJSON unique.
+async function transferOpenDownloads() {
+  const projects = getTransferProjects();
   closeTransferModal();
-
-  if (typeof isHistoryDetailOpen === 'function' && isHistoryDetailOpen()
-      && typeof closeHistoryDetail === 'function') {
-    closeHistoryDetail();
-  }
-
-  const selector = projectId
-    ? `#historyList .btn-history-export[data-project-id="${projectId}"]`
-    : '#historyList .btn-history-export';
-  const button = document.querySelector(selector);
-  if (!button) {
-    showToast('Utilisez « Exporter » sur une parcelle de la liste', 'info', 3200);
+  if (!projects.length) {
+    showToast('Aucun point à transférer', 'error');
     return;
   }
+  if (projects.length > 1) return downloadProjectsZip(projects);
+  return exportProjectDefaultFormat(projects[0].id);
+}
 
-  if (typeof button.scrollIntoView === 'function') {
-    button.scrollIntoView({ block: 'center', behavior: 'smooth' });
+// ─── ZIP DES PARCELLES SÉLECTIONNÉES ────────────────────────
+// Un seul fichier .zip contenant un GeoJSON par parcelle : contourne le bug
+// Android du partage natif de plusieurs fichiers. Le contrat de chaque GeoJSON
+// reste celui de buildGeoJSON() (source, [lon, lat], anneaux fermés).
+async function buildProjectsZip(projects) {
+  if (typeof JSZip !== 'function') {
+    showToast('Compression ZIP indisponible — vérifiez la connexion', 'error', 3500);
+    return null;
   }
-  const actions = button.closest('.session-actions') || button;
-  actions.classList.remove('is-highlight');
-  void actions.offsetWidth;              // relance l'animation
-  actions.classList.add('is-highlight');
-  setTimeout(() => actions.classList.remove('is-highlight'), 2000);
-  if (typeof button.focus === 'function') button.focus({ preventScroll: true });
+
+  const zip = new JSZip();
+  const usedNames = new Set();
+  let count = 0;
+
+  projects.forEach(project => {
+    const payload = typeof buildGeoJSON === 'function' ? buildGeoJSON(project) : null;
+    if (!payload) return;
+
+    let entryName = payload.filename;
+    let suffix = 2;
+    while (usedNames.has(entryName)) {
+      entryName = payload.filename.replace(/\.geojson$/i, `_${suffix++}.geojson`);
+    }
+    usedNames.add(entryName);
+    zip.file(entryName, JSON.stringify(payload.geojson, null, 2));
+    count++;
+  });
+
+  if (!count) {
+    showToast('Aucun point à transférer', 'error');
+    return null;
+  }
+
+  try {
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+    return { blob, filename: `RTK_parcelles_${dateTag()}.zip`, count };
+  } catch (error) {
+    console.warn('Création du ZIP impossible', error);
+    showToast('Création du ZIP impossible', 'error');
+    return null;
+  }
+}
+
+async function shareProjectsZip(projects) {
+  const archive = await buildProjectsZip(projects);
+  if (!archive) return;
+
+  let file = null;
+  let canShare = typeof File === 'function'
+    && typeof navigator !== 'undefined'
+    && typeof navigator.share === 'function';
+  if (canShare) {
+    file = new File([archive.blob], archive.filename, { type: 'application/zip' });
+    if (typeof navigator.canShare === 'function') {
+      try { canShare = navigator.canShare({ files: [file] }); }
+      catch { canShare = false; }
+    }
+  }
+
+  if (canShare) {
+    try {
+      await navigator.share({
+        title: `GeoJSON — ${archive.count} parcelles`,
+        text:  `Export RTK Mower — ${archive.count} parcelles (ZIP)`,
+        files: [file],
+      });
+      showToast(`${archive.count} parcelles partagées (ZIP)`, 'info');
+      return;
+    } catch (error) {
+      if (error && error.name === 'AbortError') return;   // partage annulé
+      console.warn('Partage du ZIP impossible', error);
+    }
+  }
+
+  downloadFile(archive.blob, archive.filename, 'application/zip');
+  showToast(`ZIP téléchargé — ${archive.count} parcelles`, 'info');
+}
+
+async function downloadProjectsZip(projects) {
+  const archive = await buildProjectsZip(projects);
+  if (!archive) return;
+  downloadFile(archive.blob, archive.filename, 'application/zip');
+  showToast(`ZIP téléchargé — ${archive.count} parcelles`, 'info');
 }
 
 // Option 2 — mode serveur local. L'adresse LAN est fournie par

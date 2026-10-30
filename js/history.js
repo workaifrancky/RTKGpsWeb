@@ -98,10 +98,6 @@ function loadHistory() {
     syncHistorySelectionUI();
     return;
   }
-  // Format d'export choisi dans le panneau Connexion (GeoJSON par défaut).
-  const exportLabel = typeof getExportFormatLabel === 'function'
-    ? getExportFormatLabel()
-    : 'GeoJSON';
   container.innerHTML=projects.map(p=>{
     const date=new Date(p.createdAt).toLocaleDateString('fr-FR');
     const tonte=p.points.filter(pt=>pt.type==='tonte').length;
@@ -135,18 +131,6 @@ function loadHistory() {
             <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
           </svg>
           Ouvrir
-        </button>
-        <button class="btn-action-bar btn-history-export" data-project-id="${p.id}"
-          onclick="exportProjectDefaultFormat('${p.id}')"
-          title="Exporter en ${exportLabel}" aria-label="Exporter la parcelle">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" x2="12" y1="15" y2="3"/>
-          </svg>
-          Exporter
         </button>
         <button class="btn-action-bar danger" onclick="deleteProject('${p.id}')">${ICON_TRASH} Suppr.</button>
       </div>
@@ -238,10 +222,11 @@ async function deleteSelectedProjects() {
   syncHistorySelectionUI();
 }
 
-// Transfert : une seule parcelle → hub de transfert existant (4 canaux).
-// Plusieurs parcelles → un GeoJSON par parcelle dans un seul partage natif,
-// avec repli en téléchargement (le contrat GeoJSON par parcelle est conservé).
-async function transferSelectedProjects() {
+// Transfert : le hub #transferModal est toujours utilisé.
+// - une seule parcelle : elle devient la parcelle courante et le hub s'ouvre ;
+// - plusieurs parcelles : le hub reçoit la sélection et produit un ZIP unique
+//   (le partage natif multi-fichiers est buggé sur Android).
+function transferSelectedProjects() {
   const selected = getSelectedHistoryProjects()
     .filter(p => Array.isArray(p.points) && p.points.length > 0);
   if (!selected.length) {
@@ -249,66 +234,14 @@ async function transferSelectedProjects() {
     return;
   }
 
-  if (selected.length === 1) {
-    if (typeof switchProject === 'function') switchProject(selected[0].id);
-    if (typeof openTransferModal === 'function') openTransferModal();
-    return;
+  if (selected.length === 1 && typeof switchProject === 'function') {
+    switchProject(selected[0].id);
   }
-
-  await shareSelectedHistoryProjects(selected);
-}
-
-async function shareSelectedHistoryProjects(selected) {
-  const payloads = selected
-    .map(p => (typeof buildGeoJSON === 'function' ? buildGeoJSON(p) : null))
-    .filter(Boolean);
-  if (!payloads.length) {
-    showToast('Aucun point à transférer', 'error');
-    return;
+  if (typeof openTransferModal === 'function') {
+    openTransferModal(selected.length > 1
+      ? { projectIds: selected.map(p => p.id) }
+      : {});
   }
-
-  const files = (typeof File === 'function')
-    ? payloads.map(p => new File(
-        [JSON.stringify(p.geojson, null, 2)],
-        p.filename,
-        { type: 'application/geo+json' },
-      ))
-    : [];
-
-  let canShare = files.length > 0
-    && typeof navigator !== 'undefined'
-    && typeof navigator.share === 'function';
-  if (canShare && typeof navigator.canShare === 'function') {
-    try { canShare = navigator.canShare({ files }); }
-    catch { canShare = false; }
-  }
-
-  if (canShare) {
-    try {
-      await navigator.share({
-        title: `GeoJSON — ${files.length} parcelles`,
-        text:  `Export RTK Mower — ${files.length} parcelles`,
-        files,
-      });
-      showToast(`${files.length} GeoJSON partagés`, 'info');
-      return;
-    } catch (error) {
-      if (error && error.name === 'AbortError') return;   // partage annulé
-      // Sinon : repli sur le téléchargement ci-dessous.
-    }
-  }
-
-  if (typeof downloadFile !== 'function') {
-    showToast('Partage non supporté sur ce navigateur', 'error');
-    return;
-  }
-
-  payloads.forEach(p => downloadFile(
-    JSON.stringify(p.geojson, null, 2),
-    p.filename,
-    'application/json',
-  ));
-  showToast(`${payloads.length} fichiers GeoJSON téléchargés`, 'info');
 }
 
 // La suppression de parcelle est centralisée dans projects.js :

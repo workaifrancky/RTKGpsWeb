@@ -148,14 +148,15 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
 ## Statistiques et export
 
 - `computeStats()` travaille sur tous les points du projet.
-- `exportGeoJSON()` construit les features dans l'ordre domaine → zone 1..N (une par `zoneId`)
+- `buildGeoJSON()` construit les features dans l'ordre domaine → zone 1..N (une par `zoneId`)
   → zone interdite → obstacles ; le domaine est l'enveloppe convexe de tous les points.
-- **Hub de transfert** (`js/export.js`, `#transferModal`) : quatre canaux redondants pour le
-  même GeoJSON — partage natif (`shareGeoJSON()`), mode serveur local (adresse LAN lue via
-  `GET /api/local-info` exposé par `serve-http.cjs`, QR code à venir), cloud (même
-  `navigator.share`, Drive proposé par Android) et téléchargement direct (boutons CSV / GPX /
-  GeoJSON de `#pointsSection`, mis en surbrillance). Aucun canal ne reconstruit le GeoJSON :
-  `buildGeoJSON()` reste la source unique.
+- **Hub de transfert** (`js/export.js`, `#transferModal`) : quatre canaux redondants — partage
+  natif (un GeoJSON pour une parcelle, un ZIP unique pour plusieurs), mode serveur local
+  (adresse LAN lue via `GET /api/local-info` exposé par `serve-http.cjs`, QR code à venir),
+  cloud (même `navigator.share`, Drive proposé par Android) et téléchargement direct (format
+  choisi pour une parcelle, ZIP pour plusieurs). Il n'y a plus de boutons d'export dans les
+  listes ni dans le détail. Aucun canal ne reconstruit le GeoJSON : `buildGeoJSON()` reste la
+  source unique, et chaque entrée du ZIP respecte le contrat.
 - Voir [format-geojson.md](format-geojson.md).
 
 ## Mode simulation
