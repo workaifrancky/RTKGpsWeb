@@ -431,7 +431,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
      **sur la même ligne** ; puis `#pointsSection` — en-tête `.points-section-head` :
      `« PARCELLE : »` (`.section-title` sans filet) suivi **immédiatement** de
      `#historyProjectName` (`.project-name` : 12 px / 800, uppercase, vert foncé, ellipse ;
-     `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#zoneBadge`, `#pointCount`),
+     `gap: 0` et `margin-left: 0`), `.points-view-meta` (`#pointCount` seul, aligné à droite
+     par `margin-left: auto` — le badge « Zone #N » a été retiré),
      `#pointsList` dans `.points-view-body` (plus de hauteur contrainte : c'est `.screen` qui
      défile) et `.points-view-actions` en grille 2 × 2 (GeoJSON, CSV, GPX, Effacer).
      `#historyDetailView` réserve `calc(var(--bottom-nav-height, 64px) + 16px)` de
@@ -443,7 +444,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   icônes SVG Lucide crayon / corbeille (18 px, `stroke: currentColor`).
 - `.leaflet-popup-content .popup-btn` : actions compactes de la popup carte (renommer /
   supprimer), couleurs `--color-primary` et `--color-danger`, fond pâle au survol.
-- `.zone-badge` : badge « Zone #N » de l'onglet TRACÉS (fond pâle, bordure verte, override nuit).
+- `.points-view-meta` : rangée de la vue détail HISTORIQUE (compteur de points, aligné à
+  droite). Le badge `.zone-badge` (« Zone #N ») a été supprimé en 3.61, avec ses règles CSS.
+- **Libellés de zones** : sans nom personnalisé, `getZoneDisplayName()` renvoie
+  « Zone de tonte (ZT) » / « Zone interdite (ZI) » — **sans numéro**. Le code complet
+  (`ZT1`, `ZI2`…) reste dans la méta de chaque point et sur la carte. Les obstacles sont
+  numérotés sans dièse (« Arbre 1 ») dans la liste et la popup.
 - `.zone-label` : médaillon circulaire `ZN` centré sur chaque polygone de tonte.
 - `.leaflet-measure-path-measurement` : longueurs de segments affichées sur les polygones de
   tonte par `leaflet-measure-path` (11 px / 800, `--font` ; halo blanc/texte noir du plugin,

@@ -291,8 +291,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (ZT, ZI, obstacles) et laisse la main aux exports de la section POINTS.
   L'en-tête `.points-section-head` affiche `« PARCELLE :<NOM> »` — **aucun espace** entre le
   titre et le nom (`gap: 0` + `margin-left: 0`), sans bouton (le transfert est remonté dans
-  `.history-detail-header`). `#pointsSection` contient `#zoneBadge`, `#pointCount`,
-  `#pointsList`, les exports GeoJSON/CSV/GPX et « Effacer ». La vue détail réserve la barre de
+  `.history-detail-header`). `#pointsSection` contient `#pointCount`,
+  `#pointsList`, les exports GeoJSON/CSV/GPX et « Effacer ». **Plus de badge « Zone #N »** :
+  la rangée `.points-view-meta` ne porte que `#pointCount`, aligné à droite
+  (`margin-left: auto`) ; `updateZoneBadge()` subsiste mais ne fait rien (élément absent).
+  Les obstacles sont numérotés **sans dièse** (« Arbre 1 », « Divers 3 ») dans la liste et la
+  popup, à partir de `point.index`. La vue détail réserve la barre de
   navigation basse (`#historyDetailView { padding-bottom: calc(var(--bottom-nav-height, 64px)
   + 16px) }`) pour que les exports restent entièrement accessibles ; le parent `.screen` assure
   `overflow-y: auto`. Le menu FAB TRACÉS ne contient plus d'option « Historique » :
@@ -393,8 +397,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   marge** n'est ajoutée devant le nom (`margin-left: 0` dans les deux onglets).
 - **Zones modifiables** : popup `zonePopup()` sur chaque polygone (tonte/interdit) avec
   `renameZone(type, zoneId)` et `deleteZone(type, zoneId)` ; noms stockés dans
-  `project.zoneNames` et affichés par `getZoneDisplayName()`. `deleteZone()` renumérote les
-  points, recale les zones courantes et rafraîchit carte/liste/stats.
+  `project.zoneNames` et affichés par `getZoneDisplayName()`. Sans nom personnalisé, le
+  libellé est **« Zone de tonte (ZT) »** / **« Zone interdite (ZI) »**, **sans numéro** : le
+  code complet (`ZT1`, `ZI2`…) reste dans la méta de chaque point (`getZoneCode()`) et sur la
+  carte. `deleteZone()` renumérote les points, recale les zones courantes et rafraîchit
+  carte/liste/stats.
 - **Renommage** : `renameProject(id)` / `renameCurrentProject()` (parcelle), `renameZone()`,
   `renamePoint(id)` utilisent `customPrompt()` (modale `#customModal`), refusent un nom vide
   sans fermer la modale et persistent via `saveProjects()`. Le nom d'un point est stocké dans
@@ -1016,7 +1023,7 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   actions étant reporté sur `.points-view-head-actions` (`margin-left: 10px`). Vérifié par
   Chrome/CDP (86 vérifications : racine/détail, retour, 3 actions de ligne, écart titre → nom
   mesuré à 0 px, GeoJSON par parcelle) et captures des deux vues.
-- **3.59 — Header réorganisé (BLE en ligne 1) et en-tête du détail HISTORIQUE** : le header
+- **3.60 — Header réorganisé (BLE en ligne 1) et en-tête du détail HISTORIQUE** : le header
   garde deux lignes en `justify-content: space-between`, mais change de contenu :
   (1) logo `🌾 RTK Mower` + `#btnBle` à droite ; (2) pastille `#headerGpsStatus` +
   `.header-actions-group` avec `#btnConnectionSettings` (Réglages) puis `#btnTheme`.
@@ -1032,6 +1039,18 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `.header-top-row`, Réglages + Thème dans `.header-bottom-row`, couleur BLE identique au
   bouton thème, même ligne retour/transférer, dernier bouton « Effacer » au-dessus de la barre,
   `padding-bottom` 80 px) et captures.
+- **3.61 — Libellés allégés de la liste des points (HISTORIQUE)** : le badge « Zone #N »
+  (`#zoneBadge`, `.zone-badge`) est supprimé de la vue détail — `updateZoneBadge()` subsiste
+  mais ne fait rien (élément absent), la logique de zone (`currentZoneId`) est inchangée.
+  La rangée `.points-view-meta` ne porte plus que `#pointCount`, aligné à droite
+  (`margin-left: auto`). `getZoneDisplayName()` renvoie **« Zone de tonte (ZT) »** /
+  **« Zone interdite (ZI) »** (sans numéro) quand aucun nom personnalisé n'est défini ; le code
+  complet `ZT1` / `ZI2` reste dans la méta de chaque point et sur la carte. Les obstacles sont
+  numérotés **sans dièse** (« Arbre 1 », « Divers 3 ») dans la liste et la popup (le numéro
+  reste `point.index`). Contrat GeoJSON inchangé (`zone_id`, `index`, `categorie`, noms
+  `Zone interdite #N` de l'export). Vérifié par Chrome/CDP (112 vérifications : badge absent,
+  libellés sans chiffre, « Arbre 1 / Pierre 2 / Divers 3 », compteur aligné à droite) et
+  captures.
 
 ## 9. Langue et communication
 

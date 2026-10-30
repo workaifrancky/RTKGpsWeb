@@ -400,14 +400,15 @@ function pointPopup(p, idx) {
     </div>`;
   // Popup allégée : pas d'horodatage (l'heure reste dans la liste des points
   // et l'export), uniquement zone, fix, altitude et satellites.
-  return `<b>${dot}${label} #${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
+  // Numéro d'ordre sans dièse (« Arbre 2 »), comme dans la liste des points.
+  return `<b>${dot}${label} ${idx}</b><br>${zone}Fix: ${p.fix}<br>Alt: ${fmt(p.alt,1)}m<br>Sat: ${p.satellites}${actions}`;
 }
 
 // Popup d'une zone (tonte ou interdite) : nom personnalisé + actions.
 function zonePopup(type, zoneId, area) {
   const name = typeof getZoneDisplayName === 'function'
     ? getZoneDisplayName(type, zoneId)
-    : (type === 'interdit' ? `Zone interdite #${zoneId}` : `Zone de tonte #${zoneId}`);
+    : (type === 'interdit' ? 'Zone interdite (ZI)' : 'Zone de tonte (ZT)');
   const surface = Number(area) > 0 ? `<br>Surface : ${formatArea(area)}` : '';
   return `<b>${name}</b>${surface}
     <div class="popup-actions">

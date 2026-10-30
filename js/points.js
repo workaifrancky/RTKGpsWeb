@@ -407,14 +407,16 @@ function getZoneCode(type, zoneId) {
   return `${kind}${id}`;
 }
 
+// Libellé d'une zone : nom personnalisé, sinon « Zone de tonte (ZT) » /
+// « Zone interdite (ZI) ». Le numéro n'apparaît plus dans le libellé : le code
+// complet de la zone (ZT1, ZI2…) reste affiché dans la méta de chaque point
+// (`getZoneCode()`) et sur la carte.
 function getZoneDisplayName(type, zoneId) {
   const kind = type === 'interdit' ? 'interdit' : 'tonte';
   const id = Number(zoneId) || 1;
   const custom = currentProject?.zoneNames?.[kind]?.[String(id)];
   if (custom) return custom;
-  return kind === 'interdit'
-    ? `Zone interdite ${getZoneCode('interdit', id)}`
-    : `Zone de tonte ${getZoneCode('tonte', id)}`;
+  return kind === 'interdit' ? 'Zone interdite (ZI)' : 'Zone de tonte (ZT)';
 }
 
 async function renameZone(type, zoneId) {
@@ -540,6 +542,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Le badge « Zone #N » a été retiré de la vue détail (allègement de la liste) :
+// la fonction reste appelée par projects.js / points.js et ne fait rien tant que
+// l'élément est absent. La zone courante reste stockée dans `currentZoneId` et
+// affichée par le code ZT/ZI de chaque point — aucune logique de tracé n'est
+// impactée.
 function updateZoneBadge() {
   const el = document.getElementById('zoneBadge');
   if (!el) return;
@@ -746,9 +753,10 @@ function renderPointItem(p, zoneIndex = null) {
   const obstacleIcon = !inZone && p.type === 'obstacle' && typeof getObstacleIconMarkup === 'function'
     ? `<span class="obstacle-type-icon" aria-hidden="true">${getObstacleIconMarkup(p.subtype)}</span>`
     : '';
+  // Obstacle : « Arbre 2 » (numéro d'ordre sans dièse, plus léger à lire).
   const name = inZone
     ? `Point ${number}${customName}`
-    : `${obstacleIcon}${getPointDisplayName(p)} #${p.index}`;
+    : `${obstacleIcon}${getPointDisplayName(p)} ${p.index}`;
   const zoneMeta = inZone ? `${getZoneCode(p.type, p.zoneId)} &nbsp;·&nbsp; ` : '';
   const fix   = getFixMeta(p.fix);
   return `

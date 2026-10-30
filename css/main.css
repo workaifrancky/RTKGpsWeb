@@ -903,7 +903,6 @@ header {
   }
 
   /* Textes lisibles (components.css charge après main.css). */
-  .zone-badge,
   .point-coords,
   .point-meta,
   .point-time,

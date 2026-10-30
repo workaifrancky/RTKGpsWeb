@@ -510,6 +510,12 @@
   margin:       4px 0 8px;
 }
 
+/* Compteur de points : reste aligné à droite depuis la suppression du badge
+   « Zone #N » (ancien premier élément de la rangée). */
+#pointCount {
+  margin-left: auto;
+}
+
 /* Plus de hauteur contrainte : c'est l'onglet (.screen) qui défile. */
 .points-view-body {
   min-height: 0;
@@ -1100,27 +1106,6 @@
 
 .action-button-simulation-gps:hover  { filter: brightness(0.92); }
 .action-button-simulation-gps:active { transform: scale(0.99); }
-
-/* ─── BADGE ZONE COURANTE ──────────────────────────────────── */
-.zone-badge {
-  display:        inline-flex;
-  align-items:    center;
-  padding:        4px 10px;
-  border-radius:  var(--radius-lg);
-  background:     var(--color-primary-pale);
-  color:          var(--color-primary-deep);
-  border:         1px solid var(--color-primary-light);
-  font-size:      12px;
-  font-weight:    800;
-  letter-spacing: 0.4px;
-  white-space:    nowrap;
-}
-
-[data-theme="dark"] .zone-badge {
-  background:   var(--color-primary-deep);
-  color:        var(--color-primary-light);
-  border-color: var(--color-primary-light);
-}
 
 /* ─── LISTE DES POINTS ──────────────────────────────────────── */
 #pointsList {
@@ -1808,7 +1793,6 @@
   .import-obstacles-toggle       { min-height: 44px; font-size: 12px; }
 
   /* Textes lisibles (components.css charge après main.css). */
-  .zone-badge,
   .point-coords,
   .point-meta,
   .point-time,
