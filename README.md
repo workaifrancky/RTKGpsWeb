@@ -90,14 +90,13 @@ peut être isolé.
 1. **Connecter le BLE** : icône Bluetooth de la 1re ligne du header (à droite du logo), puis
    sélectionner l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir
    enregistrer.
-2. **Choisir une parcelle** : à chaque lancement, aucune parcelle n'est restaurée et le FAB
-   reste masqué. Le bouton « Connexion » (1ʳᵉ ligne du header) ouvre le panneau de connexion :
-   station NTRIP, puis bouton **« Choisir une parcelle »** (visible uniquement sans parcelle)
-   qui ouvre le tiroir « Parcelles ».
+2. **Choisir une parcelle** : à chaque lancement, aucune parcelle n'est restaurée. Le **FAB**
+   reste visible au centre de la carte ; un appui ouvre son menu dont la 1re option
+   « Parcelle : Aucune » mène au tiroir « Parcelles ».
    Chaque ligne permet de changer de parcelle (`clic`), la renommer (icône crayon) ou la
    supprimer (icône corbeille). Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
-3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît
-   au centre en bas de la carte. Il ouvre un menu vertical :
+3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, le **FAB** `＋` propose
+   les tracés au centre en bas de la carte :
    - `Nouvelle zone de tonte` (pastille verte) : FAB vert, chaque clic ajoute un point de tonte ;
    - `Nouvelle zone interdite` (pastille rouge) : FAB rouge, chaque clic ajoute un point interdit ;
    - `Obstacle` (pastille ambre) : FAB jaune, un clic ouvre le choix du type d'obstacle et crée

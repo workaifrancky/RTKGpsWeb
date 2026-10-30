@@ -80,10 +80,9 @@ function syncTraceFabUI() {
 
   const hasProject = !!currentProject;
   const onTracesTab = typeof APP === 'undefined' || APP.currentTab === 'tab-points';
-  // Le FAB de tracé n'apparaît qu'avec une parcelle sélectionnée. Sans
-  // parcelle, l'accès au tiroir passe par le panneau Connexion
-  // (#menuChooseProjectRow) : la carte reste vide.
-  const visible = onTracesTab && hasProject;
+  // Le FAB reste visible sur TRACÉS même sans parcelle : son menu porte
+  // l'option « Parcelle : … », accès au tiroir (création/sélection).
+  const visible = onTracesTab;
   fab.hidden = !visible;
   if (!visible) closeTraceFabMenu();
 
@@ -254,15 +253,16 @@ async function finishCurrentTrace() {
 }
 
 function onTraceFabMainClick() {
-  // Sans parcelle, le FAB mène directement au tiroir (création/sélection).
-  if (!currentProject) {
-    if (typeof openProjectDrawer === 'function') openProjectDrawer();
-    return;
-  }
-
   const menu = document.getElementById('traceFabMenu');
   if (menu && menu.classList.contains('show')) {
     closeTraceFabMenu();
+    return;
+  }
+
+  // Sans parcelle, le clic ouvre le menu : la 1re option « Parcelle : … »
+  // mène au tiroir de création/sélection.
+  if (!currentProject) {
+    openTraceFabMenu();
     return;
   }
 

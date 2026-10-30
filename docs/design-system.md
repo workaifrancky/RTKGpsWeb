@@ -158,10 +158,8 @@ Overrides de lisibilité :
   `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
   pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
   + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
-  44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) `#menuChooseProjectRow`
-  (`.menu-project-btn` « Choisir une parcelle ») **visible uniquement quand aucune parcelle
-  n'est sélectionnée**, pour ouvrir le tiroir alors que le FAB est masqué. Avec une parcelle,
-  la sélection reste dans la 1re ligne du menu FAB de TRACÉS (aucun doublon d'ID).
+  44 px, 12 px / 600), options GeoJSON / CSV / GPX. La parcelle n'est **pas** dans ce panneau :
+  elle reste accessible par la 1re ligne du menu FAB de TRACÉS (visible même sans parcelle).
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
   (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
   Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le
@@ -325,8 +323,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 
 - `.trace-fab` : conteneur **`position: fixed`**, centré en bas (`left: 50%`,
   `transform: translateX(-50%)`, `bottom: calc(80px + env(safe-area-inset-bottom, 0px))`,
-  `z-index: 1002`), masqué avec `[hidden]` tant qu'aucune parcelle n'est sélectionnée ou
-  hors TRACÉS. Il contient `#traceFabMenu`, `#traceFabSecondary` et `#traceFabMain`.
+  `z-index: 1002`), masqué avec `[hidden]` **hors TRACÉS** (il reste visible sans parcelle).
+  Il contient `#traceFabMenu`, `#traceFabSecondary` et `#traceFabMain`.
   `#traceFabSecondary` est en position absolue à gauche (`right: calc(100% + 10px)`) afin
   de laisser le bouton principal exactement centré.
 - `.trace-fab-main` : cercle de **56 px**, fond neutre `--color-bg-muted`, texte `--text`,
@@ -356,8 +354,8 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   tiroir des parcelles, avant les trois options de tracé. Le menu ne contient **que** les
   tracés et la parcelle ; l'accès aux points se fait par l'onglet HISTORIQUE de la navigation
   basse. Le bouton principal porte l'icône Lucide `plus` (26 px) et le secondaire `check`
-  (24 px). **Sans parcelle, le FAB est masqué** : l'accès au tiroir passe par le bouton
-  « Choisir une parcelle » du panneau Connexion (`#menuChooseProjectRow`).
+  (24 px). **Sans parcelle, le FAB reste visible** : le clic principal ouvre le menu, dont la
+  1re option « Parcelle : Aucune » mène au tiroir de création/sélection.
 - Responsive ≤ 480 px : FAB conservé centré avec `bottom: 80px`, menu min-width 220 px.
 - Thème nuit : FAB neutre et bouton secondaire passent en surfaces sombres avec accents
   verts ; les fonds pâles des options sont remplacés par `--color-bg-subtle`.

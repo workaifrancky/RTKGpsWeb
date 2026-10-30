@@ -486,12 +486,8 @@ function renderProjectList() {
   const container = document.getElementById('projectListContainer');
   const label = document.getElementById('currentProjectName');
   const toggle = document.getElementById('btnProjectDrawer');
-  const emptyProjectRow = document.getElementById('menuChooseProjectRow');
 
   if (label) label.textContent = currentProject ? currentProject.name : 'Aucune';
-  // Sans parcelle, le FAB est masqué : le panneau Connexion expose un accès
-  // explicite au tiroir pour choisir/créer une parcelle.
-  if (emptyProjectRow) emptyProjectRow.hidden = !!currentProject;
   if (toggle) {
     toggle.title = currentProject
       ? `Parcelle : ${currentProject.name} — choisir une parcelle`
