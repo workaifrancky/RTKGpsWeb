@@ -163,8 +163,14 @@ Overrides de lisibilité :
   `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
   pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
   + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
-  44 px, 12 px / 600), options GeoJSON / CSV / GPX. La parcelle n'est **pas** dans ce panneau :
-  elle reste accessible par la 1re ligne du menu FAB de TRACÉS (visible même sans parcelle).
+  44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) **si la file hors-ligne n'est pas
+  vide**, libellé « Hors-ligne » + bouton `#offlineQueueIndicator` (« N demande(s) en
+  attente ») qui appelle `processOfflineQueue()`. La parcelle n'est pas dans ce panneau :
+  elle reste accessible par la 1re ligne du menu FAB de TRACÉS.
+- `.offline-queue-indicator` : bouton d'alerte de la ligne « Hors-ligne » (44 px, fond
+  `--color-warning-pale`, texte `--color-warning-text`, bordure `--color-warning-strong`,
+  11 px / 800). En thème nuit, fond `--color-bg-muted` et texte `--color-warning-strong`.
+  `#offlineQueueRow[hidden]` est masqué en `display: none !important`.
 - `openHeaderMenu()` / `closeHeaderMenu()` / `toggleHeaderMenu()` / `toggleConnectionPanel()`
   (`js/app.js`) : le déclencheur est `#btnConnectionSettings` (`getHeaderMenuTrigger()`).
   Échap, clic hors du menu (délégation sur `document`) ou sur le voile referment et rendent le

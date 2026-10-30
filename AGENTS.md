@@ -41,7 +41,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 | Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
 | ZIP | JSZip 3.10.2 via CDN (partage multi-parcelles, `js/export.js`) |
 | Bluetooth | Web Bluetooth API |
-| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, …) |
+| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, `rtkOfflineQueue`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
 | Serveur | `serve-http.cjs` (Node, sans dépendance) + `start-public.ps1` (localtunnel) |
 
@@ -183,10 +183,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `role="switch"` + `aria-checked`) et la liste `#exportFormatSelect` « Format d'export »
   (ligne 3 : GeoJSON / CSV / GPX, `rtkExportFormat`) : le thème et le BLE sont **dans le
   header**, la parcelle courante **dans le menu FAB de TRACÉS**, ne pas les remettre dans le
-  menu (doublons d'ID interdits). Le panneau est organisé en **trois blocs séparés** (`gap`
+  menu (doublons d'ID interdits). Le panneau est organisé en **blocs séparés** (`gap`
   14 px, `.menu-row-context` avec filet supérieur) : (1) NTRIP + `#saveIndicator` ;
   (2) « Affichage » + switch `#btnPointNumbers` ; (3) « Format d'export » +
-  `#exportFormatSelect`. **Aucune ligne Parcelle** dans ce panneau : la parcelle est
+  `#exportFormatSelect` ; (4) **uniquement si la file n'est pas vide**, « Hors-ligne » +
+  `#offlineQueueIndicator` (« N demande(s) en attente », bouton qui appelle
+  `processOfflineQueue()`). **Aucune ligne Parcelle** dans ce panneau : la parcelle est
   uniquement dans la 1re ligne du menu FAB de TRACÉS (visible même sans parcelle).
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
@@ -295,6 +297,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
   de focus et retour du focus sur le bouton déclencheur de la barre de sélection. Sans point,
   `openTransferModal()` affiche « Aucun point à transférer ».
+- **File d'attente hors-ligne** : `rtkOfflineQueue` (`localStorage`) stocke les demandes
+  d'export/partage émises quand `navigator.onLine === false` :
+  `{ id, type: 'export'|'share', projectId, format: 'geojson'|'csv'|'gpx', timestamp }`.
+  `projectId` vaut `null` pour une sélection multiple, avec en plus
+  `projectIds: [...]` pour rejouer le ZIP. `exportProjectGeoJSON()`, `exportGeoJSON()`,
+  `exportCSV()`, `exportGPX()`, `shareGeoJSON()`, `shareProjectsZip()` et
+  `downloadProjectsZip()` appellent `queueOfflineRequest()` si hors-ligne (toast
+  « Hors connexion — demande ajoutée à la file d'attente ») au lieu d'écrire le fichier.
+  `initOfflineQueue()` branche `window.addEventListener('online', processOfflineQueue)`;
+  `processOfflineQueue()` rejoue chaque demande via `executeOfflineRequest()`, vide la file
+  et affiche « File d'attente traitée : N export(s) ». L'indicateur du panneau Connexion
+  permet aussi un traitement manuel (utile pour `navigator.share`, qui exige un geste
+  utilisateur).
 - **Onglet HISTORIQUE en deux vues** : la vue **racine** `#historyListView` porte le titre
   `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
   (`openHistoryDetail(id)`) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
@@ -1205,6 +1220,19 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   Aucun script n'est nécessaire. Vérifié Chrome/CDP (7/7 : plein écran, centré, vert,
   z-index 5000, visible au chargement, masqué après le fondu, application cliquable, zéro
   exception).
+- **3.73 — File d'attente hors-ligne** : `js/export.js` gère `rtkOfflineQueue` (tableau de
+  `{ id, type, projectId, format, timestamp }`, plus `projectIds` pour une sélection
+  multiple). Si `navigator.onLine === false`, `exportProjectGeoJSON()`, `exportGeoJSON()`,
+  `exportCSV()`, `exportGPX()`, `shareGeoJSON()`, `shareProjectsZip()` et
+  `downloadProjectsZip()` mettent la demande en file au lieu d'écrire le fichier, avec le
+  toast « Hors connexion — demande ajoutée à la file d'attente ». `initOfflineQueue()` branche
+  `window.addEventListener('online', processOfflineQueue)` ; le traitement rejoue chaque
+  demande (`executeOfflineRequest()`), vide la file et affiche « File d'attente traitée :
+  N export(s) ». `#offlineQueueRow` / `#offlineQueueIndicator` dans le panneau Connexion
+  affichent le nombre de demandes et permettent un traitement manuel. Vérifié Chrome/CDP
+  (12/12 : 4 demandes GeoJSON/CSV/GPX/share mises en file sans export immédiat, rejeu sur
+  événement `online`, 3 téléchargements + 1 partage, file vidée, indicateur masqué, toast,
+  demandes multiples ZIP avec `projectIds`, zéro exception) ; `node --check` OK.
 
 ## 9. Langue et communication
 

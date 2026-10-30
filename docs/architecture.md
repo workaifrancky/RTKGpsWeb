@@ -83,6 +83,8 @@ brique doit être insérée **après ses dépendances**.
   - `rtkProjects` : tableau de projets sérialisés ;
   - `rtkCurrentProject` : identifiant du projet courant, écrit lors d'une sélection mais purgé
     à chaque démarrage (aucune parcelle n'est restaurée) ;
+  - `rtkOfflineQueue` : demandes d'export/partage en attente de connexion
+    (`{ id, type, projectId, projectIds?, format, timestamp }`) ;
   - `rtkGlobalObstacles` : bibliothèque d'obstacles réutilisables (`{ id, name, subtype,
     icon, lat, lon, alt, rayon, createdAt, projectId }`) ;
   - `rtkTheme` : `light` ou `dark` ;

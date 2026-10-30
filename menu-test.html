@@ -617,6 +617,14 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         <option value="gpx">GPX</option>
       </select>
     </div>
+
+    <!-- Bloc 4 : demandes d'export/partage en attente (hors-ligne). -->
+    <div id="offlineQueueRow" class="menu-row menu-row-context" hidden>
+      <span class="menu-label">Hors-ligne</span>
+      <button type="button" id="offlineQueueIndicator" class="offline-queue-indicator"
+        onclick="processOfflineQueue()" title="Traiter la file d'attente"
+        aria-live="polite">0 demande(s) en attente</button>
+    </div>
   </div>
 </div>
 

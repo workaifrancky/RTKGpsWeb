@@ -425,6 +425,45 @@ header {
   outline-offset: 2px;
 }
 
+/* Indicateur / bouton de traitement de la file d'attente hors-ligne. */
+#offlineQueueRow[hidden] {
+  display: none !important;
+}
+
+.offline-queue-indicator {
+  flex:          1 1 auto;
+  min-width:     0;
+  min-height:    44px;
+  padding:       0 12px;
+  border:        1px solid var(--color-warning-strong);
+  border-radius: var(--radius-md);
+  background:    var(--color-warning-pale);
+  color:         var(--color-warning-text);
+  font-family:   var(--font);
+  font-size:     11px;
+  font-weight:   800;
+  text-align:    center;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.offline-queue-indicator:hover  { filter: brightness(0.96); }
+.offline-queue-indicator:active { transform: scale(0.99); }
+
+.offline-queue-indicator:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] .offline-queue-indicator {
+  background:   var(--color-bg-muted);
+  color:        var(--color-warning-strong);
+  border-color: var(--color-warning-strong);
+}
+
 /* Ligne 2 : réglages d'affichage */
 .menu-label {
   flex:          0 0 auto;

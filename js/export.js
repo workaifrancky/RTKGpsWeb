@@ -13,6 +13,149 @@ const EXPORT_FORMAT_KEY = 'rtkExportFormat';
 const EXPORT_FORMAT_LABELS = { geojson: 'GeoJSON', csv: 'CSV', gpx: 'GPX' };
 let exportFormat = 'geojson';
 
+// ─── FILE D'ATTENTE HORS-LIGNE ──────────────────────────────
+// Les exports/partages demandés sans connexion sont stockés puis rejoués au
+// retour du réseau (événement `online`) ou via le bouton du panneau Connexion.
+const OFFLINE_QUEUE_KEY = 'rtkOfflineQueue';
+let offlineQueueProcessing = false;
+
+function isOfflineNow() {
+  return !offlineQueueProcessing
+    && typeof navigator !== 'undefined'
+    && navigator.onLine === false;
+}
+
+function loadOfflineQueue() {
+  try {
+    const list = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+    if (!Array.isArray(list)) return [];
+    return list.filter(req => req && typeof req === 'object'
+      && typeof req.id === 'string'
+      && (req.type === 'export' || req.type === 'share'));
+  } catch {
+    return [];
+  }
+}
+
+function updateOfflineQueueIndicator() {
+  const row = document.getElementById('offlineQueueRow');
+  const button = document.getElementById('offlineQueueIndicator');
+  if (!row || !button) return;
+  const count = loadOfflineQueue().length;
+  row.hidden = count === 0;
+  button.textContent = `${count} demande(s) en attente`;
+  button.setAttribute('aria-label',
+    count === 0 ? 'Aucune demande en attente' : `Traiter ${count} demande(s) en attente`);
+}
+
+function saveOfflineQueue(queue) {
+  try {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  } catch { /* stockage indisponible : la demande ne peut pas être persistée */ }
+  updateOfflineQueueIndicator();
+}
+
+function queueOfflineRequest(type, projectId, format, projectIds = null) {
+  const queue = loadOfflineQueue();
+  const request = {
+    id: `offline_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    type: type === 'share' ? 'share' : 'export',
+    projectId: projectId ? String(projectId) : null,
+    format: normalizeExportFormat(format),
+    timestamp: new Date().toISOString(),
+  };
+  if (Array.isArray(projectIds) && projectIds.length) {
+    request.projectIds = [...new Set(projectIds.map(String))];
+  }
+  queue.push(request);
+  saveOfflineQueue(queue);
+  if (typeof showToast === 'function') {
+    showToast("Hors connexion — demande ajoutée à la file d'attente", 'info', 3200);
+  }
+  return request;
+}
+
+async function executeOfflineRequest(request) {
+  const projects = typeof loadProjects === 'function' ? loadProjects() : [];
+  const ids = Array.isArray(request.projectIds) && request.projectIds.length
+    ? request.projectIds.map(String)
+    : (request.projectId ? [String(request.projectId)] : []);
+  const selected = projects.filter(project =>
+    ids.includes(project.id) && Array.isArray(project.points) && project.points.length > 0);
+
+  if (!selected.length) return false;
+
+  if (request.type === 'share') {
+    if (selected.length > 1) {
+      await shareProjectsZip(selected);
+    } else {
+      await shareProjectGeoJSON(selected[0].id);
+    }
+    return true;
+  }
+
+  if (selected.length > 1) {
+    await downloadProjectsZip(selected);
+    return true;
+  }
+
+  const format = normalizeExportFormat(request.format);
+  if (format === 'csv') {
+    exportCSV(selected[0]);
+    return true;
+  }
+  if (format === 'gpx') {
+    exportGPX(selected[0]);
+    return true;
+  }
+  exportProjectGeoJSON(selected[0].id);
+  return true;
+}
+
+async function processOfflineQueue() {
+  if (offlineQueueProcessing) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (typeof showToast === 'function') {
+      showToast('Hors connexion — la file reste en attente', 'info', 3000);
+    }
+    return;
+  }
+
+  const queue = loadOfflineQueue();
+  if (!queue.length) {
+    updateOfflineQueueIndicator();
+    return;
+  }
+
+  offlineQueueProcessing = true;
+  let processed = 0;
+  try {
+    for (const request of queue) {
+      try {
+        if (await executeOfflineRequest(request)) processed++;
+      } catch (error) {
+        console.warn('Demande hors-ligne non traitée', request, error);
+      }
+    }
+  } finally {
+    saveOfflineQueue([]);           // la file est vidée après le passage
+    offlineQueueProcessing = false;
+  }
+
+  if (typeof showToast === 'function') {
+    showToast(`File d'attente traitée : ${processed} export(s)`, 'info', 3600);
+  }
+}
+
+function initOfflineQueue() {
+  updateOfflineQueueIndicator();
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+  window.addEventListener('online', () => {
+    updateOfflineQueueIndicator();
+    processOfflineQueue();
+  });
+}
+
 function normalizeExportFormat(value) {
   return EXPORT_FORMAT_LABELS[value] ? value : 'geojson';
 }
@@ -64,6 +207,10 @@ function exportCSV(projectArg) {
   const pts = Array.isArray(projectArg?.points) ? projectArg.points : getPoints();
   if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
   const proj = projectArg || getCurrentProjectData();
+  if (isOfflineNow()) {
+    queueOfflineRequest('export', proj?.id || null, 'csv');
+    return;
+  }
   const headers = 'Point,Type,SousType,Latitude,Longitude,Altitude,Fix,Satellites,HDOP,Horodatage\n';
   const rows = pts.map(p =>
     `${p.index},${p.type},${p.subtype||''},${p.lat},${p.lon},${p.alt||''},${p.fix},${p.satellites||''},${p.hdop||''},${p.timestamp}`
@@ -76,6 +223,10 @@ function exportGPX(projectArg) {
   const pts = Array.isArray(projectArg?.points) ? projectArg.points : getPoints();
   if (pts.length===0) { showToast('Aucun point à exporter','error'); return; }
   const proj = projectArg || getCurrentProjectData();
+  if (isOfflineNow()) {
+    queueOfflineRequest('export', proj?.id || null, 'gpx');
+    return;
+  }
   const wpts = pts.map(p=>`
   <wpt lat="${p.lat}" lon="${p.lon}">
     <ele>${p.alt||0}</ele><time>${p.timestamp}</time>
@@ -272,6 +423,11 @@ function buildGeoJSON(projectArg) {
 function exportGeoJSON() {
   const payload = buildGeoJSON();
   if (!payload) { showToast('Aucun point à exporter','error'); return; }
+  if (isOfflineNow()) {
+    const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+    queueOfflineRequest('export', project?.id || null, 'geojson');
+    return;
+  }
 
   downloadFile(
     JSON.stringify(payload.geojson, null, 2),
@@ -291,6 +447,10 @@ function exportProjectGeoJSON(projectId) {
 
   const payload = buildGeoJSON(project);
   if (!payload) { showToast('Aucun point à exporter','error'); return; }
+  if (isOfflineNow()) {
+    queueOfflineRequest('export', projectId, 'geojson');
+    return;
+  }
 
   downloadFile(
     JSON.stringify(payload.geojson, null, 2),
@@ -315,10 +475,7 @@ function exportProjectDefaultFormat(projectId) {
   return exportProjectGeoJSON(projectId);
 }
 
-async function shareGeoJSON() {
-  const payload = buildGeoJSON();
-  if (!payload) { showToast('Aucun point à partager','error'); return; }
-
+async function shareGeoJSONPayload(payload) {
   if (typeof navigator === 'undefined'
       || typeof navigator.share !== 'function'
       || typeof File !== 'function') {
@@ -353,6 +510,37 @@ async function shareGeoJSON() {
     if (error && error.name === 'AbortError') return;   // partage annulé
     showToast('Partage indisponible sur ce navigateur','error');
   }
+}
+
+async function shareGeoJSON() {
+  const payload = buildGeoJSON();
+  if (!payload) { showToast('Aucun point à partager','error'); return; }
+
+  if (isOfflineNow()) {
+    const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
+    queueOfflineRequest('share', project?.id || null, 'geojson');
+    return;
+  }
+
+  return shareGeoJSONPayload(payload);
+}
+
+// Partage d'une parcelle précise (utilisé par la file d'attente hors-ligne :
+// ne dépend pas de la parcelle courante).
+async function shareProjectGeoJSON(projectId) {
+  const projects = typeof loadProjects === 'function' ? loadProjects() : [];
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+
+  const payload = buildGeoJSON(project);
+  if (!payload) { showToast('Aucun point à partager','error'); return; }
+
+  if (isOfflineNow()) {
+    queueOfflineRequest('share', projectId, 'geojson');
+    return;
+  }
+
+  return shareGeoJSONPayload(payload);
 }
 
 // ─── HUB DE TRANSFERT (redondance des solutions d'export) ───
@@ -450,6 +638,9 @@ async function transferViaNativeShare() {
 function transferViaCloud() {
   const projects = getTransferProjects();
   closeTransferModal();
+  if (isOfflineNow()) {
+    return projects.length > 1 ? shareProjectsZip(projects) : shareGeoJSON();
+  }
   showToast('Choisissez Drive / Cloud dans le menu de partage', 'info', 3200);
   if (projects.length > 1) return shareProjectsZip(projects);
   return shareGeoJSON();
@@ -513,6 +704,11 @@ async function buildProjectsZip(projects) {
 }
 
 async function shareProjectsZip(projects) {
+  if (isOfflineNow()) {
+    queueOfflineRequest('share', null, 'geojson', projects.map(p => p.id));
+    return;
+  }
+
   const archive = await buildProjectsZip(projects);
   if (!archive) return;
 
@@ -548,6 +744,11 @@ async function shareProjectsZip(projects) {
 }
 
 async function downloadProjectsZip(projects) {
+  if (isOfflineNow()) {
+    queueOfflineRequest('export', null, 'geojson', projects.map(p => p.id));
+    return;
+  }
+
   const archive = await buildProjectsZip(projects);
   if (!archive) return;
   downloadFile(archive.blob, archive.filename, 'application/zip');
@@ -635,9 +836,10 @@ function closeExportMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Restaure le format d'export choisi (GeoJSON par défaut) et aligne le
-  // libellé du bouton principal de la section POINTS.
+  // Restaure le format d'export choisi (GeoJSON par défaut).
   initExportFormat();
+  // Affiche l'indicateur de file d'attente et branche l'événement `online`.
+  initOfflineQueue();
 
   // Ferme le menu au clic extérieur et avec Échap.
   document.addEventListener('click', (event) => {
