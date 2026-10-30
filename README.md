@@ -90,9 +90,10 @@ peut être isolé.
 1. **Connecter le BLE** : icône Bluetooth de la 1re ligne du header (à droite du logo), puis
    sélectionner l'appareil `RTK_Mower`. Attendre un fix **Float RTK** minimum pour pouvoir
    enregistrer.
-2. **Choisir une parcelle** : au premier lancement, aucune parcelle n'est créée et le FAB
+2. **Choisir une parcelle** : à chaque lancement, aucune parcelle n'est restaurée et le FAB
    reste masqué. Le bouton « Connexion » (1ʳᵉ ligne du header) ouvre le panneau de connexion :
-   station NTRIP, puis bouton `<nom> ▾` (icône d'épingle) qui ouvre le tiroir « Parcelles ».
+   station NTRIP, puis bouton **« Choisir une parcelle »** (visible uniquement sans parcelle)
+   qui ouvre le tiroir « Parcelles ».
    Chaque ligne permet de changer de parcelle (`clic`), la renommer (icône crayon) ou la
    supprimer (icône corbeille). Le bouton `＋ Nouvelle parcelle` ouvre la modale de création.
 3. **Enregistrer des points** : dès qu'une parcelle est sélectionnée, un **FAB** `＋` apparaît

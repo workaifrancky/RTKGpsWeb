@@ -81,7 +81,8 @@ brique doit être insérée **après ses dépendances**.
 - Globals projet (`js/projects.js`) : `projects`, `currentProject`, `globalObstacles`.
 - `localStorage` :
   - `rtkProjects` : tableau de projets sérialisés ;
-  - `rtkCurrentProject` : identifiant du projet courant ;
+  - `rtkCurrentProject` : identifiant du projet courant, écrit lors d'une sélection mais purgé
+    à chaque démarrage (aucune parcelle n'est restaurée) ;
   - `rtkGlobalObstacles` : bibliothèque d'obstacles réutilisables (`{ id, name, subtype,
     icon, lat, lon, alt, rayon, createdAt, projectId }`) ;
   - `rtkTheme` : `light` ou `dark` ;

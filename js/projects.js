@@ -15,13 +15,11 @@ let globalObstacles = [];   // bibliothèque d'obstacles réutilisables
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   projects       = loadProjects();
-  currentProject = loadCurrentProject();
-  // Aucun projet par défaut : l'utilisateur choisit ou crée une parcelle.
-  // Tant qu'aucune parcelle n'est sélectionnée, le FAB de tracé reste masqué.
-  if (!currentProject || !projects.find(p => p.id === currentProject.id)) {
-    currentProject = projects[0] || null;
-    if (currentProject) saveCurrentProject();
-  }
+  // Au démarrage, AUCUNE parcelle n'est sélectionnée : l'utilisateur doit la
+  // choisir explicitement dans le tiroir. On ignore donc volontairement la
+  // dernière parcelle mémorisée (`rtkCurrentProject`) et on la purge.
+  currentProject = null;
+  localStorage.removeItem(CURRENT_KEY);
   // Charge (et amorce au premier lancement) la base globale des obstacles.
   globalObstacles = loadGlobalObstacles();
   // Persiste la migration éventuelle (purge des anciens points `base`)
@@ -488,8 +486,12 @@ function renderProjectList() {
   const container = document.getElementById('projectListContainer');
   const label = document.getElementById('currentProjectName');
   const toggle = document.getElementById('btnProjectDrawer');
+  const emptyProjectRow = document.getElementById('menuChooseProjectRow');
 
   if (label) label.textContent = currentProject ? currentProject.name : 'Aucune';
+  // Sans parcelle, le FAB est masqué : le panneau Connexion expose un accès
+  // explicite au tiroir pour choisir/créer une parcelle.
+  if (emptyProjectRow) emptyProjectRow.hidden = !!currentProject;
   if (toggle) {
     toggle.title = currentProject
       ? `Parcelle : ${currentProject.name} — choisir une parcelle`
@@ -543,6 +545,7 @@ function persistProjectStorage() {
   try {
     localStorage.setItem(PROJECT_KEY, JSON.stringify(projects));
     if (currentProject) localStorage.setItem(CURRENT_KEY, currentProject.id);
+    else localStorage.removeItem(CURRENT_KEY);
     storageWarningShown = false;
     return true;
   } catch (error) {
@@ -626,11 +629,6 @@ function normalizeProject(project) {
 
 function saveCurrentProject() {
   if (currentProject) localStorage.setItem(CURRENT_KEY, currentProject.id);
-}
-
-function loadCurrentProject() {
-  const id = localStorage.getItem(CURRENT_KEY);
-  return projects.find(p => p.id === id) || null;
 }
 
 // ─── EXPORT D'UN PROJET ──────────────────────────────────────

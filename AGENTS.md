@@ -81,7 +81,8 @@ chargement, ce qui **migre** les parcelles créées avant cette règle. Les vues
 plus `toUpperCase()` + `text-transform: uppercase` (ceinture et bretelles).
 
 Stockage : tableau `rtkProjects` dans `localStorage`, identifiant du projet courant dans
-`rtkCurrentProject`. L'accès passe par `getPoints()` et `getCurrentProjectData()`.
+`rtkCurrentProject` (écrit lors d'une sélection mais **purgé à chaque démarrage** : aucune
+parcelle n'est restaurée). L'accès passe par `getPoints()` et `getCurrentProjectData()`.
 
 ### Point
 
@@ -177,16 +178,17 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
      puis le bouton thème `#btnTheme` (`.header-icon-btn`).
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
-  `toggleConnectionPanel()` → `toggleHeaderMenu()` — ne contient plus que la station NTRIP
-  avec `#saveIndicator` (ligne 1), le switch `#btnPointNumbers` « Numéros des points »
-  (ligne 2, `role="switch"` + `aria-checked`) et la liste `#exportFormatSelect`
-  « Format d'export » (ligne 3 : GeoJSON / CSV / GPX, `rtkExportFormat`) : le thème et le BLE
-  sont **dans le header**, la parcelle courante **dans le menu FAB de TRACÉS**, ne pas les
-  remettre dans le menu (doublons d'ID interdits). Le panneau est organisé en **trois blocs
-  séparés** (`gap` 14 px, `.menu-row-context` avec filet supérieur) : (1) NTRIP +
-  `#saveIndicator` ; (2) « Affichage » + switch `#btnPointNumbers` ; (3) « Format d'export » +
-  `#exportFormatSelect`. **Aucune ligne Parcelle** dans ce panneau (ni bouton de repli) :
-  la parcelle est uniquement dans la 1re ligne du menu FAB de TRACÉS.
+  `toggleConnectionPanel()` → `toggleHeaderMenu()` — contient la station NTRIP avec
+  `#saveIndicator` (ligne 1), le switch `#btnPointNumbers` « Numéros des points » (ligne 2,
+  `role="switch"` + `aria-checked`), la liste `#exportFormatSelect` « Format d'export »
+  (ligne 3 : GeoJSON / CSV / GPX, `rtkExportFormat`) et, **uniquement sans parcelle**, l'accès
+  `#menuChooseProjectRow` / `#btnChooseProject` « Choisir une parcelle » (ligne 4) qui ouvre le
+  tiroir : le FAB de tracé est masqué dans cet état. Le thème et le BLE sont **dans le header**,
+  la parcelle courante **dans le menu FAB de TRACÉS** quand une parcelle est sélectionnée.
+  Le panneau est organisé en blocs séparés (`gap` 14 px, `.menu-row-context` avec filet
+  supérieur) : (1) NTRIP + `#saveIndicator` ; (2) « Affichage » + switch `#btnPointNumbers` ;
+  (3) « Format d'export » + `#exportFormatSelect` ; (4) ligne Parcelle limitée à l'état
+  « aucune parcelle » (jamais de doublon d'ID avec le menu FAB).
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
   breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
@@ -363,24 +365,25 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; l'export
   reste accessible par le bouton « Exporter » de chaque ligne de PARCELLES (HISTORIQUE), la
   vue détail ne contient plus ni export ni « Effacer » (3.65).
-- **Démarrage sans parcelle** : au premier lancement, `projects` peut être vide et
-  `currentProject` vaut `null` ; aucun projet « Mon jardin » n'est créé automatiquement.
-  `#traceFab` reste visible sur TRACÉS : son clic principal ouvre directement `#projectDrawer`
-  (création/sélection) et la 1re ligne du menu est « Parcelle : Aucune » ; `chooseTraceMode()`
-  affiche « Créez d'abord une parcelle » et ouvre le tiroir. La carte reste vide tant qu'aucune
-  parcelle n'est sélectionnée.
+- **Démarrage sans parcelle** : à chaque chargement, `currentProject` est forcé à `null` et
+  la clé `rtkCurrentProject` est purgée, **même si une parcelle était mémorisée** : aucun
+  projet « Mon jardin » n'est créé et aucune parcelle n'est restaurée automatiquement.
+  `#traceFab` est **masqué** ; l'accès au tiroir passe par `#menuChooseProjectRow` /
+  `#btnChooseProject` du panneau Connexion. La carte et la liste restent vides tant que
+  l'utilisateur n'a pas choisi une parcelle ; `switchProject()` charge ensuite points,
+  zones, carte et statistiques normalement.
 - **Modes lecture / création** : `APP.tracesMode` reste un état interne (`lecture` au
   chargement, `creation` pendant un tracé). Il n'y a plus de bouton `#btnTracesMode` :
   le FAB démarre un mode via `beginTraceMode()`, puis `finishCurrentTrace()` repasse en
   lecture. `setTracesMode()` / `syncTracesModeUI()` restent utilisés par la gestion des
   parcelles et la cible ; `canRecordPoints()` bloque tout ajout hors création.
 - **FAB unique et type de tracé** : `#traceFab` (`.trace-fab`, `position: fixed`, centré en
-  bas à 80 px) est visible sur TRACÉS, **avec ou sans parcelle**. Neutre, il ouvre
-  `#traceFabMenu` (**4 options seulement**, dans cet ordre : « Parcelle : … » / tonte /
+  bas à 80 px) n'est visible sur TRACÉS **que si une parcelle est sélectionnée**. Neutre, il
+  ouvre `#traceFabMenu` (**4 options seulement**, dans cet ordre : « Parcelle : … » / tonte /
   interdit / obstacle) ; `beginTraceMode()` fixe `APP.currentTraceMode` et colore le FAB. Le
   clic principal ajoute un point (`recordTonte()` / `recordInterdit()`), **valide l'obstacle**
-  quand `APP.pendingObstacle` est renseigné (`recordObstacle()`) ou rouvre le choix du type —
-  sans parcelle il ouvre le tiroir. Le bouton secondaire `#traceFabSecondary` (icône Lucide
+  quand `APP.pendingObstacle` est renseigné (`recordObstacle()`) ou rouvre le choix du type.
+  Le bouton secondaire `#traceFabSecondary` (icône Lucide
   `check`) termine la zone : sous 3 points, `customConfirm()` demande « Zone incomplète
   (X points). Terminer quand même ? » ; il est **masqué en mode obstacle** (un obstacle se
   valide avec le FAB). Un appui long sur le FAB ou sur « ✓ » rouvre le menu.
@@ -1170,6 +1173,19 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   rafraîchies au changement de parcelle, liste de 14 parcelles défilable jusqu'au dernier
   élément, 26 points de détail défilables jusqu'au dernier, aucun double padding, dernière
   ligne au-dessus de la barre, zéro exception).
+- **3.70 — Démarrage sans parcelle et dernier bandeau HISTORIQUE** : `js/projects.js` force
+  `currentProject = null` et purge `rtkCurrentProject` à **chaque** chargement (aucune
+  restauration de la dernière parcelle) ; `persistProjectStorage()` retire aussi la clé quand
+  aucune parcelle n'est active. `#traceFab` est masqué sans parcelle (`syncTraceFabUI()`), et
+  le panneau Connexion expose `#menuChooseProjectRow` / `#btnChooseProject` « Choisir une
+  parcelle » pour ouvrir le tiroir. Carte, liste et statistiques restent vides jusqu'à la
+  sélection explicite. `#pointsList` perd son `max-height`/scroll interne : `#tab-history` est
+  le seul conteneur défilable, avec `flex: 1 1 0`, `min-height: 0`, `overflow-y: auto` et
+  `padding-bottom: 64 px + safe-area + 24 px` ; `#historyDetailView` n'a plus de padding
+  propre. Vérifié Chrome/CDP (21/21 : démarrage et rechargement sans parcelle, clé purgée, FAB
+  masqué, accès « Choisir une parcelle » visible puis masqué après sélection, carte vide puis
+  chargée, liste de 14 parcelles et 26 points défilables jusqu'au dernier au-dessus de la
+  barre, zéro exception) ; `node --check` OK.
 
 ## 9. Langue et communication
 

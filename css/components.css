@@ -1023,12 +1023,12 @@
 .action-button-simulation-gps:active { transform: scale(0.99); }
 
 /* ─── LISTE DES POINTS ──────────────────────────────────────── */
+/* Pas de défilement interne : c'est `#tab-history` qui défile, avec sa
+   réserve basse (barre de navigation + safe-area + 24 px). Cela évite que le
+   dernier point soit tronqué par un scroll imbriqué. */
 #pointsList {
-  max-height:          clamp(240px, 44dvh, 540px);
-  overflow-y:          auto;
+  overflow:            visible;
   padding-right:       4px;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .point-item {

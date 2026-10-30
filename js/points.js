@@ -80,10 +80,10 @@ function syncTraceFabUI() {
 
   const hasProject = !!currentProject;
   const onTracesTab = typeof APP === 'undefined' || APP.currentTab === 'tab-points';
-  // Le FAB reste visible sur TRACÉS même sans parcelle : son menu porte
-  // l'option « Parcelle : … », seul accès à la création (le panneau Connexion
-  // ne contient plus la parcelle). Le clic principal ouvre alors le tiroir.
-  const visible = onTracesTab;
+  // Le FAB de tracé n'apparaît qu'avec une parcelle sélectionnée. Sans
+  // parcelle, l'accès au tiroir passe par le panneau Connexion
+  // (#menuChooseProjectRow) : la carte reste vide.
+  const visible = onTracesTab && hasProject;
   fab.hidden = !visible;
   if (!visible) closeTraceFabMenu();
 
