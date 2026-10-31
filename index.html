@@ -1039,6 +1039,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@luomus/leaflet-measure-path@1.5.0/leaflet-measure-path.js"></script>
 <!-- JSZip : partage des parcelles multiples en un seul fichier ZIP (Android). -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.2/dist/jszip.min.js"></script>
+<!-- QR animé (transfert de fichiers sans réseau) : bibliothèque vendorisée car le paquet
+     npm/jsDelivr est indisponible (404). Voir js/vendor/animated-data-qr/README.md.
+     Global exposé : window.AnimatedDataQR. -->
+<script src="js/vendor/animated-data-qr/animated-data-qr.umd.min.js"></script>
 <script src="js/parser.js"></script>
 <script src="js/ntrip.js"></script>
 <script src="js/app.js"></script>

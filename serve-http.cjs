@@ -25,6 +25,9 @@ const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  // Requis par le décodeur QR animé (js/vendor/animated-data-qr/zxing_reader.wasm) :
+  // WebAssembly.instantiateStreaming refuse un type autre que application/wasm.
+  '.wasm': 'application/wasm',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',

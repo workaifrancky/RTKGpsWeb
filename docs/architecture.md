@@ -49,6 +49,11 @@ Leaflet + leaflet-measure-path (CDN) → parser → ntrip → app → projects �
 Cet ordre fait office de graphe de dépendances. `ui.js` doit rester en dernier. Une nouvelle
 brique doit être insérée **après ses dépendances**.
 
+Le bundle vendorisé `js/vendor/animated-data-qr/animated-data-qr.umd.min.js` (QR animé, MIT)
+est chargé avec les bibliothèques, **avant** `js/parser.js` ; il expose
+`window.AnimatedDataQR` et résout son worker / son wasm dans son propre dossier. Provenance,
+SHA-256 et procédure de mise à jour : `js/vendor/animated-data-qr/README.md`.
+
 ### Navigation et tiroir Parcelles
 
 - Quatre onglets en `<button class="tab-label" data-tab="…">` : TRACÉS, CAMÉRA, RELEVÉ,

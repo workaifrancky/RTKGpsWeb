@@ -50,6 +50,8 @@ Fonctionnalités principales :
 |---|---|
 | Langage | Vanilla JavaScript (ES2020+, scripts classiques) |
 | Cartographie | Leaflet **1.9.4** + **leaflet-measure-path 1.5.0** (CDN) |
+| ZIP | JSZip **3.10.2** (CDN) |
+| QR animé | **animated-data-qr-js 0.1.0** (vendorisé, MIT, `js/vendor/animated-data-qr/`) |
 | Communication | Web Bluetooth API (BLE) |
 | Styles | CSS pur (aucun framework, aucun Tailwind) |
 | Données | `localStorage` (projets + points) |
@@ -150,7 +152,9 @@ RTKGpsWeb/
 │   ├── qrcode.js           # Générateur de QR code autonome (adresse du mode serveur local)
 │   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
-│   └── ui.js               # Pastille GPS du header et alertes
+│   ├── ui.js               # Pastille GPS du header et alertes
+│   └── vendor/
+│       └── animated-data-qr/  # QR animé (bundle UMD + worker + wasm, MIT, vendorisé)
 ├── docs/
 │   ├── architecture.md     # Architecture, flux de données, modules
 │   ├── design-system.md    # Tokens et composants UI

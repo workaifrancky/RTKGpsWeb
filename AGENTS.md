@@ -40,6 +40,7 @@ RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte auto
 | UI | Vanilla JS, CSS pur (pas de framework, pas de Tailwind) |
 | Cartographie | Leaflet 1.9.4 + `leaflet-measure-path` 1.5.0 via CDN |
 | ZIP | JSZip 3.10.2 via CDN (partage multi-parcelles, `js/export.js`) |
+| QR animé | `animated-data-qr-js` v0.1.0 **vendorisé** dans `js/vendor/animated-data-qr/` (MIT, global `AnimatedDataQR`) — le paquet npm/jsDelivr renvoie 404 |
 | Bluetooth | Web Bluetooth API |
 | Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, `rtkOfflineQueue`, …) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
@@ -316,6 +317,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   pour l'avertissement) rappelle le transfert par câble : télécharger sur le téléphone, puis
   copier le fichier sur la tablette via le gestionnaire de fichiers. Elle reste visible dans
   les deux vues (options et serveur local).
+- **QR animé (bibliothèque vendorisée)** : `js/vendor/animated-data-qr/` contient
+  `animated-data-qr-js` **v0.1.0** (MIT) — bundle UMD, worker décodeur, `zxing_reader.wasm`,
+  `LICENSE` et un `README.md` de provenance. **Le paquet npm `animated-data-qr-js` n'est pas
+  publié** : la balise CDN documentée en amont renvoie 404, il n'y a aucune release GitHub et
+  `dist/` n'est pas committé dans le tag `v0.1.0`. Les fichiers viennent donc du GitHub Pages
+  du projet amont. Ne pas réintroduire de CDN : le hub doit rester utilisable hors Internet.
+  Points à ne pas casser : le global est **`AnimatedDataQR`** (le README amont écrit
+  `AnimatedDataQr`, c'est une coquille) ; les trois fichiers `js`/`wasm` doivent rester dans
+  le **même dossier**, car le bundle résout worker et wasm relativement à son propre `src`
+  (`document.currentScript.src`) et surcharge `locateFile()` vers le wasm local. Le script est
+  chargé **avant les scripts applicatifs** (après JSZip) dans `index.html` et
+  `menu-test.html`. `serve-http.cjs` sert `.wasm` en `application/wasm` (obligatoire pour
+  `WebAssembly.instantiateStreaming`).
 - **File d'attente hors-ligne** : `rtkOfflineQueue` (`localStorage`) stocke les demandes
   d'export/partage émises quand `navigator.onLine === false` :
   `{ id, type: 'export'|'share', projectId, format: 'geojson'|'csv'|'gpx', timestamp }`.
@@ -501,10 +515,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Ordre des scripts** : `index.html` charge les JS dans un ordre précis ; une nouvelle
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
   et `map.js`, avant `export.js` ; `qrcode.js` **avant** `export.js`, qui appelle
-  `renderQrCodeSvg()`).
+  `renderQrCodeSvg()`). Le bundle vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
+  chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`.
 - **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
   servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
   local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
+  Le serveur sert `.wasm` en `application/wasm` (nécessaire au décodeur QR animé).
 - **Pas de cache** : `serve-http.cjs` envoie `Cache-Control: no-store` ; ne pas le retirer
   pendant les phases de test terrain.
 - **Outils de simulation** : `ENABLE_SIMULATION = false` dans `js/simulation.js` et boutons
@@ -1310,6 +1326,24 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   masquage, note, focus, QR, UTF-8, charge utile hors version 10) et captures Chrome headless
   en thème clair et nuit (QR blanc/noir scannable, notes lisibles) ; `node --check` OK sur
   `js/qrcode.js` et `js/export.js`.
+- **3.77 — Bibliothèque de QR animé vendorisée** : `animated-data-qr-js` **v0.1.0** (MIT) est
+  copié dans `js/vendor/animated-data-qr/` (`animated-data-qr.umd.min.js` 135 Ko,
+  `animated-data-qr.decoder.worker.js` 74 Ko, `zxing_reader.wasm` 989 Ko, `LICENSE`, plus un
+  `README.md` de provenance avec SHA-256 et procédure de mise à jour). Motif : la balise CDN
+  documentée en amont (`cdn.jsdelivr.net/npm/animated-data-qr-js@0.1.0/...`) renvoie **404**
+  (paquet npm non publié), le dépôt n'a **aucune release** et `dist/` **n'est pas committé**
+  dans le tag `v0.1.0` ; les fichiers n'existent que comme artefact GitHub Pages. Le bundle
+  résout worker et wasm relativement à son propre `src` et surcharge `locateFile()` vers le
+  wasm local : l'ensemble fonctionne **hors Internet** depuis le même dossier. Le global est
+  `AnimatedDataQR` (README amont : coquille `AnimatedDataQr`). Seule modification locale : la
+  ligne `//# sourceMappingURL=…` retirée (source map non publiée). `<script>` ajouté après
+  JSZip dans `index.html` et `menu-test.html`. `serve-http.cjs` sert désormais `.wasm` en
+  `application/wasm`. Vérifié : `node --check` sur le bundle, chargement réel sous Chrome
+  headless (`global=object`, 9 fonctions exposées, preset `compatibility` =
+  `{frameIntervalMs:250, chunkByteSize:220, payloadEncoding:"binary", symbolsPerFrame:1,
+  parityBlockDataChunks:4, qrOptions:{errorCorrectionLevel:"M"}}`), et service HTTP local des
+  trois fichiers (`text/javascript`, `text/javascript`, `application/wasm`). **L'interface
+  (sender/récepteur) n'est pas encore câblée** : seule la dépendance est en place.
 
 ## 9. Langue et communication
 
