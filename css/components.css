@@ -737,7 +737,10 @@
 }
 
 .transfer-options[hidden],
-.transfer-local[hidden] { display: none; }
+.transfer-option[hidden],
+.transfer-local[hidden],
+.transfer-local-qr[hidden],
+.transfer-note[hidden] { display: none; }
 
 .transfer-option {
   display:       flex;
@@ -829,7 +832,7 @@
   pointer-events: none;
 }
 
-/* Vue « mode serveur local » (QR code à venir) */
+/* Vue « mode serveur local » (adresse LAN + QR code) */
 .transfer-local {
   display:        flex;
   flex-direction: column;
@@ -918,6 +921,54 @@
   pointer-events: none;
 }
 
+/* QR code de l'adresse LAN : fond clair imposé par les tokens dédiés pour
+   rester scannable même en thème nuit. */
+.transfer-local-qr {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         10px;
+  border:          1px solid var(--border);
+  border-radius:   var(--radius-md);
+  background:      var(--color-qr-surface);
+}
+
+.qr-code-svg {
+  display: block;
+  width:   min(180px, 60vw);
+  height:  auto;
+}
+
+.qr-code-modules { fill: var(--color-qr-module); }
+
+/* Notes du hub : transfert par câble USB et éventuel partage non supporté. */
+.transfer-note {
+  padding:       10px 12px;
+  border:        1px dashed var(--border2);
+  border-radius: var(--radius-md);
+  background:    var(--color-bg-subtle);
+}
+
+.transfer-note p {
+  margin:      0;
+  color:       var(--text2);
+  font-size:   11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.transfer-note strong {
+  color:       var(--text);
+  font-weight: 800;
+}
+
+/* Variante « avertissement » : canaux de partage natif masqués. */
+.transfer-note-warn {
+  border-color: var(--color-warning);
+  background:   var(--color-warning-pale);
+}
+
+.transfer-note-warn strong { color: var(--color-warning-text); }
 
 /* ─── MODAL NOUVEAU PROJET ──────────────────────────────────── */
 .project-form {

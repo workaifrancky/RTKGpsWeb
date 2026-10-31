@@ -38,7 +38,9 @@ Fonctionnalités principales :
   (sous-type stocké `Perso`), illustrés par des icônes SVG (modale, listes, popups, cible
   caméra) ;
 - export **GeoJSON** (format principal, contrat Mower Planner) et **ZIP multi-parcelles**, plus
-  **CSV** / **GPX** pour une parcelle, via le hub **Transférer** ;
+  **CSV** / **GPX** pour une parcelle, via le hub **Transférer** (mode serveur local avec
+  **QR code** généré dans la page, sans Internet ; canaux de partage masqués si l'appareil ne
+  les supporte pas ; note de transfert par câble USB) ;
 - outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les
   tests terrain, réactivables via `ENABLE_SIMULATION` (voir [docs/simulation.md](docs/simulation.md)).
 
@@ -114,10 +116,14 @@ peut être isolé.
    une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
    l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
 5. **Transférer / exporter** avec le bouton **Transférer** de la barre de sélection
-   (vue PARCELLES) : partage natif, serveur local, cloud ou téléchargement. Une parcelle
-   utilise le format choisi dans Connexion (GeoJSON / CSV / GPX), plusieurs parcelles
-   produisent un **ZIP** contenant un GeoJSON par parcelle. Le GeoJSON suit le contrat décrit
-   dans [docs/format-geojson.md](docs/format-geojson.md).
+   (vue PARCELLES) : partage natif, serveur local (adresse LAN + **QR code**), cloud ou
+   téléchargement. Les canaux de partage natif sont **masqués** si l'appareil ne sait pas
+   partager de fichier (`navigator.canShare({ files })`), et une note rappelle le transfert
+   par **câble USB** (télécharger sur le téléphone, puis copier via le gestionnaire de
+   fichiers de la tablette). Une parcelle utilise le format choisi dans Connexion
+   (GeoJSON / CSV / GPX), plusieurs parcelles produisent un **ZIP** contenant un GeoJSON par
+   parcelle. Le GeoJSON suit le contrat décrit dans
+   [docs/format-geojson.md](docs/format-geojson.md).
 
 ## Structure du projet
 
@@ -140,7 +146,8 @@ RTKGpsWeb/
 │   ├── map.js              # Carte Leaflet, couches Relief/Satellite, polygones, position live
 │   ├── camera.js           # Caméra, boussole, visée cible et mesure de distance
 │   ├── stats.js            # Relevé de parcelle (surface, temps, linéaire, contraintes)
-│   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull)
+│   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull), hub de transfert
+│   ├── qrcode.js           # Générateur de QR code autonome (adresse du mode serveur local)
 │   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
 │   └── ui.js               # Pastille GPS du header et alertes

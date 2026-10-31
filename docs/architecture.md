@@ -33,7 +33,8 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/map.js` | Carte Leaflet, fonds Relief/Satellite, polygones (distances de segments via `leaflet-measure-path`), marqueurs, position live, overlay de surfaces, actions de popup (renommer/supprimer) |
 | `js/camera.js` | Flux caméra, boussole informative, guidage vers une cible (cap géographique fixe), retour d'approche, mesure de distance, plein écran |
 | `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
-| `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), hub de transfert (`#transferModal`, 4 canaux), partage natif, construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
+| `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), hub de transfert (`#transferModal`, 4 canaux, détection du partage natif), partage natif, construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
+| `js/qrcode.js` | Générateur de QR code **autonome** (mode octet, niveau M, versions 1 à 10) : QR de l'adresse du mode serveur local du hub, sans CDN ni Internet |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
 | `js/ui.js` | Bandeau Fix (fix, précision) et alertes GPS à partir des trames |
@@ -42,7 +43,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 
 ```text
 Leaflet + leaflet-measure-path (CDN) → parser → ntrip → app → projects → ble
-             → points → map → stats → simulation → export → camera → history → ui
+             → points → map → stats → simulation → qrcode → export → camera → history → ui
 ```
 
 Cet ordre fait office de graphe de dépendances. `ui.js` doit rester en dernier. Une nouvelle
@@ -155,11 +156,18 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
   → zone interdite → obstacles ; le domaine est l'enveloppe convexe de tous les points.
 - **Hub de transfert** (`js/export.js`, `#transferModal`) : quatre canaux redondants — partage
   natif (un GeoJSON pour une parcelle, un ZIP unique pour plusieurs), mode serveur local
-  (adresse LAN lue via `GET /api/local-info` exposé par `serve-http.cjs`, QR code à venir),
-  cloud (même `navigator.share`, Drive proposé par Android) et téléchargement direct (format
-  choisi pour une parcelle, ZIP pour plusieurs). Il n'y a plus de boutons d'export dans les
-  listes ni dans le détail. Aucun canal ne reconstruit le GeoJSON : `buildGeoJSON()` reste la
-  source unique, et chaque entrée du ZIP respecte le contrat.
+  (adresse LAN lue via `GET /api/local-info` exposé par `serve-http.cjs`, affichée avec un
+  **QR code** généré dans la page par `js/qrcode.js`, sans Internet), cloud (même
+  `navigator.share`, Drive proposé par Android) et téléchargement direct (format choisi pour
+  une parcelle, ZIP pour plusieurs). Il n'y a plus de boutons d'export dans les listes ni dans
+  le détail. Aucun canal ne reconstruit le GeoJSON : `buildGeoJSON()` reste la source unique,
+  et chaque entrée du ZIP respecte le contrat.
+- **Capacités du hub** : `canShareTransferFiles()` sonde `navigator.canShare({ files })` ;
+  quand le partage de fichiers n'est pas supporté (Web Share niveau 1, WebView), les options
+  « Partage rapide » et « Enregistrer sur Drive / Cloud » sont **masquées** et une note de repli
+  s'affiche. Le hub garde le mode serveur local et le téléchargement, et une **note USB**
+  (`.transfer-note`) explique la copie par câble : télécharger sur le téléphone puis copier le
+  fichier sur la tablette via le gestionnaire de fichiers.
 - Voir [format-geojson.md](format-geojson.md).
 
 ## Mode simulation

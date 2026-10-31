@@ -18,6 +18,11 @@
   --color-ble-disconnected: #0082fc;
   --color-ble-connected:    #16a34a;
   --color-white: #ffffff;
+  /* QR code du mode serveur local : contraste absolu imposé (fond clair et
+     modules sombres), identique en thème clair et en thème nuit où
+     `--color-white` devient une surface sombre. */
+  --color-qr-surface: #ffffff;
+  --color-qr-module:  #000000;
   --color-bg-subtle: #f5f7f5;
   --color-bg-muted: #e0e4e0;
   --color-text-primary: #333333;

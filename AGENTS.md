@@ -280,14 +280,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
   `version_app` / `source` ajoutées à **toutes** les features (contrat GeoJSON inchangé).
 - **Hub de transfert** : `#btnSelectionTransfer` (barre de sélection de PARCELLES : icône
-  `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose **quatre
-  canaux redondants** :
+  `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose jusqu'à
+  **quatre canaux redondants** :
   1. `transferViaNativeShare()` → `shareGeoJSON()` pour une parcelle, `shareProjectsZip()` pour
      plusieurs (un seul fichier ZIP) ;
   2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
      par **`GET /api/local-info`** (`serve-http.cjs`, `os.networkInterfaces()`, IPv4 non
-     internes) et un bouton « Copier » (`copyTransferLocalUrl()`) ; le **QR code** est un
-     placeholder « Bientôt » ;
+     internes), un **QR code** de cette adresse et un bouton « Copier »
+     (`copyTransferLocalUrl()`) ;
   3. `transferViaCloud()` → `shareGeoJSON()` / `shareProjectsZip()` (le menu Android propose
      Drive) ;
   4. `transferOpenDownloads()` → téléchargement direct : format choisi pour une parcelle, ZIP
@@ -297,6 +297,25 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
   de focus et retour du focus sur le bouton déclencheur de la barre de sélection. Sans point,
   `openTransferModal()` affiche « Aucun point à transférer ».
+- **Capacités du hub** : `canShareTransferFiles()` (`js/export.js`) sonde
+  `navigator.share` + `navigator.canShare({ files: [new File(...)] })`. Si le partage de
+  fichiers n'est pas supporté, `syncTransferCapabilities()` **masque** les options
+  `#transferOptionShare` et `#transferOptionCloud` (attribut `hidden`, `aria-hidden="true"`),
+  affiche `#transferUnsupportedNote` (`.transfer-note-warn`) et le focus d'ouverture se pose
+  sur le premier canal visible (`getFirstTransferOption()`). `transferViaNativeShare()` /
+  `transferViaCloud()` retombent sur `downloadTransferProjects()` si elles sont appelées
+  malgré tout. La sonde est exécutée une fois (cache `transferNativeShareSupported`), au
+  `DOMContentLoaded` et à chaque `openTransferModal()`.
+- **QR code du mode local** : `js/qrcode.js` est un générateur **autonome** (mode octet,
+  niveau M, versions 1 à 10, SVG) chargé **avant** `export.js` : aucun CDN, le mode local doit
+  fonctionner sans Internet. `renderTransferLocalQr(url)` remplit `#transferLocalQr` via
+  `renderQrCodeSvg(url)` (zone de silence de 4 modules, `shape-rendering="crispEdges"`) ; le
+  conteneur est masqué sans adresse. Couleurs imposées par les tokens `--color-qr-surface` /
+  `--color-qr-module` (fond clair même en thème nuit, sinon le QR devient illisible).
+- **Note USB** : `.transfer-note` en bas de `#transferModal` (classe `.transfer-note-warn`
+  pour l'avertissement) rappelle le transfert par câble : télécharger sur le téléphone, puis
+  copier le fichier sur la tablette via le gestionnaire de fichiers. Elle reste visible dans
+  les deux vues (options et serveur local).
 - **File d'attente hors-ligne** : `rtkOfflineQueue` (`localStorage`) stocke les demandes
   d'export/partage émises quand `navigator.onLine === false` :
   `{ id, type: 'export'|'share', projectId, format: 'geojson'|'csv'|'gpx', timestamp }`.
@@ -481,7 +500,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `Zone interdite` pour la zone 1 et `Zone interdite #N` au-delà. Aucune fusion des zones.
 - **Ordre des scripts** : `index.html` charge les JS dans un ordre précis ; une nouvelle
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
-  et `map.js`, avant `export.js`).
+  et `map.js`, avant `export.js` ; `qrcode.js` **avant** `export.js`, qui appelle
+  `renderQrCodeSvg()`).
 - **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
   servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
   local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
@@ -1270,6 +1290,26 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   Chrome/CDP : à 2 points, les deux lignes existent sur leurs layers et deux étiquettes
   `22.2 m` sont rendues ; après ajout du 3ᵉ point interdit, la polyligne temporaire disparaît
   et un polygone est créé ; `node --check js/map.js` OK.
+- **3.76 — Hub de transfert simplifié, QR code réel et note USB** : `canShareTransferFiles()`
+  (`js/export.js`) sonde `navigator.share` puis `navigator.canShare({ files })` avec un
+  `File` GeoJSON de test ; `syncTransferCapabilities()` masque `#transferOptionShare` et
+  `#transferOptionCloud` (`hidden` + `aria-hidden`) et affiche `#transferUnsupportedNote`
+  quand le partage de fichiers n'est pas supporté, le focus d'ouverture allant au premier
+  canal visible (`getFirstTransferOption()`). Repli `downloadTransferProjects()` si l'une des
+  deux fonctions est appelée malgré tout. Le placeholder « Bientôt » du mode serveur local est
+  remplacé par un **vrai QR code** de l'adresse LAN : `js/qrcode.js` (nouveau, générateur
+  autonome mode octet / niveau M / versions 1 à 10, chargé avant `export.js`, aucun CDN pour
+  rester utilisable sans Internet) alimente `#transferLocalQr` via `renderTransferLocalQr()` ;
+  badge « Sans Internet », hint mis à jour, conteneur masqué sans adresse. Nouveaux tokens
+  `--color-qr-surface` / `--color-qr-module` (contraste imposé en thème nuit) et classes
+  `.transfer-local-qr`, `.qr-code-svg`, `.qr-code-modules`. Une **note `.transfer-note`** en
+  bas de la modale explique le transfert par câble USB (télécharger sur le téléphone puis
+  copier via le gestionnaire de fichiers de la tablette) ; `index.html` et `menu-test.html`
+  alignés, contrat GeoJSON inchangé. Vérifié : 112 matrices QR identiques à la bibliothèque
+  de référence `python-qrcode` (versions 1 à 10 × 8 masques), banc Node (16 contrôles :
+  masquage, note, focus, QR, UTF-8, charge utile hors version 10) et captures Chrome headless
+  en thème clair et nuit (QR blanc/noir scannable, notes lisibles) ; `node --check` OK sur
+  `js/qrcode.js` et `js/export.js`.
 
 ## 9. Langue et communication
 

@@ -912,7 +912,8 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         </span>
       </button>
 
-      <button type="button" class="transfer-option cloud" onclick="transferViaCloud()">
+      <button type="button" id="transferOptionCloud" class="transfer-option cloud"
+        onclick="transferViaCloud()">
         <span class="transfer-option-icon" aria-hidden="true">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -955,9 +956,18 @@ localStorage.setItem("rtkCurrentProject","proj_test");
           </svg>
         </span>
       </button>
+
+      <!-- Affiché seulement si l'appareil ne peut pas partager de fichier
+           (navigator.canShare({ files }) faux) : « Partage rapide » et
+           « Cloud » sont alors masqués. -->
+      <div id="transferUnsupportedNote" class="transfer-note transfer-note-warn" hidden>
+        <p>⚠️ <strong>Partage natif indisponible :</strong> cet appareil ne sait pas
+          partager de fichier. Utilisez « Télécharger le fichier » ou le mode serveur
+          local (même Wi-Fi).</p>
+      </div>
     </div>
 
-    <!-- Vue « mode serveur local » : adresse LAN (QR code à venir) -->
+    <!-- Vue « mode serveur local » : adresse LAN + QR code -->
     <div id="transferLocalPanel" class="transfer-local" hidden>
       <div class="transfer-local-head">
         <span class="transfer-badge">
@@ -977,7 +987,7 @@ localStorage.setItem("rtkCurrentProject","proj_test");
             <path d="M21 12v.01"/>
             <path d="M12 21v-1"/>
           </svg>
-          Bientôt
+          Sans Internet
         </span>
         <span class="transfer-local-title">Mode serveur local</span>
       </div>
@@ -985,9 +995,13 @@ localStorage.setItem("rtkCurrentProject","proj_test");
       <div class="transfer-local-url" id="transferLocalUrl">Recherche de l’adresse…</div>
       <ul class="transfer-local-list" id="transferLocalList"></ul>
 
+      <!-- QR code de l'adresse (généré dans la page, sans Internet).
+           Masqué tant qu'aucune adresse n'est disponible. -->
+      <div class="transfer-local-qr" id="transferLocalQr" hidden></div>
+
       <p class="transfer-local-hint">
-        Ouvrez cette adresse depuis un appareil connecté au même Wi-Fi.
-        Le QR code arrivera dans une prochaine version : en attendant, copiez l’adresse.
+        Scannez le QR code depuis l’autre appareil (même Wi-Fi) ou ouvrez l’adresse
+        ci-dessus. Aucune connexion Internet n’est nécessaire.
       </p>
 
       <div class="transfer-local-actions">
@@ -1011,6 +1025,13 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         </button>
       </div>
     </div>
+
+    <!-- Note de transfert par câble USB (toujours visible, quel que soit le canal). -->
+    <div class="transfer-note">
+      <p>💡 <strong>Transfert par câble USB :</strong> Téléchargez le fichier sur votre
+        téléphone (option "Télécharger le fichier"), puis branchez votre téléphone à votre
+        tablette et copiez le fichier via le gestionnaire de fichiers.</p>
+    </div>
   </div>
 </div>
 
@@ -1030,6 +1051,8 @@ localStorage.setItem("rtkCurrentProject","proj_test");
 <script src="js/map.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/simulation.js"></script>
+<!-- QR code local (mode serveur) : générateur autonome, sans CDN. -->
+<script src="js/qrcode.js"></script>
 <script src="js/export.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/history.js"></script>

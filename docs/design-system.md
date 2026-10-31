@@ -240,9 +240,16 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - Survol « pro » : `translateY(-1px)`, bordure `--color-primary-light`, fond
   `--color-primary-pale-bg`, ombre `--shadow-md` et chevron décalé de 3 px ; `active` à 0,99.
   Thème nuit : fond `--color-bg-muted`, pastilles `--color-bg-subtle` + `--border2`.
-- `.transfer-local` (vue « mode serveur local ») : `.transfer-badge` (« Bientôt », ambre),
-  `.transfer-local-url` (encadré pointillé, URL en 13 px / 800), `.transfer-local-hint` et
-  deux `.btn-secondary` de largeur égale (« Copier », « Retour »).
+- `.transfer-local` (vue « mode serveur local ») : `.transfer-badge` (« Sans Internet », ambre),
+  `.transfer-local-url` (encadré pointillé, URL en 13 px / 800), `.transfer-local-qr` (QR code
+  dans un encadré au fond **toujours clair**, `--color-qr-surface` / `--color-qr-module`, SVG
+  `.qr-code-svg` / `.qr-code-modules` de 180 px max), `.transfer-local-hint` et deux
+  `.btn-secondary` de largeur égale (« Copier », « Retour »).
+- `.transfer-note` : note d'information en bas de la modale (bordure pointillée `--border2`,
+  fond `--color-bg-subtle`, texte 11 px / 600 `--text2`, libellé en 800). Variante
+  `.transfer-note-warn` (ambre `--color-warning-pale` / `--color-warning-text`) affichée quand
+  `navigator.canShare({ files })` est faux, avec masquage des options `.transfer-option.share`
+  et `.transfer-option.cloud` (`[hidden]` → `display: none`).
 - **Partage / téléchargement multiple** : pour plusieurs parcelles, le hub produit un **ZIP**
   unique (JSZip 3.10.2, un GeoJSON par parcelle) partagé via `navigator.share({ files: [zip] })`
   ou téléchargé. Le partage natif multi-fichiers n'est plus utilisé (bug Android).

@@ -553,6 +553,61 @@ let transferLocalUrls = [];
 // Parcelles sélectionnées pour un transfert groupé (vide = parcelle courante).
 let transferSelectionIds = [];
 
+// ─── CAPACITÉS DU PARTAGE NATIF ─────────────────────────────
+// `navigator.share` peut exister sans accepter de fichiers (Web Share niveau 1),
+// ce qui faisait échouer « Partage rapide » et « Cloud » sur certains appareils.
+// On sonde une seule fois `navigator.canShare({ files })` et on masque les deux
+// options concernées quand la sonde échoue : l'utilisateur garde le mode serveur
+// local et le téléchargement (avec la note de transfert USB).
+let transferNativeShareSupported = null;
+
+function canShareTransferFiles() {
+  if (typeof navigator === 'undefined'
+      || typeof navigator.share !== 'function'
+      || typeof navigator.canShare !== 'function'
+      || typeof File !== 'function') {
+    return false;
+  }
+  try {
+    const probe = new File(['test'], 'test.geojson', { type: 'application/geo+json' });
+    return navigator.canShare({ files: [probe] }) === true;
+  } catch {
+    return false;
+  }
+}
+
+// Applique l'état des canaux au hub (masquage + note explicative).
+function syncTransferCapabilities() {
+  if (transferNativeShareSupported === null) {
+    transferNativeShareSupported = canShareTransferFiles();
+  }
+  const supported = transferNativeShareSupported;
+
+  ['transferOptionShare', 'transferOptionCloud'].forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.hidden = !supported;
+    if (supported) {
+      button.removeAttribute('aria-hidden');
+    } else {
+      button.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  const note = document.getElementById('transferUnsupportedNote');
+  if (note) note.hidden = supported;
+  return supported;
+}
+
+// Premier canal réellement proposé : le partage natif peut être masqué, le focus
+// d'ouverture doit donc se poser sur une option visible.
+function getFirstTransferOption() {
+  const options = document.getElementById('transferOptions');
+  if (!options) return null;
+  return Array.from(options.querySelectorAll('.transfer-option'))
+    .find(button => !button.hidden) || null;
+}
+
 // Parcelles concernées par le hub : la sélection multiple si elle existe, sinon
 // la parcelle courante. Les parcelles sans point sont ignorées.
 function getTransferProjects() {
@@ -583,6 +638,7 @@ function openTransferModal(options = {}) {
   }
 
   transferShowOptions();
+  syncTransferCapabilities();            // masque les canaux non supportés
 
   const nameEl = document.getElementById('transferProjectName');
   if (nameEl) {
@@ -595,7 +651,7 @@ function openTransferModal(options = {}) {
   overlay.classList.add('show');
   overlay.setAttribute('aria-hidden', 'false');
 
-  const first = document.getElementById('transferOptionShare');
+  const first = getFirstTransferOption();
   if (first && typeof first.focus === 'function') first.focus({ preventScroll: true });
 }
 
@@ -626,10 +682,12 @@ function transferShowOptions() {
 
 // Option 1 — partage natif (Quick Share, Gmail, Drive…).
 // Une parcelle : GeoJSON seul. Plusieurs parcelles : un ZIP unique (le partage
-// natif multi-fichiers échoue sur Android).
+// natif multi-fichiers échoue sur Android). Si l'appareil ne sait pas partager
+// de fichier, l'option est masquée et le repli est le téléchargement direct.
 async function transferViaNativeShare() {
   const projects = getTransferProjects();
   closeTransferModal();
+  if (!syncTransferCapabilities()) return downloadTransferProjects(projects);
   if (projects.length > 1) return shareProjectsZip(projects);
   await shareGeoJSON();
 }
@@ -638,6 +696,7 @@ async function transferViaNativeShare() {
 function transferViaCloud() {
   const projects = getTransferProjects();
   closeTransferModal();
+  if (!syncTransferCapabilities()) return downloadTransferProjects(projects);
   if (isOfflineNow()) {
     return projects.length > 1 ? shareProjectsZip(projects) : shareGeoJSON();
   }
@@ -646,18 +705,23 @@ function transferViaCloud() {
   return shareGeoJSON();
 }
 
-// Option 4 — téléchargement direct.
+// Téléchargement direct des parcelles du hub (repli commun aux canaux de partage).
 // Une parcelle : format choisi dans le panneau Connexion (GeoJSON / CSV / GPX).
 // Plusieurs parcelles : ZIP GeoJSON unique.
-async function transferOpenDownloads() {
-  const projects = getTransferProjects();
-  closeTransferModal();
+function downloadTransferProjects(projects) {
   if (!projects.length) {
     showToast('Aucun point à transférer', 'error');
     return;
   }
   if (projects.length > 1) return downloadProjectsZip(projects);
   return exportProjectDefaultFormat(projects[0].id);
+}
+
+// Option 4 — téléchargement direct.
+async function transferOpenDownloads() {
+  const projects = getTransferProjects();
+  closeTransferModal();
+  return downloadTransferProjects(projects);
 }
 
 // ─── ZIP DES PARCELLES SÉLECTIONNÉES ────────────────────────
@@ -755,8 +819,21 @@ async function downloadProjectsZip(projects) {
   showToast(`ZIP téléchargé — ${archive.count} parcelles`, 'info');
 }
 
+// QR code de l'adresse locale, généré dans la page (js/qrcode.js) : aucun
+// service externe, donc utilisable sans Internet. Vide si aucune adresse.
+function renderTransferLocalQr(url) {
+  const target = document.getElementById('transferLocalQr');
+  if (!target) return;
+  const markup = url && typeof renderQrCodeSvg === 'function'
+    ? renderQrCodeSvg(url, { scale: 5, label: `Adresse ${url}` })
+    : '';
+  target.innerHTML = markup;
+  target.hidden = !markup;
+}
+
 // Option 2 — mode serveur local. L'adresse LAN est fournie par
-// `serve-http.cjs` (/api/local-info) ; le QR code reste à venir.
+// `serve-http.cjs` (/api/local-info) et affichée avec un QR code scannable
+// depuis l'autre appareil du réseau.
 async function transferViaLocalServer() {
   const options = document.getElementById('transferOptions');
   const local = document.getElementById('transferLocalPanel');
@@ -768,6 +845,7 @@ async function transferViaLocalServer() {
   const listEl = document.getElementById('transferLocalList');
   if (urlEl) urlEl.textContent = 'Recherche de l’adresse…';
   if (listEl) listEl.innerHTML = '';
+  renderTransferLocalQr('');               // pas de QR périmé pendant la recherche
 
   const fallback = typeof location !== 'undefined' && location.origin
     ? `${location.origin}/`
@@ -793,6 +871,7 @@ async function transferViaLocalServer() {
   if (listEl && urls.length > 1) {
     listEl.innerHTML = urls.map(url => `<li>${url}</li>`).join('');
   }
+  renderTransferLocalQr(urls[0] || '');
 }
 
 async function copyTransferLocalUrl() {
@@ -840,6 +919,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initExportFormat();
   // Affiche l'indicateur de file d'attente et branche l'événement `online`.
   initOfflineQueue();
+  // Masque « Partage rapide » / « Cloud » si l'appareil ne partage pas de fichier.
+  syncTransferCapabilities();
 
   // Ferme le menu au clic extérieur et avec Échap.
   document.addEventListener('click', (event) => {
