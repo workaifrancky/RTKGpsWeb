@@ -282,7 +282,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `version_app` / `source` ajoutées à **toutes** les features (contrat GeoJSON inchangé).
 - **Hub de transfert** : `#btnSelectionTransfer` (barre de sélection de PARCELLES : icône
   `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose jusqu'à
-  **quatre canaux redondants** :
+  **cinq canaux redondants** :
   1. `transferViaNativeShare()` → `shareGeoJSON()` pour une parcelle, `shareProjectsZip()` pour
      plusieurs (un seul fichier ZIP) ;
   2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
@@ -292,7 +292,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   3. `transferViaCloud()` → `shareGeoJSON()` / `shareProjectsZip()` (le menu Android propose
      Drive) ;
   4. `transferOpenDownloads()` → téléchargement direct : format choisi pour une parcelle, ZIP
-     GeoJSON pour plusieurs.
+     GeoJSON pour plusieurs ;
+  5. `transferViaAnimatedQr()` → `startAnimatedQrTransfer()` : **QR code animé** (sans
+     réseau), lu par `scan.html` sur l'autre appareil (voir le bullet dédié).
   `openTransferModal({ projectIds })` ouvre le hub en mode sélection multiple (sous-titre
   « Sélection : N parcelles »). La modale se ferme au voile, avec Échap (prioritaire sur le menu
   d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
@@ -330,6 +332,24 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   chargé **avant les scripts applicatifs** (après JSZip) dans `index.html` et
   `menu-test.html`. `serve-http.cjs` sert `.wasm` en `application/wasm` (obligatoire pour
   `WebAssembly.instantiateStreaming`).
+- **QR animé — émetteur** : l'option « QR Code animé » (`#transferOptionAnimatedQr`, icône
+  Lucide `qr-code`) du hub appelle `transferViaAnimatedQr()` → `startAnimatedQrTransfer()`
+  (`js/export.js`). `buildAnimatedQrPayload()` transmet l'**octet exact** de `buildGeoJSON()`
+  (une parcelle) ou le ZIP de `buildProjectsZip()` (sélection), puis `createQrSender()` monte
+  son `<canvas>` dans `#animatedQrStage`. Preset **`compatibility`** (`resolveTransferPreset`,
+  repli codé en dur) : 220 octets/bloc, 250 ms/frame, parité 4. `#animatedQrModal` affiche la
+  frame et la boucle (calendrier `frameIntervalMs` rejoué), le nombre de blocs, la taille et la
+  durée de boucle ; `#btnAnimatedQrToggle` alterne « Arrêter » / « Reprendre » et
+  `closeAnimatedQrModal()` détruit l'émetteur. Échap ferme la modale (priorité après
+  `#transferModal`), piège de focus via `trapOverlayFocus()`.
+- **QR animé — récepteur `scan.html`** : page autonome qui charge le vendor + `js/scan.js` et
+  monte `createQrReceiver()` (la bibliothèque crée son `<video>` et appelle `getUserMedia`
+  avec `facingMode: environment`). Progression par blocs (`onProgress`) et frames
+  (`onDiagnostics`), puis « Télécharger le GeoJSON » (ou ZIP) à partir de `result.blob` et de
+  `result.fileName`. La caméra exige un **contexte sécurisé** (HTTPS ou localhost) : la page
+  affiche un avertissement et `window.scanPage` expose `start/stop/restart/download` pour les
+  tests. Le contenu reçu n'est jamais retraité : le contrat GeoJSON reste celui de
+  `buildGeoJSON()`.
 - **File d'attente hors-ligne** : `rtkOfflineQueue` (`localStorage`) stocke les demandes
   d'export/partage émises quand `navigator.onLine === false` :
   `{ id, type: 'export'|'share', projectId, format: 'geojson'|'csv'|'gpx', timestamp }`.
@@ -516,7 +536,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
   et `map.js`, avant `export.js` ; `qrcode.js` **avant** `export.js`, qui appelle
   `renderQrCodeSvg()`). Le bundle vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
-  chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`.
+  chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`. `js/scan.js` n'est
+  chargé que par `scan.html` (page réceptrice autonome), après le même bundle vendorisé.
 - **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
   servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
   local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
@@ -1344,6 +1365,27 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   parityBlockDataChunks:4, qrOptions:{errorCorrectionLevel:"M"}}`), et service HTTP local des
   trois fichiers (`text/javascript`, `text/javascript`, `application/wasm`). **L'interface
   (sender/récepteur) n'est pas encore câblée** : seule la dépendance est en place.
+- **3.78 — QR animé câblé (émetteur hub + page récepteur)** : le hub gagne une 5ᵉ option
+  « QR Code animé » (`#transferOptionAnimatedQr`, icône Lucide `qr-code`) →
+  `transferViaAnimatedQr()` / `startAnimatedQrTransfer()` (`js/export.js`).
+  `buildAnimatedQrPayload()` transmet l'octet exact de `buildGeoJSON()` (une parcelle) ou le
+  ZIP `buildProjectsZip()` (sélection), avec le preset **`compatibility`**. `createQrSender()`
+  monte son `<canvas>` dans `#animatedQrStage` de la nouvelle modale `#animatedQrModal`
+  (lien vers `scan.html`, progression « Frame X / N — boucle L », taille, blocs, durée de
+  boucle, bouton « Arrêter » / « Reprendre », Échap + piège de focus via `trapOverlayFocus()`).
+  Nouvelle page **`scan.html`** + `js/scan.js` + `css/scan.css` : `createQrReceiver()` (la
+  bibliothèque crée le `<video>` et appelle `getUserMedia` en `facingMode: environment`),
+  progression blocs + frames, puis résultat (« Télécharger le GeoJSON » ou ZIP) à partir de
+  `result.blob`. Avertissement si le contexte n'est pas sécurisé (caméra = HTTPS/localhost).
+  `index.html` et `menu-test.html` alignés ; contrat GeoJSON inchangé (aucun retraitement).
+  Vérifié : `node --check js/export.js` et `js/scan.js` ; **round-trip réel** sous Chrome/CDP
+  avec caméra simulée par `canvas.captureStream()` — émetteur 8 frames / 5 blocs → récepteur
+  `identical: true` (983 octets, même nom `RTK_JARDIN_NORD_2026-11-01.geojson`, 2 features) et
+  UI « GeoJSON valide — 2 entité(s) », 100 %, « Télécharger le GeoJSON » ; ZIP multi-parcelles
+  (`RTK_parcelles_2026-11-01.zip`, `application/zip`, « Sélection : 2 parcelles ») ; UI du hub
+  (canvas 340×340, « Frame 4 / 14 — boucle 1 », Arrêter → « Reprendre », fermeture qui vide la
+  scène) ; erreur caméra refusée → « Caméra refusée — autorisez l'accès à la caméra… » +
+  « Caméra indisponible ».
 
 ## 9. Langue et communication
 

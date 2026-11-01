@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1b5e20">
+  <meta name="robots" content="noindex">
+  <title>RTK Mower — Récepteur QR animé</title>
+  <link rel="stylesheet" href="css/design-tokens.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/scan.css">
+</head>
+<body class="scan-page">
+
+<!-- Récepteur du QR code animé : lit la séquence affichée par l'émetteur du
+     hub de transfert (index.html → #animatedQrModal) et reconstruit le fichier
+     (GeoJSON ou ZIP). Aucun réseau n'est utilisé pour le transfert lui-même. -->
+
+<div class="scan-header">
+  <span class="scan-brand">🌾 RTK Mower</span>
+  <a class="scan-back" href="index.html">← Application</a>
+</div>
+
+<main class="scan-main">
+  <h1 class="scan-title">Récepteur QR animé</h1>
+  <p class="scan-subtitle">
+    Visez la séquence de QR codes affichée sur l’autre appareil : le fichier
+    (GeoJSON d’une parcelle ou ZIP de plusieurs parcelles) est reconstruit ici,
+    sans aucune connexion réseau.
+  </p>
+
+  <div class="scan-alert" id="scanSecureWarning" hidden>
+    ⚠️ La caméra exige un contexte sécurisé : ouvrez cette page en <strong>HTTPS</strong>
+    ou sur <strong>localhost</strong>. Le transfert par QR code fonctionne ensuite hors ligne.
+  </div>
+
+  <!-- La bibliothèque monte son <video> dans ce conteneur. -->
+  <div class="scan-stage" id="scanStage" aria-label="Flux de la caméra"></div>
+
+  <div class="scan-progress">
+    <div class="scan-progress-head">
+      <span id="scanStatus">Caméra arrêtée</span>
+      <span class="scan-percent" id="scanPercent">0 %</span>
+    </div>
+    <div class="scan-bar" id="scanBar" role="progressbar" aria-labelledby="scanStatus"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="scan-bar-fill" id="scanBarFill"></div>
+    </div>
+    <div class="scan-counters" id="scanCounters">—</div>
+  </div>
+
+  <div class="scan-actions">
+    <button type="button" class="action-button" id="btnScanStart">Démarrer la caméra</button>
+    <button type="button" class="btn-secondary" id="btnScanStop" hidden>Arrêter</button>
+  </div>
+
+  <section class="scan-result" id="scanResult" hidden aria-live="polite">
+    <h2 class="scan-result-title">Fichier reconstruit</h2>
+    <dl class="scan-result-meta">
+      <dt>Nom</dt><dd id="scanFileName">—</dd>
+      <dt>Taille</dt><dd id="scanFileSize">—</dd>
+      <dt>Contenu</dt><dd id="scanFileInfo">—</dd>
+    </dl>
+    <div class="scan-actions">
+      <button type="button" class="action-button" id="btnScanDownload">
+        Télécharger le GeoJSON
+      </button>
+      <button type="button" class="btn-secondary" id="btnScanAgain">Scanner à nouveau</button>
+    </div>
+  </section>
+
+  <div class="scan-error" id="scanError" role="alert" hidden></div>
+
+  <p class="scan-note">
+    Le transfert ne consomme aucune donnée réseau : seuls la caméra et l’écran sont
+    utilisés. Une fois le fichier téléchargé, il peut être copié sur la tablette par
+    câble USB (gestionnaire de fichiers).
+  </p>
+</main>
+
+<script src="js/vendor/animated-data-qr/animated-data-qr.umd.min.js"></script>
+<script src="js/scan.js"></script>
+</body>
+</html>

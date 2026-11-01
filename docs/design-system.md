@@ -254,6 +254,21 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   unique (JSZip 3.10.2, un GeoJSON par parcelle) partagé via `navigator.share({ files: [zip] })`
   ou téléchargé. Le partage natif multi-fichiers n'est plus utilisé (bug Android).
 
+### QR code animé (`components.css` + `scan.css`)
+
+- **Émetteur** `#animatedQrModal` : `.animated-qr-box` (colonne, gap 12 px),
+  `.animated-qr-stage` (encadré au fond **toujours clair**, `--color-qr-surface`, où la
+  bibliothèque monte son `<canvas>` — largeur 100 %, max 340 px), `.animated-qr-line`
+  (progression 12 px / 700) + `.animated-qr-stats` (11 px `--text3`), `.animated-qr-note`
+  (avec un lien vers `scan.html`) et `.modal-actions` (« Arrêter » / « Fermer »).
+  L'option du hub est `.transfer-option.qr` (pastille `--color-primary-light`).
+- **Récepteur** `scan.html` (`css/scan.css`) : `.scan-page`, `.scan-header` (bandeau vert,
+  texte `white`), `.scan-stage` (fond noir, `<video>` de la bibliothèque), `.scan-progress`
+  avec `.scan-bar` / `.scan-bar-fill` (8 px, `--color-primary-light`), `.scan-counters`,
+  `.scan-actions` (deux boutons de largeur égale) et `.scan-result` (fond
+  `--color-primary-pale-bg`, méta en grille). Variantes thème nuit limitées aux titres et à
+  la carte de résultat.
+
 ### Tiroir Parcelles
 
 - `#btnProjectDrawer` (`components.css`) : **1re option** `.trace-fab-item.project` du menu FAB

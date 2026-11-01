@@ -724,6 +724,12 @@ async function transferOpenDownloads() {
   return downloadTransferProjects(projects);
 }
 
+// Option 5 — QR code animé : la séquence est lue par `scan.html` sur l'autre
+// appareil. Aucune donnée ne transite par le réseau.
+function transferViaAnimatedQr() {
+  void startAnimatedQrTransfer();
+}
+
 // ─── ZIP DES PARCELLES SÉLECTIONNÉES ────────────────────────
 // Un seul fichier .zip contenant un GeoJSON par parcelle : contourne le bug
 // Android du partage natif de plusieurs fichiers. Le contrat de chaque GeoJSON
@@ -893,6 +899,298 @@ async function copyTransferLocalUrl() {
   showToast(url, 'info', 4000);
 }
 
+// ─── QR CODE ANIMÉ (transfert sans réseau) ──────────────────
+// Émetteur du hub : la séquence de QR codes est rendue dans #animatedQrModal et
+// scannée par `scan.html` sur l'autre appareil. La charge utile est l'octet
+// exact produit par buildGeoJSON() (contrat Mower Planner inchangé) ou le ZIP
+// JSZip pour une sélection de plusieurs parcelles.
+const ANIMATED_QR_PRESET_NAME = 'compatibility';
+let animatedQrSender = null;
+let animatedQrProgressTimer = null;
+let animatedQrStats = null;
+let animatedQrRunning = false;
+let animatedQrStartedAt = 0;
+let animatedQrPreviousFocus = null;
+
+function getAnimatedQrApi() {
+  return typeof window !== 'undefined' && window.AnimatedDataQR
+    ? window.AnimatedDataQR
+    : null;
+}
+
+// Preset `compatibility` : le plus tolérant pour une lecture par caméra.
+// Repli identique aux valeurs documentées si la bibliothèque n'est pas chargée.
+function getAnimatedQrPreset() {
+  const api = getAnimatedQrApi();
+  if (api && typeof api.resolveTransferPreset === 'function') {
+    try {
+      return api.resolveTransferPreset(ANIMATED_QR_PRESET_NAME);
+    } catch {
+      // Repli ci-dessous.
+    }
+  }
+  return {
+    frameIntervalMs: 250,
+    chunkByteSize: 220,
+    payloadEncoding: 'binary',
+    symbolsPerFrame: 1,
+    parityBlockDataChunks: 4,
+    qrOptions: { errorCorrectionLevel: 'M' },
+  };
+}
+
+// Charge utile : un GeoJSON pour une parcelle, un ZIP au-delà.
+async function buildAnimatedQrPayload(projects) {
+  if (projects.length === 1) {
+    const payload = typeof buildGeoJSON === 'function' ? buildGeoJSON(projects[0]) : null;
+    if (!payload) return null;
+    return {
+      blob: new Blob([JSON.stringify(payload.geojson, null, 2)],
+        { type: 'application/geo+json' }),
+      fileName: payload.filename,
+      mimeType: 'application/geo+json',
+      label: `Parcelle : ${projects[0].name || 'Parcelle courante'}`,
+    };
+  }
+
+  const archive = await buildProjectsZip(projects);
+  if (!archive) return null;
+  return {
+    blob: archive.blob,
+    fileName: archive.filename,
+    mimeType: 'application/zip',
+    label: `Sélection : ${projects.length} parcelles`,
+  };
+}
+
+function formatAnimatedQrSize(bytes) {
+  const size = Number(bytes) || 0;
+  if (size >= 1048576) return `${(size / 1048576).toFixed(1)} Mo`;
+  if (size >= 1024) return `${Math.round(size / 1024)} Ko`;
+  return `${size} o`;
+}
+
+function buildAnimatedQrStatsText() {
+  if (!animatedQrStats) return '—';
+  const parts = [];
+  if (animatedQrStats.fileSize) parts.push(formatAnimatedQrSize(animatedQrStats.fileSize));
+  if (animatedQrStats.totalChunks) parts.push(`${animatedQrStats.totalChunks} blocs`);
+  if (animatedQrStats.loopDurationMs) {
+    parts.push(`boucle ${(animatedQrStats.loopDurationMs / 1000).toFixed(1)} s`);
+  }
+  return parts.join(' · ') || '—';
+}
+
+function setAnimatedQrProgress(text, statsText) {
+  const progressEl = document.getElementById('animatedQrProgress');
+  const statsEl = document.getElementById('animatedQrStats');
+  if (progressEl) progressEl.textContent = text;
+  if (statsEl) statsEl.textContent = statsText;
+}
+
+function syncAnimatedQrButtons() {
+  const button = document.getElementById('btnAnimatedQrToggle');
+  if (!button) return;
+  button.hidden = !animatedQrSender;
+  button.textContent = animatedQrRunning ? 'Arrêter' : 'Reprendre';
+}
+
+// La bibliothèque boucle les frames : on rejoue son calendrier
+// (frameIntervalMs) pour afficher la frame courante et le numéro de boucle.
+function startAnimatedQrProgressLoop() {
+  stopAnimatedQrProgressLoop();
+  const totalFrames = Number(animatedQrStats?.totalFrames) || 0;
+  if (!totalFrames) return;
+
+  const interval = Math.max(50, Number(animatedQrStats?.frameIntervalMs) || 250);
+  animatedQrStartedAt = Date.now();
+  const statsText = buildAnimatedQrStatsText();
+
+  const render = () => {
+    if (!animatedQrRunning || !totalFrames) return;
+    const elapsed = Date.now() - animatedQrStartedAt;
+    const frameIndex = Math.floor(elapsed / interval) % totalFrames;
+    const loopIndex = Math.floor(elapsed / (interval * totalFrames));
+    setAnimatedQrProgress(
+      `Frame ${frameIndex + 1} / ${totalFrames} — boucle ${loopIndex + 1}`,
+      statsText,
+    );
+  };
+
+  render();
+  animatedQrProgressTimer = setInterval(render, Math.min(500, interval));
+}
+
+function stopAnimatedQrProgressLoop() {
+  if (animatedQrProgressTimer !== null) {
+    clearInterval(animatedQrProgressTimer);
+    animatedQrProgressTimer = null;
+  }
+}
+
+// Prépare l'émetteur dans #animatedQrStage puis démarre la séquence.
+async function prepareAnimatedQrSender(api, payload) {
+  destroyAnimatedQrSender();
+
+  const stage = document.getElementById('animatedQrStage');
+  if (!stage) throw new Error('Conteneur du QR animé introuvable');
+  stage.innerHTML = '';
+
+  const preset = getAnimatedQrPreset();
+  const sender = api.createQrSender(stage, {
+    frameIntervalMs: preset.frameIntervalMs,
+    chunkByteSize: preset.chunkByteSize,
+    payloadEncoding: preset.payloadEncoding,
+    symbolsPerFrame: preset.symbolsPerFrame,
+    parityBlockDataChunks: preset.parityBlockDataChunks,
+    qrOptions: preset.qrOptions,
+  });
+
+  const summary = await sender.loadBlob(payload.blob, {
+    fileName: payload.fileName,
+    mimeType: payload.mimeType,
+    chunkByteSize: preset.chunkByteSize,
+    frameIntervalMs: preset.frameIntervalMs,
+    payloadEncoding: preset.payloadEncoding,
+    symbolsPerFrame: preset.symbolsPerFrame,
+    parityBlockDataChunks: preset.parityBlockDataChunks,
+  });
+
+  animatedQrSender = sender;
+  animatedQrStats = {
+    ...(summary?.estimatedStats || {}),
+    fileSize: summary?.size || payload.blob.size,
+    totalFrames: summary?.totalFrames || summary?.estimatedStats?.totalFrames || 0,
+    frameIntervalMs: summary?.estimatedStats?.frameIntervalMs || preset.frameIntervalMs,
+  };
+
+  await sender.start();
+  animatedQrRunning = true;
+  startAnimatedQrProgressLoop();
+  syncAnimatedQrButtons();
+}
+
+// Ouvre la modale dédiée et lance l'émetteur (option « QR Code animé » du hub).
+async function startAnimatedQrTransfer() {
+  const api = getAnimatedQrApi();
+  if (!api || typeof api.createQrSender !== 'function') {
+    showToast('QR animé indisponible — bibliothèque non chargée', 'error', 3500);
+    return;
+  }
+
+  const projects = getTransferProjects();
+  if (!projects.length) {
+    showToast('Aucun point à transférer', 'error');
+    return;
+  }
+
+  const overlay = document.getElementById('animatedQrModal');
+  if (!overlay) return;
+
+  const payload = await buildAnimatedQrPayload(projects);
+  if (!payload) {
+    showToast('Aucun point à transférer', 'error');
+    return;
+  }
+
+  closeTransferModal();
+
+  const subtitle = document.getElementById('animatedQrSubtitle');
+  if (subtitle) subtitle.textContent = payload.label;
+
+  animatedQrPreviousFocus = document.activeElement;
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+
+  try {
+    await prepareAnimatedQrSender(api, payload);
+  } catch (error) {
+    console.warn('Préparation du QR animé impossible', error);
+    showToast('Préparation du QR animé impossible', 'error', 3500);
+    closeAnimatedQrModal();
+    return;
+  }
+
+  const toggle = document.getElementById('btnAnimatedQrToggle');
+  if (toggle && typeof toggle.focus === 'function') {
+    toggle.focus({ preventScroll: true });
+  }
+}
+
+// Bouton unique « Arrêter » / « Reprendre ».
+function toggleAnimatedQrSender() {
+  if (!animatedQrSender) return;
+
+  if (animatedQrRunning) {
+    try {
+      animatedQrSender.stop();
+    } catch {
+      // Émetteur déjà arrêté.
+    }
+    animatedQrRunning = false;
+    stopAnimatedQrProgressLoop();
+    setAnimatedQrProgress('Séquence arrêtée', buildAnimatedQrStatsText());
+    syncAnimatedQrButtons();
+    return;
+  }
+
+  Promise.resolve()
+    .then(() => animatedQrSender && animatedQrSender.start())
+    .then(() => {
+      if (!animatedQrSender) return;
+      animatedQrRunning = true;
+      startAnimatedQrProgressLoop();
+      syncAnimatedQrButtons();
+    })
+    .catch((error) => {
+      console.warn('Reprise du QR animé impossible', error);
+      showToast('Reprise du QR animé impossible', 'error', 3000);
+    });
+}
+
+function destroyAnimatedQrSender() {
+  stopAnimatedQrProgressLoop();
+  animatedQrRunning = false;
+
+  if (animatedQrSender) {
+    try {
+      animatedQrSender.stop();
+    } catch {
+      // Émetteur déjà arrêté.
+    }
+    try {
+      animatedQrSender.destroy();
+    } catch {
+      // Émetteur déjà détruit.
+    }
+  }
+
+  animatedQrSender = null;
+  animatedQrStats = null;
+
+  const stage = document.getElementById('animatedQrStage');
+  if (stage) stage.innerHTML = '';
+
+  syncAnimatedQrButtons();
+}
+
+function closeAnimatedQrModal() {
+  const overlay = document.getElementById('animatedQrModal');
+  if (!overlay || !overlay.classList.contains('show')) return;
+
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  destroyAnimatedQrSender();
+  setAnimatedQrProgress('Préparation…', '—');
+
+  const target = animatedQrPreviousFocus;
+  animatedQrPreviousFocus = null;
+  if (target && target.isConnected && target.offsetParent !== null
+      && typeof target.focus === 'function') {
+    target.focus({ preventScroll: true });
+  }
+}
+
 // ─── MENU D'EXPORT SECONDAIRE (CSV / GPX) ───────────────────
 function toggleExportMenu(event) {
   if (event) event.stopPropagation();
@@ -914,6 +1212,27 @@ function closeExportMenu() {
   if (btn) btn.setAttribute('aria-expanded', 'false');
 }
 
+// Piège de focus commun aux modales du hub : Tab reste dans la modale.
+function trapOverlayFocus(overlay) {
+  if (!overlay) return;
+  overlay.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const focusables = Array.from(
+      overlay.querySelectorAll('button:not([disabled]), a[href]'),
+    ).filter(element => element.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Restaure le format d'export choisi (GeoJSON par défaut).
   initExportFormat();
@@ -929,27 +1248,12 @@ document.addEventListener('DOMContentLoaded', () => {
     closeExportMenu();
   });
 
-  // Hub de transfert : piège de focus (Tab reste dans la modale).
-  const transferOverlay = document.getElementById('transferModal');
-  if (transferOverlay) {
-    transferOverlay.addEventListener('keydown', (event) => {
-      if (event.key !== 'Tab') return;
-      const focusables = Array.from(transferOverlay.querySelectorAll('button:not([disabled])'))
-        .filter(el => el.offsetParent !== null);
-      if (!focusables.length) return;
-      const first = focusables[0];
-      const last  = focusables[focusables.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    });
-  }
+  // Modales du hub (transfert et QR animé) : piège de focus.
+  trapOverlayFocus(document.getElementById('transferModal'));
+  trapOverlayFocus(document.getElementById('animatedQrModal'));
 
-  // Échap : la modale de transfert est prioritaire sur le menu d'export.
+  // Échap : la modale de transfert est prioritaire, puis le QR animé, puis le
+  // menu d'export.
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     const overlay = document.getElementById('transferModal');
@@ -957,6 +1261,13 @@ document.addEventListener('DOMContentLoaded', () => {
       event.preventDefault();
       event.stopImmediatePropagation();
       closeTransferModal();
+      return;
+    }
+    const animatedOverlay = document.getElementById('animatedQrModal');
+    if (animatedOverlay && animatedOverlay.classList.contains('show')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeAnimatedQrModal();
       return;
     }
     closeExportMenu();

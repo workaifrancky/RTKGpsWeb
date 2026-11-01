@@ -41,6 +41,9 @@ Fonctionnalités principales :
   **CSV** / **GPX** pour une parcelle, via le hub **Transférer** (mode serveur local avec
   **QR code** généré dans la page, sans Internet ; canaux de partage masqués si l'appareil ne
   les supporte pas ; note de transfert par câble USB) ;
+- **QR code animé** (sans réseau) : le hub affiche une séquence de QR codes et la page
+  **`scan.html`** la scanne avec la caméra d'un autre appareil pour reconstruire le fichier
+  (GeoJSON d'une parcelle ou ZIP), avec progression et téléchargement ;
 - outils de **simulation** (parcelle fictive, trame GPS) **désactivés par défaut** pour les
   tests terrain, réactivables via `ENABLE_SIMULATION` (voir [docs/simulation.md](docs/simulation.md)).
 
@@ -118,26 +121,31 @@ peut être isolé.
    une zone (tonte ou interdite) permet de la renommer ou de la supprimer. Le relevé est dans
    l'onglet RELEVÉ. Les polygones de tonte affichent la longueur de chaque segment.
 5. **Transférer / exporter** avec le bouton **Transférer** de la barre de sélection
-   (vue PARCELLES) : partage natif, serveur local (adresse LAN + **QR code**), cloud ou
-   téléchargement. Les canaux de partage natif sont **masqués** si l'appareil ne sait pas
-   partager de fichier (`navigator.canShare({ files })`), et une note rappelle le transfert
-   par **câble USB** (télécharger sur le téléphone, puis copier via le gestionnaire de
-   fichiers de la tablette). Une parcelle utilise le format choisi dans Connexion
-   (GeoJSON / CSV / GPX), plusieurs parcelles produisent un **ZIP** contenant un GeoJSON par
-   parcelle. Le GeoJSON suit le contrat décrit dans
+   (vue PARCELLES) : partage natif, serveur local (adresse LAN + **QR code**), cloud,
+   téléchargement ou **QR code animé**. Les canaux de partage natif sont **masqués** si
+   l'appareil ne sait pas partager de fichier (`navigator.canShare({ files })`), et une note
+   rappelle le transfert par **câble USB** (télécharger sur le téléphone, puis copier via le
+   gestionnaire de fichiers de la tablette). Une parcelle utilise le format choisi dans
+   Connexion (GeoJSON / CSV / GPX), plusieurs parcelles produisent un **ZIP** contenant un
+   GeoJSON par parcelle. Le GeoJSON suit le contrat décrit dans
    [docs/format-geojson.md](docs/format-geojson.md).
+6. **QR code animé (sans réseau)** : dans le hub, « QR Code animé » affiche la séquence ;
+   sur l'autre appareil, ouvrez `scan.html` (HTTPS ou localhost, requis par la caméra),
+   démarrez la caméra puis scannez. Le fichier reconstruit se télécharge tel quel.
 
 ## Structure du projet
 
 ```text
 RTKGpsWeb/
 ├── index.html              # Application mono-page : header, onglets, modales, barre flottante
+├── scan.html               # Récepteur du QR code animé (page autonome, caméra)
 ├── css/
 │   ├── design-tokens.css   # Tokens du design system (couleurs, rayons, ombres, espacements)
 │   ├── main.css            # Reset, layout, header, onglets, toasts, modales, thème nuit
 │   ├── components.css      # Cartes, boutons, listes de points, barre flottante
 │   ├── map.css             # Styles Leaflet (popups, contrôles, overlay de surface)
-│   └── theme.css           # Overrides du mode nuit + écran caméra
+│   ├── theme.css           # Overrides du mode nuit + écran caméra
+│   └── scan.css            # Mise en page du récepteur QR animé (scan.html)
 ├── js/
 │   ├── app.js              # État global APP, navigation, thème, toasts, alertes, modales
 │   ├── projects.js         # Projets/parcelles + persistance localStorage
@@ -150,6 +158,7 @@ RTKGpsWeb/
 │   ├── stats.js            # Relevé de parcelle (surface, temps, linéaire, contraintes)
 │   ├── export.js           # Exports CSV / GPX / GeoJSON (+ convex hull), hub de transfert
 │   ├── qrcode.js           # Générateur de QR code autonome (adresse du mode serveur local)
+│   ├── scan.js             # Récepteur du QR code animé (page scan.html)
 │   ├── simulation.js       # Outils de simulation (désactivés : ENABLE_SIMULATION = false)
 │   ├── history.js          # Historique des parcelles/sessions
 │   ├── ui.js               # Pastille GPS du header et alertes

@@ -970,6 +970,76 @@
 
 .transfer-note-warn strong { color: var(--color-warning-text); }
 
+/* ─── QR CODE ANIMÉ (#animatedQrModal) ─────────────────────── */
+/* Émetteur : la bibliothèque dessine la séquence dans un <canvas> monté dans
+   #animatedQrStage ; l'autre appareil scanne la séquence avec scan.html. */
+.transfer-option.qr .transfer-option-icon { color: var(--color-primary-light); }
+
+.animated-qr-box {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+}
+
+.animated-qr-stage {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      220px;
+  padding:         10px;
+  border:          1px solid var(--border);
+  border-radius:   var(--radius-md);
+  /* Fond clair imposé : sans contraste, le QR n'est pas scannable. */
+  background:      var(--color-qr-surface);
+}
+
+.animated-qr-stage:empty::after {
+  content:     'Préparation de la séquence…';
+  color:       var(--text3);
+  font-size:   12px;
+  font-weight: 600;
+}
+
+.animated-qr-stage canvas {
+  display:   block;
+  width:     100% !important;
+  max-width: 340px;
+  height:    auto;
+}
+
+.animated-qr-meta {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.animated-qr-line {
+  font-size:   12px;
+  font-weight: 700;
+  color:       var(--text2);
+}
+
+.animated-qr-stats {
+  font-size:   11px;
+  font-weight: 600;
+  color:       var(--text3);
+}
+
+.animated-qr-note {
+  margin:      0;
+  color:       var(--text3);
+  font-size:   11px;
+  line-height: 1.5;
+}
+
+.animated-qr-note a {
+  color:       var(--color-primary);
+  font-weight: 800;
+}
+
+/* Le bouton « Arrêter » n'apparaît qu'une fois la séquence préparée. */
+.animated-qr-box .modal-actions button[hidden] { display: none; }
+
 /* ─── MODAL NOUVEAU PROJET ──────────────────────────────────── */
 .project-form {
   display:        flex;

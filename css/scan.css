@@ -1,0 +1,262 @@
+/* ============================================================
+   scan.css — Page récepteur du QR code animé (scan.html)
+   Réutilise les tokens de design-tokens.css et les composants
+   génériques (boutons, cartes) ; aucune couleur codée en dur.
+   ============================================================ */
+
+.scan-page {
+  padding:    calc(env(safe-area-inset-top, 0px) + 16px) 16px
+              calc(env(safe-area-inset-bottom, 0px) + 24px);
+  background: var(--color-bg-subtle);
+}
+
+/* ─── En-tête ───────────────────────────────────────────────── */
+.scan-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             10px;
+  max-width:       520px;
+  margin:          0 auto 18px;
+  padding:         12px 14px;
+  border-radius:   var(--radius-lg);
+  background:      var(--color-primary);
+  color:           white;                 /* texte sur fond vert */
+  box-shadow:      var(--shadow-md);
+}
+
+.scan-brand {
+  font-size:   15px;
+  font-weight: 800;
+}
+
+.scan-back {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             4px;
+  min-height:      36px;
+  padding:         4px 10px;
+  border-radius:   999px;
+  background:      rgba(255, 255, 255, 0.16);
+  color:           white;
+  font-size:       12px;
+  font-weight:     700;
+  text-decoration: none;
+}
+
+.scan-back:hover { background: rgba(255, 255, 255, 0.26); }
+
+/* ─── Contenu ───────────────────────────────────────────────── */
+.scan-main {
+  display:        flex;
+  flex-direction: column;
+  gap:            14px;
+  max-width:      520px;
+  margin:         0 auto;
+}
+
+.scan-title {
+  margin:      0;
+  font-size:   20px;
+  font-weight: 800;
+  color:       var(--color-primary-deep);
+}
+
+.scan-subtitle {
+  margin:      0;
+  color:       var(--text2);
+  font-size:   13px;
+  line-height: 1.5;
+}
+
+/* ─── Alertes et erreurs ────────────────────────────────────── */
+.scan-alert,
+.scan-error {
+  padding:       10px 12px;
+  border-radius: var(--radius-md);
+  font-size:     12px;
+  font-weight:   600;
+  line-height:   1.5;
+}
+
+.scan-alert {
+  border:     1px dashed var(--color-warning);
+  background: var(--color-warning-pale);
+  color:      var(--color-warning-text);
+}
+
+.scan-error {
+  border:     1px solid var(--color-danger);
+  background: var(--color-danger-pale);
+  color:      var(--color-danger-text);
+}
+
+.scan-alert[hidden],
+.scan-error[hidden],
+.scan-result[hidden] { display: none; }
+
+/* ─── Scène caméra (la bibliothèque y monte son <video>) ───── */
+.scan-stage {
+  position:      relative;
+  min-height:    240px;
+  overflow:      hidden;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:    #000;             /* surface caméra : noir neutre */
+  box-shadow:    var(--shadow-sm);
+}
+
+.scan-stage video {
+  display:    block;
+  width:      100%;
+  max-height: 60vh;
+  object-fit: cover;
+  background: #000;
+}
+
+.scan-stage:empty::after {
+  content:         'Caméra arrêtée';
+  position:        absolute;
+  inset:           0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           white;
+  font-size:       13px;
+  font-weight:     700;
+}
+
+/* ─── Progression ───────────────────────────────────────────── */
+.scan-progress {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  padding:        12px;
+  border:         1px solid var(--border);
+  border-radius:  var(--radius-lg);
+  background:     var(--color-white);
+  box-shadow:     var(--shadow-sm);
+}
+
+.scan-progress-head {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             8px;
+  font-size:       12px;
+  font-weight:     800;
+  color:           var(--text);
+}
+
+.scan-percent {
+  color:                var(--color-primary-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-bar {
+  height:        8px;
+  overflow:      hidden;
+  border-radius: 999px;
+  background:    var(--color-bg-muted);
+}
+
+.scan-bar-fill {
+  width:         0;
+  height:        100%;
+  border-radius: 999px;
+  background:    var(--color-primary-light);
+  transition:    width 0.2s ease;
+}
+
+.scan-counters {
+  color:       var(--text3);
+  font-size:   11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ─── Actions ───────────────────────────────────────────────── */
+.scan-actions {
+  display: flex;
+  gap:     8px;
+}
+
+.scan-actions .action-button,
+.scan-actions .btn-secondary {
+  flex:            1 1 0;
+  min-width:       0;
+  min-height:      44px;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             6px;
+  font-size:       13px;
+}
+
+.scan-actions button[hidden] { display: none; }
+
+/* ─── Résultat ──────────────────────────────────────────────── */
+.scan-result {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  padding:        12px;
+  border:         1px solid var(--color-primary-light);
+  border-radius:  var(--radius-lg);
+  background:     var(--color-primary-pale-bg);
+}
+
+.scan-result-title {
+  margin:      0;
+  font-size:   14px;
+  font-weight: 800;
+  color:       var(--color-primary-deep);
+}
+
+.scan-result-meta {
+  display:               grid;
+  grid-template-columns: auto 1fr;
+  gap:                   4px 10px;
+  margin:                0;
+  font-size:             12px;
+}
+
+.scan-result-meta dt {
+  color:       var(--text3);
+  font-weight: 700;
+}
+
+.scan-result-meta dd {
+  margin:      0;
+  color:       var(--text);
+  font-weight: 700;
+  word-break:  break-all;
+}
+
+/* ─── Note de bas de page ──────────────────────────────────── */
+.scan-note {
+  margin:      0;
+  color:       var(--text3);
+  font-size:   11px;
+  line-height: 1.5;
+}
+
+.scan-note code {
+  padding:       1px 4px;
+  border-radius: var(--radius-sm);
+  background:    var(--color-bg-muted);
+  font-family:   ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size:     10px;
+}
+
+/* ─── Thème nuit ────────────────────────────────────────────── */
+[data-theme="dark"] .scan-stage:empty::after { color: var(--text4); }
+
+[data-theme="dark"] .scan-result {
+  background:   var(--color-bg-muted);
+  border-color: var(--border2);
+}
+
+[data-theme="dark"] .scan-title,
+[data-theme="dark"] .scan-result-title,
+[data-theme="dark"] .scan-percent { color: var(--color-primary-light); }

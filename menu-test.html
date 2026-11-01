@@ -957,6 +957,40 @@ localStorage.setItem("rtkCurrentProject","proj_test");
         </span>
       </button>
 
+      <!-- QR code animé : séquence lue par scan.html sur l'autre appareil. -->
+      <button type="button" id="transferOptionAnimatedQr" class="transfer-option qr"
+        onclick="transferViaAnimatedQr()">
+        <span class="transfer-option-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" focusable="false">
+            <rect width="5" height="5" x="3" y="3" rx="1"/>
+            <rect width="5" height="5" x="16" y="3" rx="1"/>
+            <rect width="5" height="5" x="3" y="16" rx="1"/>
+            <path d="M21 16h-3a2 2 0 0 0-2 2v3"/>
+            <path d="M21 21v.01"/>
+            <path d="M12 7v3a2 2 0 0 1-2 2H7"/>
+            <path d="M3 12h.01"/>
+            <path d="M12 3h.01"/>
+            <path d="M12 16v.01"/>
+            <path d="M16 12h1"/>
+            <path d="M21 12v.01"/>
+            <path d="M12 21v-1"/>
+          </svg>
+        </span>
+        <span class="transfer-option-text">
+          <span class="transfer-option-title">QR Code animé</span>
+          <span class="transfer-option-desc">Sans réseau — à scanner depuis un autre appareil</span>
+        </span>
+        <span class="transfer-option-chevron" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" focusable="false">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </span>
+      </button>
+
       <!-- Affiché seulement si l'appareil ne peut pas partager de fichier
            (navigator.canShare({ files }) faux) : « Partage rapide » et
            « Cloud » sont alors masqués. -->
@@ -1031,6 +1065,57 @@ localStorage.setItem("rtkCurrentProject","proj_test");
       <p>💡 <strong>Transfert par câble USB :</strong> Téléchargez le fichier sur votre
         téléphone (option "Télécharger le fichier"), puis branchez votre téléphone à votre
         tablette et copiez le fichier via le gestionnaire de fichiers.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- QR CODE ANIMÉ (émetteur sans réseau)                        -->
+<!-- Séquence lue par scan.html sur l'autre appareil (js/export.js). -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="animatedQrModal" class="modal-overlay" role="dialog" aria-modal="true"
+  aria-labelledby="animatedQrTitle" aria-hidden="true"
+  onclick="if(event.target===this)closeAnimatedQrModal()">
+  <div class="modal-box animated-qr-box">
+    <div class="transfer-head">
+      <div class="transfer-head-text">
+        <div class="modal-title" id="animatedQrTitle">QR Code animé</div>
+        <div class="transfer-subtitle"><span id="animatedQrSubtitle">—</span></div>
+      </div>
+      <button type="button" class="transfer-close" onclick="closeAnimatedQrModal()"
+        aria-label="Fermer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M18 6 6 18"/>
+          <path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- La bibliothèque monte son <canvas> dans ce conteneur. -->
+    <div class="animated-qr-stage" id="animatedQrStage"
+      aria-label="Séquence de QR codes à scanner"></div>
+
+    <div class="animated-qr-meta">
+      <div class="animated-qr-line" id="animatedQrProgress" role="status" aria-live="polite">
+        Préparation…
+      </div>
+      <div class="animated-qr-line animated-qr-stats" id="animatedQrStats">—</div>
+    </div>
+
+    <p class="animated-qr-note">
+      Sur l’autre appareil, ouvrez
+      <a id="animatedQrScanLink" href="scan.html" target="_blank" rel="noopener">scan.html</a>
+      puis scannez la séquence. Aucun réseau n’est nécessaire.
+    </p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnAnimatedQrToggle" hidden
+        onclick="toggleAnimatedQrSender()">Arrêter</button>
+      <button type="button" class="action-button" onclick="closeAnimatedQrModal()">
+        Fermer
+      </button>
     </div>
   </div>
 </div>
