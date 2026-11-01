@@ -342,11 +342,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   nombre de blocs, la taille et la durée de boucle ; `#btnAnimatedQrToggle` alterne
   « Arrêter » / « Reprendre » et `closeAnimatedQrModal()` détruit l'émetteur. Échap ferme la
   modale (priorité après `#transferModal`), piège de focus via `trapOverlayFocus()`.
-  **Contrat de la charge utile** : 1 parcelle → `kind:'geojson'`,
-  `ANIMATED_QR_GEOJSON_MIME = 'application/geo+json'`, nom `RTK_<nom>_<date>.geojson` ;
-  ≥ 2 parcelles → `kind:'zip'`, `ANIMATED_QR_ZIP_MIME = 'application/zip'`, nom
-  `RTK_parcelles_<date>.zip`, libellé `Sélection : N parcelles` (N = `archive.count`, parcelles
-  réellement présentes dans le ZIP). `ensureAnimatedQrBlob()` garantit le type MIME du Blob, et
+  **Contrat de la charge utile** : **toujours un ZIP** (`kind:'zip'`,
+  `ANIMATED_QR_ZIP_MIME = 'application/zip'`), y compris pour **une seule parcelle** — un seul
+  cas à gérer côté émetteur comme côté récepteur, et la compression DEFLATE réduit le nombre de
+  frames QR à afficher. Nom : `RTK_<nom>_<date>.zip` pour une parcelle unique (dérivé de
+  `archive.entries[0]`, donc identique au GeoJSON contenu), sinon `RTK_parcelles_<date>.zip`.
+  Libellé : `Parcelle : <NOM>` (une parcelle) ou `Sélection : N parcelles` où N =
+  `archive.count`, parcelles réellement présentes dans le ZIP. Chaque entrée reste l'octet
+  exact de `buildGeoJSON()` (contrat Mower Planner inchangé). `ensureAnimatedQrBlob()` garantit le type MIME du Blob, et
   `fileName` + `mimeType` sont **toujours** passés à `loadBlob()` : un `Blob` n'a pas de `.name`,
   la bibliothèque retomberait sinon sur `transfer.bin` / `application/octet-stream` et le
   récepteur ne pourrait plus reconnaître le ZIP. `startAnimatedQrTransfer()` lit la sélection
@@ -360,7 +363,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   de `result.fileName`. **Détection du ZIP** (`isZipPayload()`) : type MIME
   (`application/zip`, `application/x-zip-compressed`, `multipart/x-zip`), extension `.zip`,
   puis **signature binaire** `PK` (`50 4B 03/05/07`) lue par `readScanHead()` — un manifeste
-  sans type MIME reste donc reconnu. Si c'est un ZIP : bouton « Télécharger le ZIP » (au lieu
+  sans type MIME reste donc reconnu. L'émetteur envoyant **toujours un ZIP** (même pour une
+  parcelle), c'est le cas nominal ; le GeoJSON seul reste accepté pour une séquence produite
+  par une version antérieure. Si c'est un ZIP : bouton « Télécharger le ZIP » (au lieu
   de « Télécharger le GeoJSON »), comptage via `JSZip.loadAsync()` (`describeZipPayload()`) →
   « Archive ZIP — N fichier(s) · M entité(s) », liste des entrées dans `#scanFileList` et
   vérification que chaque `.geojson` est une `FeatureCollection` (sinon « N GeoJSON
@@ -1439,6 +1444,27 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   « Télécharger le GeoJSON » + « GeoJSON valide — 1 entité(s) » sans liste. Contrat GeoJSON
   inchangé. Les noms de parcelle contenant une espace la conservent dans le nom de fichier
   (comportement historique de `RTK_${nom}_${date}`, identique pour tous les exports).
+
+- **3.80 — QR animé : charge utile toujours en ZIP** : `buildAnimatedQrPayload()`
+  (`js/export.js`) n'a plus de branchement : le canal QR animé envoie **systématiquement** un
+  ZIP via `buildProjectsZip()`, **même pour une seule parcelle**. Le type MIME est toujours
+  `application/zip` (`ANIMATED_QR_ZIP_MIME`), la constante `ANIMATED_QR_GEOJSON_MIME` est
+  supprimée, le nom devient `RTK_<nom>_<date>.zip` pour une parcelle (dérivé de
+  `archive.entries[0]`, nouvellement exposé par `buildProjectsZip()`, donc strictement cohérent
+  avec l'entrée GeoJSON contenue) et `RTK_parcelles_<date>.zip` au-delà. Libellé :
+  `Parcelle : <NOM>` ou `Sélection : N parcelles` (`archive.count`). Bénéfices : un seul cas à
+  gérer émetteur/récepteur et **compression DEFLATE** (charge utile nettement plus courte, donc
+  moins de frames QR). Aucun changement de contrat : chaque entrée reste l'octet exact de
+  `buildGeoJSON()`. Le récepteur `js/scan.js` est inchangé et gérait déjà le ZIP (MIME,
+  extension, signature `PK` + comptage `JSZip.loadAsync()`) ; la branche GeoJSON seule ne sert
+  plus qu'aux séquences produites par une version antérieure. Vérifié : `node --check
+  js/export.js` ; banc Node 20/20 (récepteur) ; **deux** tests bout-en-bout Chrome/CDP avec
+  caméra simulée (42/42 chacun) — 1 parcelle : GeoJSON brut 2 191 o → ZIP 587 o (**−73 %**),
+  3 blocs / 5 frames, réception en 1,6 s, bouton « Télécharger le ZIP », « Archive ZIP —
+  1 fichier(s) · 3 entité(s) », liste à 1 entrée, **octets identiques** (784/784 base64) ;
+  2 parcelles : ZIP 1 152 o, 6 blocs / 9 frames, réception 2,8 s, « Archive ZIP —
+  2 fichier(s) · 6 entité(s) », octets identiques. Hub : option « QR Code animé » visible et
+  active dans les deux cas, sous-titre `Parcelle : PARCHELLE A` / `Sélection : 2 parcelles`.
 
 ## 9. Langue et communication
 

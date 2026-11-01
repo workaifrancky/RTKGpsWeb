@@ -765,7 +765,9 @@ async function buildProjectsZip(projects) {
 
   try {
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-    return { blob, filename: `RTK_parcelles_${dateTag()}.zip`, count };
+    // `entries` = noms des GeoJSON réellement écrits (ordre d'insertion) : le
+    // canal QR animé s'en sert pour nommer le ZIP d'une parcelle unique.
+    return { blob, filename: `RTK_parcelles_${dateTag()}.zip`, count, entries: [...usedNames] };
   } catch (error) {
     console.warn('Création du ZIP impossible', error);
     showToast('Création du ZIP impossible', 'error');
@@ -939,11 +941,10 @@ function getAnimatedQrPreset() {
   };
 }
 
-// Types MIME du canal QR animé : ils sont transportés par le manifeste de la
-// bibliothèque (loadBlob → prepare) puis restitués côté récepteur
-// (`result.mimeType` et `result.blob.type`), où ils décident du libellé de
+// Type MIME unique du canal QR animé : il est transporté par le manifeste de la
+// bibliothèque (loadBlob → prepare) puis restitué côté récepteur
+// (`result.mimeType` et `result.blob.type`), où il décide du libellé de
 // téléchargement (js/scan.js → isZipPayload()).
-const ANIMATED_QR_GEOJSON_MIME = 'application/geo+json';
 const ANIMATED_QR_ZIP_MIME = 'application/zip';
 
 // Un Blob n'a pas de `.name` : le nom de fichier et le type MIME doivent être
@@ -956,44 +957,40 @@ function ensureAnimatedQrBlob(blob, mimeType) {
   return new Blob([blob], { type: mimeType });
 }
 
-// Charge utile : un GeoJSON pour une parcelle, un ZIP au-delà (jamais plusieurs
-// fichiers : la bibliothèque n'envoie qu'une charge utile par séquence).
-// `kind` documente le canal retenu ('geojson' | 'zip') pour les tests.
+// Charge utile du QR animé : **toujours un ZIP** (une entrée GeoJSON par
+// parcelle), même pour une seule parcelle. Avantages : un seul cas à gérer côté
+// émetteur comme côté récepteur, et la compression DEFLATE réduit le nombre de
+// frames QR à afficher. Le contrat GeoJSON est inchangé : chaque entrée reste
+// l'octet exact de buildGeoJSON() (source, [lon, lat], anneaux fermés).
+// `kind` documente le canal retenu (toujours 'zip') pour les tests.
 async function buildAnimatedQrPayload(projects) {
   const list = Array.isArray(projects) ? projects.filter(Boolean) : [];
   if (!list.length) return null;
-
-  if (list.length === 1) {
-    const payload = typeof buildGeoJSON === 'function' ? buildGeoJSON(list[0]) : null;
-    if (!payload) {
-      showToast('Aucun point à transférer', 'error');
-      return null;
-    }
-    return {
-      kind: 'geojson',
-      blob: ensureAnimatedQrBlob(
-        new Blob([JSON.stringify(payload.geojson, null, 2)], { type: ANIMATED_QR_GEOJSON_MIME }),
-        ANIMATED_QR_GEOJSON_MIME,
-      ),
-      fileName: payload.filename,
-      mimeType: ANIMATED_QR_GEOJSON_MIME,
-      label: `Parcelle : ${String(list[0].name || 'Parcelle courante').toUpperCase()}`,
-    };
-  }
 
   // buildProjectsZip() affiche déjà son propre toast en cas d'échec
   // (JSZip absent hors ligne, aucun point, compression impossible).
   const archive = await buildProjectsZip(list);
   if (!archive) return null;
 
+  // Nom lisible pour une parcelle unique : RTK_<nom>_<date>.zip, dérivé de
+  // l'entrée GeoJSON réellement écrite. Plusieurs : RTK_parcelles_<date>.zip.
+  const singleEntry = archive.count === 1 && Array.isArray(archive.entries)
+    ? archive.entries[0]
+    : '';
+  const fileName = singleEntry
+    ? singleEntry.replace(/\.geojson$/i, '.zip')
+    : archive.filename;
+
   return {
     kind: 'zip',
     blob: ensureAnimatedQrBlob(archive.blob, ANIMATED_QR_ZIP_MIME),
-    fileName: archive.filename,
+    fileName,
     mimeType: ANIMATED_QR_ZIP_MIME,
-    // `archive.count` = parcelles réellement présentes dans le ZIP : il peut
-    // être inférieur à la sélection si une parcelle n'a produit aucune Feature.
-    label: `Sélection : ${archive.count} parcelle${archive.count > 1 ? 's' : ''}`,
+    // Une seule parcelle : « Parcelle : <NOM> ». Sinon « Sélection : N parcelles »
+    // (N = archive.count, parcelles réellement présentes dans le ZIP).
+    label: list.length === 1
+      ? `Parcelle : ${String(list[0].name || 'Parcelle courante').toUpperCase()}`
+      : `Sélection : ${archive.count} parcelle${archive.count > 1 ? 's' : ''}`,
   };
 }
 

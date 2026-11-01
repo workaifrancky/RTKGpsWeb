@@ -169,11 +169,13 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
   l'autre appareil, sans réseau). Il n'y a plus de boutons d'export dans les listes ni dans
   le détail. Aucun canal ne reconstruit le GeoJSON : `buildGeoJSON()` reste la source unique,
   et chaque entrée du ZIP respecte le contrat.
-- **QR animé** : `startAnimatedQrTransfer()` (`js/export.js`) remet à `createQrSender()` le
-  blob exact de `buildGeoJSON()` (`application/geo+json`, `RTK_<nom>_<date>.geojson`) ou le
-  ZIP de `buildProjectsZip()` (`application/zip`, `RTK_parcelles_<date>.zip`, libellé
-  « Sélection : N parcelles »), avec le preset `compatibility`, et monte son `<canvas>` dans
-  `#animatedQrModal`. La page autonome **`scan.html`** (`js/scan.js`, `css/scan.css`) monte
+- **QR animé** : `startAnimatedQrTransfer()` (`js/export.js`) remet à `createQrSender()` un
+  **ZIP systématique** (`application/zip`, via `buildProjectsZip()`), même pour une seule
+  parcelle — nom `RTK_<nom>_<date>.zip` (une parcelle) ou `RTK_parcelles_<date>.zip`, libellé
+  « Parcelle : <NOM> » / « Sélection : N parcelles ». Chaque entrée du ZIP reste l'octet exact
+  de `buildGeoJSON()` (d'où la compression DEFLATE et donc moins de frames à afficher), avec
+  le preset `compatibility`, et le tout est monté dans un `<canvas>` de `#animatedQrModal`.
+  La page autonome **`scan.html`** (`js/scan.js`, `css/scan.css`) monte
   `createQrReceiver()` : la bibliothèque crée le `<video>`, appelle `getUserMedia`
   (`facingMode: environment`) et reconstruit le fichier, proposé au téléchargement tel quel.
   Le récepteur reconnaît une archive par type MIME, extension **ou** signature binaire `PK`,
