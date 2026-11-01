@@ -233,6 +233,25 @@
   word-break:  break-all;
 }
 
+/* Liste des GeoJSON contenus dans l'archive (masquée pour un GeoJSON seul). */
+.scan-file-list {
+  display:       flex;
+  flex-direction: column;
+  gap:           2px;
+  margin:        0;
+  padding:       8px 10px 8px 26px;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-md);
+  background:    var(--color-white);
+  color:         var(--text);
+  font-size:     11px;
+  font-weight:   600;
+  line-height:   1.5;
+  word-break:    break-all;
+}
+
+.scan-file-list[hidden] { display: none; }
+
 /* ─── Note de bas de page ──────────────────────────────────── */
 .scan-note {
   margin:      0;

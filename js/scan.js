@@ -84,9 +84,35 @@ function formatScanSize(bytes) {
   return `${size} o`;
 }
 
-function isZipPayload(fileName, blob) {
-  return /\.zip$/i.test(String(fileName || ''))
-    || (blob && blob.type === 'application/zip');
+// Types MIME acceptés pour une archive : le manifeste de la bibliothèque restitue
+// le type envoyé par l'émetteur (application/zip), mais certains navigateurs
+// normalisent le type d'un Blob et certains manifestes anciens n'en portent aucun.
+const SCAN_ZIP_MIMES = ['application/zip', 'application/x-zip-compressed', 'multipart/x-zip'];
+
+// Détection d'une archive ZIP : type MIME, extension puis signature binaire
+// (« PK\x03\x04 » archive, « PK\x05\x06 » archive vide, « PK\x07\x08 » archive
+// répartie). `bytes` est facultatif : il permet de rattraper un manifeste sans
+// type MIME ni extension .zip.
+function isZipPayload(fileName, blob, bytes) {
+  const type = String(blob && blob.type ? blob.type : '').toLowerCase();
+  if (SCAN_ZIP_MIMES.includes(type)) return true;
+  if (/\.zip$/i.test(String(fileName || ''))) return true;
+  if (bytes && bytes.length >= 4) {
+    return bytes[0] === 0x50 && bytes[1] === 0x4b
+      && (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07);
+  }
+  return false;
+}
+
+// Premiers octets du blob, pour la détection par signature binaire.
+async function readScanHead(blob, length = 4) {
+  if (!blob || typeof blob.slice !== 'function') return null;
+  try {
+    const head = await blob.slice(0, length).arrayBuffer();
+    return new Uint8Array(head);
+  } catch {
+    return null;
+  }
 }
 
 function describeScanError(error) {
@@ -172,6 +198,7 @@ function ensureScanReceiver() {
 function hideScanResult() {
   const panel = scanById('scanResult');
   if (panel) panel.hidden = true;
+  renderScanFileList([]);
   if (scanObjectUrl) {
     URL.revokeObjectURL(scanObjectUrl);
     scanObjectUrl = null;
@@ -223,12 +250,57 @@ function stopScan() {
   syncScanButtons();
 }
 
+// Détail d'une archive : nombre de fichiers, entrées et validité GeoJSON.
+// JSZip est chargé par scan.html (CDN) : s'il manque (page ouverte hors ligne
+// sans cache), on retombe sur un message générique sans comptage.
+async function describeZipPayload(blob) {
+  const fallback = { text: 'Archive ZIP — un GeoJSON par parcelle', files: [], zip: true };
+  if (typeof JSZip !== 'function') return fallback;
+
+  try {
+    const archive = await JSZip.loadAsync(blob);
+    const entries = Object.keys(archive.files).filter(name => !archive.files[name].dir);
+    if (!entries.length) {
+      return { text: 'Archive ZIP vide', files: [], zip: true };
+    }
+
+    const geojsonEntries = entries.filter(name => /\.geojson$/i.test(name));
+    let featureCount = 0;
+    let validCount = 0;
+    for (const name of geojsonEntries) {
+      try {
+        const doc = JSON.parse(await archive.files[name].async('string'));
+        if (doc && doc.type === 'FeatureCollection' && Array.isArray(doc.features)) {
+          validCount += 1;
+          featureCount += doc.features.length;
+        }
+      } catch {
+        // Entrée illisible : comptée comme invalide, jamais bloquante.
+      }
+    }
+
+    const parts = [`Archive ZIP — ${entries.length} fichier(s)`];
+    if (geojsonEntries.length) {
+      const invalid = geojsonEntries.length - validCount;
+      parts.push(invalid
+        ? `${invalid} GeoJSON invalide`
+        : `${featureCount} entité(s)`);
+    }
+    return { text: parts.join(' · '), files: entries, zip: true };
+  } catch {
+    return { text: 'Archive ZIP illisible', files: [], zip: true };
+  }
+}
+
+// Analyse du fichier reconstruit : renvoie le texte du bloc « Contenu », la liste
+// des entrées (ZIP) et le drapeau `zip` qui pilote le libellé du bouton.
 async function describeScanPayload(result) {
   const blob = result ? result.blob : null;
-  if (!blob) return 'Contenu indisponible';
+  if (!blob) return { text: 'Contenu indisponible', files: [], zip: false };
 
-  if (isZipPayload(result.fileName, blob)) {
-    return 'Archive ZIP — un GeoJSON par parcelle';
+  const head = await readScanHead(blob);
+  if (isZipPayload(result.fileName, blob, head)) {
+    return describeZipPayload(blob);
   }
 
   try {
@@ -236,19 +308,62 @@ async function describeScanPayload(result) {
     const geojson = JSON.parse(text);
     if (geojson && geojson.type === 'FeatureCollection'
         && Array.isArray(geojson.features)) {
-      return `GeoJSON valide — ${geojson.features.length} entité(s)`;
+      return {
+        text: `GeoJSON valide — ${geojson.features.length} entité(s)`,
+        files: [],
+        zip: false,
+      };
     }
-    return 'Fichier JSON reçu';
+    return { text: 'Fichier JSON reçu', files: [], zip: false };
   } catch {
-    return 'Contenu non JSON';
+    return { text: 'Contenu non JSON', files: [], zip: false };
   }
 }
 
-async function handleScanResult(result) {
-  scanResult = result;
+// Liste des fichiers de l'archive (texte seul : aucune injection HTML).
+function renderScanFileList(files) {
+  const list = scanById('scanFileList');
+  if (!list) return;
 
-  const fileName = result.fileName || 'RTK_transfert.geojson';
-  const blob = result.blob || null;
+  const entries = Array.isArray(files) ? files.filter(Boolean) : [];
+  list.innerHTML = '';
+  if (!entries.length) {
+    list.hidden = true;
+    return;
+  }
+
+  entries.forEach((name) => {
+    const item = document.createElement('li');
+    item.textContent = name;
+    list.appendChild(item);
+  });
+  list.hidden = false;
+}
+
+// Nom de repli cohérent avec le contenu réellement reconstruit.
+function getScanFallbackName(fileName, blob) {
+  if (fileName) return fileName;
+  return isZipPayload(fileName, blob) ? 'RTK_transfert.zip' : 'RTK_transfert.geojson';
+}
+
+// La bibliothèque peut renvoyer `{ kind: 'file' }` (cas RTK Mower : GeoJSON ou
+// ZIP) ou `{ kind: 'folder' }` pour son propre format d'archive « SARC1 ».
+// On normalise pour ne jamais dépendre du nom exact du champ côté appelant.
+function normalizeScanResult(result) {
+  if (!result) return null;
+  const blob = result.blob || result.archiveBlob || null;
+  const fileName = result.fileName || result.archiveFileName || '';
+  return { ...result, blob, fileName };
+}
+
+async function handleScanResult(result) {
+  const normalized = normalizeScanResult(result);
+  if (!normalized) return;
+
+  scanResult = normalized;
+
+  const blob = normalized.blob;
+  const fileName = getScanFallbackName(normalized.fileName, blob);
   const panel = scanById('scanResult');
   const nameEl = scanById('scanFileName');
   const sizeEl = scanById('scanFileSize');
@@ -269,8 +384,14 @@ async function handleScanResult(result) {
   setScanStatus('Fichier reconstruit');
   syncScanButtons();
 
-  const info = await describeScanPayload(result);
-  if (infoEl) infoEl.textContent = info;
+  const info = await describeScanPayload(normalized);
+  if (infoEl) infoEl.textContent = info.text;
+  renderScanFileList(info.files);
+  // La signature binaire peut révéler une archive que le type MIME et
+  // l'extension n'annonçaient pas : on recale le libellé du bouton.
+  if (info.zip && downloadButton) {
+    downloadButton.textContent = SCAN_DOWNLOAD_LABELS.zip;
+  }
 }
 
 function downloadScanResult() {
@@ -284,7 +405,7 @@ function downloadScanResult() {
 
   const anchor = document.createElement('a');
   anchor.href = scanObjectUrl;
-  anchor.download = scanResult.fileName || 'RTK_transfert.geojson';
+  anchor.download = getScanFallbackName(scanResult.fileName, scanResult.blob);
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);

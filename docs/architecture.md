@@ -35,7 +35,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/stats.js` | Statistiques de session (surfaces, contraintes, estimations) |
 | `js/export.js` | Export GeoJSON/CSV/GPX (boutons de la vue POINTS), hub de transfert (`#transferModal`, 5 canaux, détection du partage natif), émetteur du **QR animé** (`startAnimatedQrTransfer`), partage natif, construction des Features `zone`/`zone_interdite` par `zoneId`, calcul d'enveloppe convexe |
 | `js/qrcode.js` | Générateur de QR code **autonome** (mode octet, niveau M, versions 1 à 10) : QR de l'adresse du mode serveur local du hub, sans CDN ni Internet |
-| `js/scan.js` | Récepteur du **QR animé** (`scan.html`) : `createQrReceiver()`, progression blocs/frames, téléchargement du fichier reconstruit |
+| `js/scan.js` | Récepteur du **QR animé** (`scan.html`) : `createQrReceiver()`, progression blocs/frames, détection GeoJSON/ZIP (MIME, extension, signature `PK`), comptage des entrées par `JSZip.loadAsync()`, téléchargement du fichier reconstruit |
 | `js/simulation.js` | Génération d'un projet fictif complet pour tester sans GPS |
 | `js/history.js` | Historique des parcelles/sessions |
 | `js/ui.js` | Bandeau Fix (fix, précision) et alertes GPS à partir des trames |
@@ -170,11 +170,16 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
   le détail. Aucun canal ne reconstruit le GeoJSON : `buildGeoJSON()` reste la source unique,
   et chaque entrée du ZIP respecte le contrat.
 - **QR animé** : `startAnimatedQrTransfer()` (`js/export.js`) remet à `createQrSender()` le
-  blob exact de `buildGeoJSON()` ou le ZIP, avec le preset `compatibility`, et monte son
-  `<canvas>` dans `#animatedQrModal`. La page autonome **`scan.html`** (`js/scan.js`,
-  `css/scan.css`) monte `createQrReceiver()` : la bibliothèque crée le `<video>`, appelle
-  `getUserMedia` (`facingMode: environment`) et reconstruit le fichier, proposé au
-  téléchargement tel quel. La caméra exige un contexte sécurisé (HTTPS ou localhost).
+  blob exact de `buildGeoJSON()` (`application/geo+json`, `RTK_<nom>_<date>.geojson`) ou le
+  ZIP de `buildProjectsZip()` (`application/zip`, `RTK_parcelles_<date>.zip`, libellé
+  « Sélection : N parcelles »), avec le preset `compatibility`, et monte son `<canvas>` dans
+  `#animatedQrModal`. La page autonome **`scan.html`** (`js/scan.js`, `css/scan.css`) monte
+  `createQrReceiver()` : la bibliothèque crée le `<video>`, appelle `getUserMedia`
+  (`facingMode: environment`) et reconstruit le fichier, proposé au téléchargement tel quel.
+  Le récepteur reconnaît une archive par type MIME, extension **ou** signature binaire `PK`,
+  compte et liste ses GeoJSON avec `JSZip.loadAsync()` (bouton « Télécharger le ZIP »), et
+  garde le libellé « Télécharger le GeoJSON » pour un fichier unique. La caméra exige un
+  contexte sécurisé (HTTPS ou localhost).
 - **Capacités du hub** : `canShareTransferFiles()` sonde `navigator.canShare({ files })` ;
   quand le partage de fichiers n'est pas supporté (Web Share niveau 1, WebView), les options
   « Partage rapide » et « Enregistrer sur Drive / Cloud » sont **masquées** et une note de repli

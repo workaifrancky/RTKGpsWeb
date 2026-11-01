@@ -62,6 +62,8 @@
       <dt>Taille</dt><dd id="scanFileSize">—</dd>
       <dt>Contenu</dt><dd id="scanFileInfo">—</dd>
     </dl>
+    <!-- Fichiers de l'archive (une ligne par GeoJSON) : masquée pour un GeoJSON seul. -->
+    <ul class="scan-file-list" id="scanFileList" hidden></ul>
     <div class="scan-actions">
       <button type="button" class="action-button" id="btnScanDownload">
         Télécharger le GeoJSON
@@ -79,6 +81,10 @@
   </p>
 </main>
 
+<!-- JSZip : lecture de l'archive reçue (nombre de GeoJSON, entités). La page
+     reste fonctionnelle sans lui : js/scan.js → describeZipPayload() retombe
+     alors sur un message générique, et le téléchargement du ZIP est inchangé. -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.2/dist/jszip.min.js"></script>
 <script src="js/vendor/animated-data-qr/animated-data-qr.umd.min.js"></script>
 <script src="js/scan.js"></script>
 </body>

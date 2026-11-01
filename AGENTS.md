@@ -334,22 +334,43 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `WebAssembly.instantiateStreaming`).
 - **QR animé — émetteur** : l'option « QR Code animé » (`#transferOptionAnimatedQr`, icône
   Lucide `qr-code`) du hub appelle `transferViaAnimatedQr()` → `startAnimatedQrTransfer()`
-  (`js/export.js`). `buildAnimatedQrPayload()` transmet l'**octet exact** de `buildGeoJSON()`
-  (une parcelle) ou le ZIP de `buildProjectsZip()` (sélection), puis `createQrSender()` monte
-  son `<canvas>` dans `#animatedQrStage`. Preset **`compatibility`** (`resolveTransferPreset`,
-  repli codé en dur) : 220 octets/bloc, 250 ms/frame, parité 4. `#animatedQrModal` affiche la
-  frame et la boucle (calendrier `frameIntervalMs` rejoué), le nombre de blocs, la taille et la
-  durée de boucle ; `#btnAnimatedQrToggle` alterne « Arrêter » / « Reprendre » et
-  `closeAnimatedQrModal()` détruit l'émetteur. Échap ferme la modale (priorité après
-  `#transferModal`), piège de focus via `trapOverlayFocus()`.
-- **QR animé — récepteur `scan.html`** : page autonome qui charge le vendor + `js/scan.js` et
-  monte `createQrReceiver()` (la bibliothèque crée son `<video>` et appelle `getUserMedia`
-  avec `facingMode: environment`). Progression par blocs (`onProgress`) et frames
-  (`onDiagnostics`), puis « Télécharger le GeoJSON » (ou ZIP) à partir de `result.blob` et de
-  `result.fileName`. La caméra exige un **contexte sécurisé** (HTTPS ou localhost) : la page
-  affiche un avertissement et `window.scanPage` expose `start/stop/restart/download` pour les
-  tests. Le contenu reçu n'est jamais retraité : le contrat GeoJSON reste celui de
-  `buildGeoJSON()`.
+  (`js/export.js`). `buildAnimatedQrPayload(projects)` transmet l'**octet exact** de
+  `buildGeoJSON()` (une parcelle) ou le ZIP de `buildProjectsZip()` (sélection), puis
+  `createQrSender()` monte son `<canvas>` dans `#animatedQrStage`. Preset **`compatibility`**
+  (`resolveTransferPreset`, repli codé en dur) : 220 octets/bloc, 250 ms/frame, parité 4.
+  `#animatedQrModal` affiche la frame et la boucle (calendrier `frameIntervalMs` rejoué), le
+  nombre de blocs, la taille et la durée de boucle ; `#btnAnimatedQrToggle` alterne
+  « Arrêter » / « Reprendre » et `closeAnimatedQrModal()` détruit l'émetteur. Échap ferme la
+  modale (priorité après `#transferModal`), piège de focus via `trapOverlayFocus()`.
+  **Contrat de la charge utile** : 1 parcelle → `kind:'geojson'`,
+  `ANIMATED_QR_GEOJSON_MIME = 'application/geo+json'`, nom `RTK_<nom>_<date>.geojson` ;
+  ≥ 2 parcelles → `kind:'zip'`, `ANIMATED_QR_ZIP_MIME = 'application/zip'`, nom
+  `RTK_parcelles_<date>.zip`, libellé `Sélection : N parcelles` (N = `archive.count`, parcelles
+  réellement présentes dans le ZIP). `ensureAnimatedQrBlob()` garantit le type MIME du Blob, et
+  `fileName` + `mimeType` sont **toujours** passés à `loadBlob()` : un `Blob` n'a pas de `.name`,
+  la bibliothèque retomberait sinon sur `transfer.bin` / `application/octet-stream` et le
+  récepteur ne pourrait plus reconnaître le ZIP. `startAnimatedQrTransfer()` lit la sélection
+  via `getTransferProjects()` (donc `transferSelectionIds`, renseigné par
+  `openTransferModal({ projectIds })`) **avant** `closeTransferModal()`, et ne duplique plus le
+  toast d'échec de `buildAnimatedQrPayload()`.
+- **QR animé — récepteur `scan.html`** : page autonome qui charge **JSZip 3.10.2**, le vendor
+  puis `js/scan.js`, et monte `createQrReceiver()` (la bibliothèque crée son `<video>` et
+  appelle `getUserMedia` avec `facingMode: environment`). Progression par blocs
+  (`onProgress`) et frames (`onDiagnostics`), puis téléchargement à partir de `result.blob` et
+  de `result.fileName`. **Détection du ZIP** (`isZipPayload()`) : type MIME
+  (`application/zip`, `application/x-zip-compressed`, `multipart/x-zip`), extension `.zip`,
+  puis **signature binaire** `PK` (`50 4B 03/05/07`) lue par `readScanHead()` — un manifeste
+  sans type MIME reste donc reconnu. Si c'est un ZIP : bouton « Télécharger le ZIP » (au lieu
+  de « Télécharger le GeoJSON »), comptage via `JSZip.loadAsync()` (`describeZipPayload()`) →
+  « Archive ZIP — N fichier(s) · M entité(s) », liste des entrées dans `#scanFileList` et
+  vérification que chaque `.geojson` est une `FeatureCollection` (sinon « N GeoJSON
+  invalide ») ; sans JSZip (page hors ligne), message générique mais téléchargement inchangé.
+  `normalizeScanResult()` accepte `result.blob`/`result.fileName` **et** le format
+  `kind:'folder'` de la bibliothèque (`archiveBlob` / `archiveFileName`, format « SARC1 »).
+  `getScanFallbackName()` donne un nom de repli cohérent (`.zip` ou `.geojson`). La caméra
+  exige un **contexte sécurisé** (HTTPS ou localhost) : la page affiche un avertissement et
+  `window.scanPage` expose `start/stop/restart/download` pour les tests. Le contenu reçu n'est
+  jamais retraité : le contrat GeoJSON reste celui de `buildGeoJSON()`.
 - **File d'attente hors-ligne** : `rtkOfflineQueue` (`localStorage`) stocke les demandes
   d'export/partage émises quand `navigator.onLine === false` :
   `{ id, type: 'export'|'share', projectId, format: 'geojson'|'csv'|'gpx', timestamp }`.
@@ -537,7 +558,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   et `map.js`, avant `export.js` ; `qrcode.js` **avant** `export.js`, qui appelle
   `renderQrCodeSvg()`). Le bundle vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
   chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`. `js/scan.js` n'est
-  chargé que par `scan.html` (page réceptrice autonome), après le même bundle vendorisé.
+  chargé que par `scan.html` (page réceptrice autonome), **après** JSZip 3.10.2 et le même
+  bundle vendorisé : JSZip sert uniquement à compter et lister les GeoJSON de l'archive reçue
+  (`describeZipPayload()`), son absence (CDN indisponible) ne bloque jamais le téléchargement.
 - **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
   servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
   local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
@@ -1386,6 +1409,36 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (canvas 340×340, « Frame 4 / 14 — boucle 1 », Arrêter → « Reprendre », fermeture qui vide la
   scène) ; erreur caméra refusée → « Caméra refusée — autorisez l'accès à la caméra… » +
   « Caméra indisponible ».
+
+- **3.79 — Transfert multi-parcelles par QR animé vérifié de bout en bout** : vérification
+  complète de la chaîne `hub → buildAnimatedQrPayload() → createQrSender() → scan.html →
+  createQrReceiver()`. Côté **émetteur** (`js/export.js`) : `ensureAnimatedQrBlob()` garantit
+  le type MIME du Blob, `fileName` et `mimeType` sont toujours transmis à `loadBlob()` (un
+  `Blob` n'a pas de `.name`, sinon la bibliothèque retombe sur `transfer.bin` /
+  `application/octet-stream`), la charge utile expose `kind:'geojson' | 'zip'`, et le libellé
+  utilise `archive.count` (parcelles réellement dans le ZIP). `startAnimatedQrTransfer()` ne
+  duplique plus le toast d'échec. Côté **récepteur** (`js/scan.js`, `scan.html`,
+  `css/scan.css`) : détection du ZIP par MIME **ou** extension **ou** signature binaire `PK`
+  (`isZipPayload()`, `readScanHead()`), comptage des fichiers et des entités par
+  `JSZip.loadAsync()` (`describeZipPayload()`), bouton « Télécharger le ZIP », liste
+  `#scanFileList` des entrées, nom de repli cohérent (`getScanFallbackName()`) et
+  normalisation du résultat (`normalizeScanResult()` gère aussi le format `kind:'folder'`
+  « SARC1 » de la bibliothèque). `scan.html` charge désormais **JSZip 3.10.2** avant
+  `js/scan.js` (repli propre si le CDN est indisponible : message générique, téléchargement
+  inchangé). Vérifié : `node --check js/export.js` et `js/scan.js` ; banc Node (20
+  vérifications : détection MIME/extension/signature, message GeoJSON, repli sans JSZip,
+  comptage `loadAsync`, nom de repli, normalisation `folder`) et **test bout-en-bout réel**
+  sous Chrome headless/CDP avec caméra simulée par `canvas.captureStream()` (40 vérifications) :
+  1 parcelle → `application/geo+json` + `RTK_PARCHELLE A_2026-11-01.geojson` +
+  « Parcelle : PARCHELLE A » ; 2 parcelles → `application/zip` +
+  `RTK_parcelles_2026-11-01.zip` + « Sélection : 2 parcelles » (hub, modale et
+  `getTransferProjects()`) ; séquence 9 frames / 6 blocs / 1 Ko / boucle 2,3 s ; récepteur en
+  2,8 s → `application/zip`, « Archive ZIP — 2 fichier(s) · 6 entité(s) », bouton
+  « Télécharger le ZIP », 2 GeoJSON (`domaine` + `zone` + `obstacle`, `source: rtk-mower`,
+  anneaux fermés) et **octets identiques** à l'émission ; non-régression 1 parcelle →
+  « Télécharger le GeoJSON » + « GeoJSON valide — 1 entité(s) » sans liste. Contrat GeoJSON
+  inchangé. Les noms de parcelle contenant une espace la conservent dans le nom de fichier
+  (comportement historique de `RTK_${nom}_${date}`, identique pour tous les exports).
 
 ## 9. Langue et communication
 

@@ -939,27 +939,61 @@ function getAnimatedQrPreset() {
   };
 }
 
-// Charge utile : un GeoJSON pour une parcelle, un ZIP au-delà.
+// Types MIME du canal QR animé : ils sont transportés par le manifeste de la
+// bibliothèque (loadBlob → prepare) puis restitués côté récepteur
+// (`result.mimeType` et `result.blob.type`), où ils décident du libellé de
+// téléchargement (js/scan.js → isZipPayload()).
+const ANIMATED_QR_GEOJSON_MIME = 'application/geo+json';
+const ANIMATED_QR_ZIP_MIME = 'application/zip';
+
+// Un Blob n'a pas de `.name` : le nom de fichier et le type MIME doivent être
+// passés explicitement à loadBlob(), sinon la bibliothèque retombe sur
+// « transfer.bin » / « application/octet-stream ». On garantit malgré tout le
+// type MIME du blob lui-même (JSZip le renseigne, mais on ne dépend pas de lui).
+function ensureAnimatedQrBlob(blob, mimeType) {
+  if (!blob) return null;
+  if (typeof blob.type === 'string' && blob.type === mimeType) return blob;
+  return new Blob([blob], { type: mimeType });
+}
+
+// Charge utile : un GeoJSON pour une parcelle, un ZIP au-delà (jamais plusieurs
+// fichiers : la bibliothèque n'envoie qu'une charge utile par séquence).
+// `kind` documente le canal retenu ('geojson' | 'zip') pour les tests.
 async function buildAnimatedQrPayload(projects) {
-  if (projects.length === 1) {
-    const payload = typeof buildGeoJSON === 'function' ? buildGeoJSON(projects[0]) : null;
-    if (!payload) return null;
+  const list = Array.isArray(projects) ? projects.filter(Boolean) : [];
+  if (!list.length) return null;
+
+  if (list.length === 1) {
+    const payload = typeof buildGeoJSON === 'function' ? buildGeoJSON(list[0]) : null;
+    if (!payload) {
+      showToast('Aucun point à transférer', 'error');
+      return null;
+    }
     return {
-      blob: new Blob([JSON.stringify(payload.geojson, null, 2)],
-        { type: 'application/geo+json' }),
+      kind: 'geojson',
+      blob: ensureAnimatedQrBlob(
+        new Blob([JSON.stringify(payload.geojson, null, 2)], { type: ANIMATED_QR_GEOJSON_MIME }),
+        ANIMATED_QR_GEOJSON_MIME,
+      ),
       fileName: payload.filename,
-      mimeType: 'application/geo+json',
-      label: `Parcelle : ${projects[0].name || 'Parcelle courante'}`,
+      mimeType: ANIMATED_QR_GEOJSON_MIME,
+      label: `Parcelle : ${String(list[0].name || 'Parcelle courante').toUpperCase()}`,
     };
   }
 
-  const archive = await buildProjectsZip(projects);
+  // buildProjectsZip() affiche déjà son propre toast en cas d'échec
+  // (JSZip absent hors ligne, aucun point, compression impossible).
+  const archive = await buildProjectsZip(list);
   if (!archive) return null;
+
   return {
-    blob: archive.blob,
+    kind: 'zip',
+    blob: ensureAnimatedQrBlob(archive.blob, ANIMATED_QR_ZIP_MIME),
     fileName: archive.filename,
-    mimeType: 'application/zip',
-    label: `Sélection : ${projects.length} parcelles`,
+    mimeType: ANIMATED_QR_ZIP_MIME,
+    // `archive.count` = parcelles réellement présentes dans le ZIP : il peut
+    // être inférieur à la sélection si une parcelle n'a produit aucune Feature.
+    label: `Sélection : ${archive.count} parcelle${archive.count > 1 ? 's' : ''}`,
   };
 }
 
@@ -1087,11 +1121,10 @@ async function startAnimatedQrTransfer() {
   const overlay = document.getElementById('animatedQrModal');
   if (!overlay) return;
 
+  // buildAnimatedQrPayload() affiche déjà le toast d'échec correspondant
+  // (aucun point, JSZip indisponible, compression impossible).
   const payload = await buildAnimatedQrPayload(projects);
-  if (!payload) {
-    showToast('Aucun point à transférer', 'error');
-    return;
-  }
+  if (!payload) return;
 
   closeTransferModal();
 
