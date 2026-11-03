@@ -166,17 +166,27 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   les points suivants repartent dans l'ancienne zone après un rechargement.
 - **Convex hull** : `calculateConvexHull(pts)` reçoit tous les points du projet (il n'y a plus
   de point de référence à exclure).
-- **Header et menu** : le header tient sur **deux lignes**, toutes deux en
-  `justify-content: space-between` :
-  1. logo `🌾 RTK Mower` (gauche) + **bouton Bluetooth `#btnBle`** (droite,
-     `.header-icon-btn`) : `bluetooth` connecté / `bluetooth-off` déconnecté, en
-     `currentColor` (blanc du header, plus de bleu ni de vert) ;
-  2. pastille GPS `#headerGpsStatus` (`.gps-status-pill`, `flex: 1 1 auto`, gauche) +
-     `.header-actions-group` (droite) avec le bouton `#btnConnectionSettings`
-     (`.header-connection-btn`, **icône seule** SVG Lucide `settings` 18 px **sans cercle ni
-     fond** — zone tactile invisible de 44 × 44 px, opacité au survol, `title` /
-     `aria-label` = « Connexion », **aucun libellé texte**, ouvre le panneau de connexion)
-     puis le bouton thème `#btnTheme` (`.header-icon-btn`).
+- **Header et menu** : header **compact de 121 px**, dont les **quatre couches sont en
+  `position: absolute`** (le header n'est plus un conteneur flex) :
+  1. `.header-logo-layer` — logo vectoriel `assets/logo-rtk-mower.svg` (un seul `<path>`), bande
+     de 65 px de haut sur toute la largeur, `preserveAspectRatio="xMidYMid slice"` (≈ 3 px
+     rognés), en `fill="currentColor"` blanc, `aria-hidden="true"` (décoratif) ;
+  2. `.header-title` — `RTK MOWER` (24 px, Arial Black) centré entre le rover et la roue dentée
+     (bloc `left: 180px` / `right: 60px`, `z-index: 2`) ;
+  3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
+     cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
+     `header #btnConnectionSettings { position: absolute !important; top: 6px; right: 12px; z-index: 3 }`,
+     ouvre le panneau de connexion ;
+  4. `.header-bottom-band` — bandeau bas (`bottom: 6px`, `left/right: 12px`, `z-index: 2`) :
+     pastille `#headerGpsStatus` **compacte** à gauche (`flex: 0 0 auto`) puis
+     `.header-actions-group` à droite (`#btnTheme` puis `#btnBle`, tous deux `.header-icon-btn`,
+     `bluetooth` / `bluetooth-off` en `currentColor`).
+
+  **Tout nouvel enfant direct de `<header>` doit être positionné en absolu** : sans cela il
+  retombe dans le flux, en haut à gauche (c'était le bug de la roue dentée après l'intégration).
+  La pastille affiche **toujours « FIX »** (`#headerGpsText`) ; le détail (type de fix +
+  précision) est porté par son `title` et la couleur par sa classe d'état. Fond :
+  `var(--color-primary-deep)` (aucun override en dur en thème nuit). Maintenance du logo : §10.
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
   `toggleConnectionPanel()` → `toggleHeaderMenu()` — contient la station NTRIP avec
@@ -1474,4 +1484,55 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
 - Signaler les limites connues (Web Bluetooth Android, tuiles sans clé, précision raster).
 - Valider chaque modification : `node --check` sur les JS, vérification dans le navigateur
   (thème clair/sombre, carte, modales) et test de non-régression des exports.
+
+## 10. Maintenance du logo vectoriel (header)
+
+Le logo du header est un SVG unique (un seul `<path>`) stocké dans `assets/logo-rtk-mower.svg` et
+injecté dans `index.html` (bloc `.header-logo-layer`). Le CSS le contraint à une boîte de
+`480 × 65 px` (`.header-logo-layer` et `.header-logo-layer svg` dans `css/main.css`).
+
+### Règle : ne jamais recopier le `<path>` à la main
+
+La valeur de l'attribut `d` ne doit jamais être copiée-collée manuellement. Elle doit toujours
+être extraite du fichier source **par script** (lecture de fichier, puis remplacement
+programmatique) pour éviter les décalages de coordonnées : les sous-tracés commencent par des
+`m` **relatifs**, donc une seule valeur erronée décale une partie du dessin (le rover par
+rapport à l'herbe).
+
+### Procédure selon le type de modification
+
+**Cas 1 — Modification du SVG à l'identique (même dimensions, même `viewBox`, seules les formes
+changent)**
+
+1. Remplacer le fichier `assets/logo-rtk-mower.svg`.
+2. Demander à Cline de relire le fichier et de mettre à jour le `<path>` dans `index.html` (via
+   script, jamais à la main).
+3. Vérifier que la longueur et le SHA-256 du `d` correspondent exactement entre le fichier
+   source et `index.html`.
+
+**Cas 2 — Changement complet de logo (dimensions ou `viewBox` différents)**
+
+1. Remplacer le fichier `assets/logo-rtk-mower.svg`.
+2. Mettre à jour le `<path>` dans `index.html` (via script, jamais à la main).
+3. Mettre à jour le `viewBox` dans `index.html` **ET** les contraintes de taille dans
+   `css/main.css` (règle `.header-logo-layer svg`).
+4. Vérifier visuellement le rendu du header (le logo ne doit pas être écrasé ni rogné de
+   manière inattendue).
+
+### Vérification de référence (état au 2026-11-03)
+
+- `d` : **38 020 caractères** ;
+- SHA-256 : `9E8A108151E1E7797ADAFE3ED0F38101ED37548BE672C8D6A08555E20279FE43`.
+
+Contrôle en lecture seule (PowerShell) :
+
+```powershell
+$svg  = [IO.File]::ReadAllText('assets/logo-rtk-mower.svg', [Text.Encoding]::UTF8)
+$html = [IO.File]::ReadAllText('index.html', [Text.Encoding]::UTF8)
+$d    = [regex]::Match($svg,  '(?s)<path\b[^>]*\bd="([^"]*)"').Groups[1].Value
+$d2   = [regex]::Match($html, '(?s)\bd="(m9\.6847[^"]*)"').Groups[1].Value
+"identique : $($d -eq $d2)  longueur : $($d2.Length)"
+[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash(
+  [Text.Encoding]::UTF8.GetBytes($d2))).Replace('-','')
+```
 

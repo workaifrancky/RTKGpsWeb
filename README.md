@@ -139,6 +139,8 @@ peut être isolé.
 RTKGpsWeb/
 ├── index.html              # Application mono-page : header, onglets, modales, barre flottante
 ├── scan.html               # Récepteur du QR code animé (page autonome, caméra)
+├── header-test.html        # Page de test ISOLÉE du design du header (avant intégration)
+├── menu-test.html          # Démonstration (ancienne structure de header, à aligner)
 ├── css/
 │   ├── design-tokens.css   # Tokens du design system (couleurs, rayons, ombres, espacements)
 │   ├── main.css            # Reset, layout, header, onglets, toasts, modales, thème nuit
@@ -168,14 +170,22 @@ RTKGpsWeb/
 │   ├── architecture.md     # Architecture, flux de données, modules
 │   ├── design-system.md    # Tokens et composants UI
 │   ├── simulation.md       # Outils de simulation et procédure de réactivation
-│   └── format-geojson.md   # Contrat d'export GeoJSON Mower Planner
-├── assets/                 # Ressources statiques (icônes, images)
+│   ├── format-geojson.md   # Contrat d'export GeoJSON Mower Planner
+│   └── CHANGELOG.md        # Journal des modifications (entrées datées)
+├── assets/                 # Ressources statiques (dont logo-rtk-mower.svg, logo du header)
 ├── serve-http.cjs          # Serveur statique Node (sans dépendance)
 ├── start-public.ps1        # Serveur local + tunnel public HTTPS (localtunnel)
 ├── Start-RTKGpsWeb.bat     # Lanceur Windows de start-public.ps1
 ├── README.md               # Ce fichier
 └── AGENTS.md               # Instructions pour les développeurs et assistants IA
 ```
+
+> **Pages de test, non chargées par l'application.** `header-test.html` isole le design du header
+> (logo vectoriel, pastille FIX compacte, roue dentée, boutons) : toute modification du header doit
+> y être validée **avant** son intégration dans `index.html`. `menu-test.html` est une page de
+> démonstration plus ancienne, qui utilise encore l'ancienne structure de header
+> (`.header-top-row` / `.header-bottom-row`, désormais supprimées du CSS) : elle reste **à aligner**
+> sur la nouvelle structure.
 
 ## Format d'export GeoJSON
 
@@ -191,6 +201,7 @@ Spécification complète : **[docs/format-geojson.md](docs/format-geojson.md)**.
 - [docs/architecture.md](docs/architecture.md) — architecture et flux de données.
 - [docs/design-system.md](docs/design-system.md) — tokens et composants UI.
 - [docs/format-geojson.md](docs/format-geojson.md) — contrat d'export GeoJSON.
+- [docs/CHANGELOG.md](docs/CHANGELOG.md) — journal des modifications (entrées datées).
 
 ## Limites connues
 

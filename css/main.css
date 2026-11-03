@@ -162,37 +162,82 @@ body {
   overflow:       hidden;
 }
 
-/* ─── HEADER COMPACT SUR DEUX LIGNES ────────────────────────── */
-/* Ligne 1 : logo RTK Mower (gauche) + bouton Bluetooth (droite).
-   Ligne 2 : pastille de statut GPS (gauche) + actions rapides Réglages /
-   Thème (droite). Les deux lignes sont en `justify-content: space-between`. */
+/* ─── HEADER COMPACT (3 COUCHES ABSOLUES, 121 px) ───────────── */
+/* 1. couche logo SVG pleine largeur (65 px) ; 2. titre « RTK MOWER » centré
+   entre le rover et la roue dentée ; 3. bandeau bas : pastille FIX à gauche,
+   Thème / BLE à droite. La roue dentée (#btnConnectionSettings) est seule en
+   haut à droite. Toutes les couches sont positionnées en absolu dans
+   `header`, qui porte la hauteur et le rognage. */
 header {
   position:        sticky;
   top:             0;
   z-index:         200;
-  display:         flex;
-  flex-direction:  column;
-  gap:             6px;
-  min-height:      56px;
-  padding:         8px 12px;
-  background:      var(--color-primary);
+  /* Hauteur figée : les trois couches (logo, titre, bandeau FIX) sont en
+     position absolue à l'intérieur de cette boîte. */
+  height:          121px;
+  padding:         6px 12px;
+  background:      var(--color-primary-deep);
   box-shadow:      0 2px 10px rgba(0,0,0,0.2);
+  /* Rogne la couche logo (65 px) : aucun débordement possible des couches. */
+  overflow:        hidden;
   /* Le header est un élément flex de `.app-wrapper` : sans ceci, il est
-     COMPRESSÉ quand l'écran courant est chargé (HISTORIQUE), ses deux lignes
+     COMPRESSÉ quand l'écran courant est chargé (HISTORIQUE), ses couches
      débordent de sa boîte et passent par-dessus le contenu. Ne pas retirer. */
   flex-shrink:     0;
 }
 
-.header-top-row,
-.header-bottom-row {
+/* ─── COUCHES DU HEADER (toutes en position absolue) ────────── */
+/* 1. Couche logo : SVG unique en arrière-plan, 65 px de haut, pleine largeur.
+      Le viewBox 3524 × 500 est rogné par `slice` sur ~3 px en hauteur. */
+.header-logo-layer {
+  position:  absolute;
+  top:       6px;
+  left:      0;
+  width:     100%;
+  height:    65px;
+  overflow:  hidden;
+  /* Le SVG est en `fill="currentColor"` : blanc sur le fond vert du header
+     (exception documentée dans AGENTS.md : `color: white` sur fond vert). */
+  color:     #fff;
+}
+
+.header-logo-layer svg {
+  display: block;
+  width:   100%;
+  height:  100%;
+}
+
+/* 2. Titre : centré dans l'espace libre entre le rover (à gauche) et la roue
+      dentée (à droite), posé au-dessus de la couche logo. */
+.header-title {
+  position:       absolute;
+  top:            20px;
+  left:           180px;
+  right:          60px;
+  z-index:        2;
+  text-align:     center;
+  pointer-events: none;
+}
+
+.header-title .logo-text {
+  font-family:    'Arial Black', 'Impact', sans-serif;
+  font-size:      24px;
+  font-weight:    900;
+  letter-spacing: normal;
+  color:          #fff;
+}
+
+/* 3. Bandeau bas : pastille FIX (gauche) + boutons Thème / BLE (droite). */
+.header-bottom-band {
+  position:        absolute;
+  bottom:          6px;
+  left:            12px;
+  right:           12px;
+  z-index:         2;
   display:         flex;
   align-items:     center;
   justify-content: space-between;
-  gap:             10px;
-  min-width:       0;
 }
-
-.header-bottom-row { gap: 8px; }
 
 .header-actions-group {
   display:     flex;
@@ -220,9 +265,11 @@ header {
 
 .logo-text { line-height: 1; }
 
-/* Pastille de statut GPS */
+/* Pastille de statut GPS : compacte (largeur de son contenu), collée à gauche
+   du bandeau bas. `flex: 0 0 auto` est indispensable : avec `1 1 auto` elle
+   s'étirerait sur toute la largeur libre du bandeau. */
 .gps-status-pill {
-  flex:            1 1 auto;
+  flex:            0 0 auto;
   min-width:       0;
   display:         inline-flex;
   align-items:     center;
@@ -266,6 +313,19 @@ header {
 .gps-status-pill.rtk   { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.55); }
 .gps-status-pill.float { background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.55); }
 .gps-status-pill.dgps  { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.55); }
+
+/* Roue dentée : COUCHE du header, hors du flux. `header` n'est plus un
+   conteneur flex (les trois couches sont en position absolue), donc sans ce
+   bloc le bouton retombait en haut À GAUCHE du header. `header` étant en
+   `position: sticky`, il sert de bloc conteneur au positionnement absolu ;
+   le `z-index: 3` le place au-dessus de la couche logo et du bandeau (2). */
+header #btnConnectionSettings {
+  position: absolute !important;
+  top:      6px;
+  right:    12px;
+  left:     auto;
+  z-index:  3;
+}
 
 /* Bouton « Connexion » : icône SEULE, sans cercle ni fond (ni bordure).
    La zone tactile de 44 px reste invisible ; `title` / `aria-label` portent
@@ -934,9 +994,8 @@ header {
 /* Header sur deux lignes : (1) logo + Connexion, (2) GPS + thème + BLE. */
 @media (max-width: 480px) {
   header {
-    gap:        6px;
-    min-height: 54px;
-    padding:    8px 10px;
+    /* Hauteur et couches figées : seul le padding horizontal change. */
+    padding: 6px 10px;
   }
 
   .header-logo { font-size: 15px; }

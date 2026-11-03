@@ -98,8 +98,6 @@
    hors de `.app-wrapper` : tout doit être masqué explicitement, header,
    ses lignes et ses boutons compris (aucun résidu de bouton flottant). */
 body.map-ui-fullscreen header,
-body.map-ui-fullscreen header .header-top-row,
-body.map-ui-fullscreen header .header-bottom-row,
 body.map-ui-fullscreen #btnConnectionSettings,
 body.map-ui-fullscreen #btnTheme,
 body.map-ui-fullscreen #btnBle,

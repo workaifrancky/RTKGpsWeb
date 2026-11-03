@@ -17,7 +17,12 @@ function updateUI(data) {
   hideAlert();
 }
 
-// ─── STATUT GPS (pastille du header) ────────────────────────
+// ─── STATUT GPS (pastille compacte du header) ───────────────
+// Le libellé affiché reste « FIX » en permanence (pastille compacte) : le
+// détail (type de fix, précision) est porté par `title`, et la couleur d'état
+// par la classe (`disconnected` / `rtk` / `float` / `dgps` / `gps` / `none`).
+const GPS_PILL_LABEL = 'FIX';
+
 function updateFixBar(data) {
   const pill = document.getElementById('headerGpsStatus');
   const pillText = document.getElementById('headerGpsText');
@@ -27,9 +32,7 @@ function updateFixBar(data) {
     pill.className = `gps-status-pill ${dotClass}`;
     pill.title = `${data.fix} — ${data.label} ${data.precision}`;
   }
-  if (pillText) {
-    pillText.textContent = data.fix === 'None' ? 'AUCUN FIX' : data.fix.toUpperCase();
-  }
+  if (pillText) pillText.textContent = GPS_PILL_LABEL;
 }
 
 // Retour à l'état sans GPS (déconnexion BLE, démarrage).
@@ -41,7 +44,7 @@ function setGpsStatusIdle() {
     pill.className = 'gps-status-pill disconnected';
     pill.title = 'Aucun fix GPS';
   }
-  if (pillText) pillText.textContent = 'AUCUN FIX';
+  if (pillText) pillText.textContent = GPS_PILL_LABEL;
 }
 
 function showRejectedFrame(data) {

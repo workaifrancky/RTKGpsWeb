@@ -4,7 +4,9 @@
    ============================================================ */
 
 /* ─── MODE NUIT — overrides spécifiques ─────────────────────── */
-[data-theme="dark"] header         { background: #14532d; }
+/* Le header tire son fond de `var(--color-primary-deep)` (css/main.css) : le
+   token couvre déjà le thème clair (#1b5e20) et le thème nuit (#052e16), aucun
+   override en dur n'est nécessaire ici. */
 [data-theme="dark"] .tabs-wrapper { border-bottom-color: var(--color-primary-light); }
 /* FAB neutre et bouton secondaire lisibles en thème nuit. */
 [data-theme="dark"] .trace-fab-main.neutral {
@@ -400,8 +402,6 @@
 /* Plein écran caméra : header et bouton « Connexion » totalement masqués,
    comme pour la carte (lignes et boutons du header compris). */
 body.camera-ui-fullscreen header,
-body.camera-ui-fullscreen header .header-top-row,
-body.camera-ui-fullscreen header .header-bottom-row,
 body.camera-ui-fullscreen #btnConnectionSettings,
 body.camera-ui-fullscreen #btnTheme,
 body.camera-ui-fullscreen #btnBle,
