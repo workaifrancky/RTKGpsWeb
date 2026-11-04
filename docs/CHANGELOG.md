@@ -4,6 +4,19 @@ Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
 
+## [2026-11-04] — Nettoyage des fichiers de test obsolètes
+
+### Supprimé
+
+- `header-test.html` : prototype du header (remplacé par le header intégré dans `index.html`).
+- `menu-test.html` : prototype du menu (cassé depuis la refonte du header, non maintenu).
+- `assets/logo-rtk-mower_ancien.svg` : ancien logo vectoriel (remplacé par `logo-rtk-mower.svg` et `logo-rtk-mower_tablette.svg`).
+
+### Conservé (pour Mower Planner)
+
+- `splash-test.html` : prototype du splash animé (rover qui tond), en attente d'intégration dans Mower Planner.
+- `assets/Rover_original.svg`, `assets/Herbe haute_original.svg`, `assets/Herbe basse_original.svg` : sources SVG de l'animation.
+
 ## [2026-11-04] — Écran d'accueil statique (RTK Mower)
 
 ### Modifié

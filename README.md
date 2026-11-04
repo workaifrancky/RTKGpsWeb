@@ -139,8 +139,7 @@ peut être isolé.
 RTKGpsWeb/
 ├── index.html              # Application mono-page : header, onglets, modales, barre flottante
 ├── scan.html               # Récepteur du QR code animé (page autonome, caméra)
-├── header-test.html        # Page de test ISOLÉE du design du header (avant intégration)
-├── menu-test.html          # Démonstration (ancienne structure de header, à aligner)
+├── splash-test.html        # Prototype du splash animé (réservé à Mower Planner)
 ├── css/
 │   ├── design-tokens.css   # Tokens du design system (couleurs, rayons, ombres, espacements)
 │   ├── main.css            # Reset, layout, header, onglets, toasts, modales, thème nuit
@@ -172,7 +171,7 @@ RTKGpsWeb/
 │   ├── simulation.md       # Outils de simulation et procédure de réactivation
 │   ├── format-geojson.md   # Contrat d'export GeoJSON Mower Planner
 │   └── CHANGELOG.md        # Journal des modifications (entrées datées)
-├── assets/                 # Ressources statiques (dont logo-rtk-mower.svg, logo du header)
+├── assets/                 # Logos (header, tablette) + sources SVG du splash (Mower Planner)
 ├── serve-http.cjs          # Serveur statique Node (sans dépendance)
 ├── start-public.ps1        # Serveur local + tunnel public HTTPS (localtunnel)
 ├── Start-RTKGpsWeb.bat     # Lanceur Windows de start-public.ps1
@@ -180,12 +179,10 @@ RTKGpsWeb/
 └── AGENTS.md               # Instructions pour les développeurs et assistants IA
 ```
 
-> **Pages de test, non chargées par l'application.** `header-test.html` isole le design du header
-> (logo vectoriel, pastille FIX compacte, roue dentée, boutons) : toute modification du header doit
-> y être validée **avant** son intégration dans `index.html`. `menu-test.html` est une page de
-> démonstration plus ancienne, qui utilise encore l'ancienne structure de header
-> (`.header-top-row` / `.header-bottom-row`, désormais supprimées du CSS) : elle reste **à aligner**
-> sur la nouvelle structure.
+> **Page de test, non chargée par l'application.** `splash-test.html` contient le prototype du
+> splash animé (rover qui tond) : il est réservé à **Mower Planner** (tablette) et n'est jamais
+> chargé par RTK Mower. Les anciennes pages de test `header-test.html` et `menu-test.html` ont été
+> **supprimées** le 2026-11-04 (voir `docs/CHANGELOG.md`).
 
 ## Format d'export GeoJSON
 

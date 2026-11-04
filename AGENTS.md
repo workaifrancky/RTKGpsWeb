@@ -241,7 +241,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `ICON_COMPASS` — fichier chargé **avant** `projects/points/map/history/camera` : ne pas
   redéclarer ces constantes ailleurs (`SyntaxError` de redéclaration dans le scope global).
   Les icônes statiques (header, contrôles de carte, menus FAB, boutons de la section POINTS,
-  tiroir, verrouillage) sont écrites dans `index.html` **et** `menu-test.html`. Toujours
+  tiroir, verrouillage) sont écrites dans `index.html`. Toujours
   `fill: none` + `stroke: currentColor` (ou `fill: currentColor` pour une pastille), conteneur
   `inline-flex` centré et `svg { display: block; pointer-events: none }`.
   Aucun emoji dans un contrôle : `map` (Relief), `satellite`, `maximize` / `minimize`
@@ -268,7 +268,7 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `<select>` natif `#targetSelect` reste en texte (un `<option>` ne peut pas contenir de SVG).
   Le bouton BLE `#btnBle` suit la même règle : `getBleIconMarkup(connected)` (`js/ble.js`)
   renvoie `bluetooth` quand la connexion est active et `bluetooth-off` sinon (état par défaut
-  d'`index.html` / `menu-test.html`), avec les trois ondes animées et **sans encadrement**
+  d'`index.html`), avec les trois ondes animées et **sans encadrement**
   (`border: none`, fond transparent). Il est en **`currentColor`** (blanc du header) : les
   règles `#btnBle.connected` / `.disconnected` de couleur bleue/verte ont été retirées.
   `setBleStatus()` transmet l'état : `connected` seul est vrai, `disconnected` / `scanning` /
@@ -361,8 +361,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `AnimatedDataQr`, c'est une coquille) ; les trois fichiers `js`/`wasm` doivent rester dans
   le **même dossier**, car le bundle résout worker et wasm relativement à son propre `src`
   (`document.currentScript.src`) et surcharge `locateFile()` vers le wasm local. Le script est
-  chargé **avant les scripts applicatifs** (après JSZip) dans `index.html` et
-  `menu-test.html`. `serve-http.cjs` sert `.wasm` en `application/wasm` (obligatoire pour
+  chargé **avant les scripts applicatifs** (après JSZip) dans `index.html`.
+  `serve-http.cjs` sert `.wasm` en `application/wasm` (obligatoire pour
   `WebAssembly.instantiateStreaming`).
 - **QR animé — émetteur** : l'option « QR Code animé » (`#transferOptionAnimatedQr`, icône
   Lucide `qr-code`) du hub appelle `transferViaAnimatedQr()` → `startAnimatedQrTransfer()`
