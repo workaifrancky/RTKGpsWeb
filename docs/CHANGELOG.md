@@ -4,6 +4,19 @@ Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
 
+## [2026-11-04] — Réexport vectoriel du logo
+
+### Modifié
+
+- `assets/logo-rtk-mower.svg` : nouveau logo vectoriel (1 path, 26 278 car., SHA-256 `4B5C8E…010E`, viewBox `0 0 3524 500`). Remplace la version précédente (1 path, 38 020 car., SHA-256 `9E8A1081…79FE43`) qui était un SVG valide mais avec une syntaxe Inkscape plus ancienne.
+- `index.html` : mise à jour du `<path>` dans `.header-logo-layer` (injecté par script, SHA-256 vérifié, géométrie identique).
+
+### Notes
+
+- `AGENTS.md §10` : bloc de vérification de référence mis à jour (regex robuste, valeurs 26 278 / `4B5C8E…010E`).
+- `header-test.html` utilise encore l'ancien `<path>` en dur — sera aligné dans une passe ultérieure.
+- Le logo reste `fill="currentColor"` (blanc sur fond vert, inversion en thème nuit).
+
 ## [2026-11-03] — Refonte du header et intégration
 
 ### Ajouté

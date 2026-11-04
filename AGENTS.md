@@ -1519,20 +1519,41 @@ changent)**
 4. Vérifier visuellement le rendu du header (le logo ne doit pas être écrasé ni rogné de
    manière inattendue).
 
-### Vérification de référence (état au 2026-11-03)
+### Vérification de référence (état actuel du logo)
 
-- `d` : **38 020 caractères** ;
-- SHA-256 : `9E8A108151E1E7797ADAFE3ED0F38101ED37548BE672C8D6A08555E20279FE43`.
+- **Fichier source** : `assets/logo-rtk-mower.svg`
+- **Nombre de `<path>`** : 1
+- **`viewBox`** : `0 0 3524 500`
+- **Longueur du `d`** : 26 278 caractères
+- **SHA-256 du `d`** : `4B5C8E4B6005A23862A112E5875E5BCF02DB253A9830340EE59EE008F423010E`
+- **Date de référence** : 2026-11-04
 
-Contrôle en lecture seule (PowerShell) :
+Script de contrôle en lecture seule (PowerShell), à exécuter depuis la racine du dépôt :
 
 ```powershell
-$svg  = [IO.File]::ReadAllText('assets/logo-rtk-mower.svg', [Text.Encoding]::UTF8)
-$html = [IO.File]::ReadAllText('index.html', [Text.Encoding]::UTF8)
-$d    = [regex]::Match($svg,  '(?s)<path\b[^>]*\bd="([^"]*)"').Groups[1].Value
-$d2   = [regex]::Match($html, '(?s)\bd="(m9\.6847[^"]*)"').Groups[1].Value
-"identique : $($d -eq $d2)  longueur : $($d2.Length)"
-[BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash(
-  [Text.Encoding]::UTF8.GetBytes($d2))).Replace('-','')
+$svg  = Get-Content -Raw 'assets\logo-rtk-mower.svg'
+$html = Get-Content -Raw 'index.html'
+
+# Extraire tous les d du SVG source
+$dSvg = @([regex]::Matches($svg, '<path\b[^>]*?\bd="([^"]*)"') | ForEach-Object { $_.Groups[1].Value })
+
+# Extraire tous les d du bloc .header-logo-layer dans index.html
+$layerMatch = [regex]::Match($html, '(?s)<div class="header-logo-layer".*?</div>')
+$dHtml = @([regex]::Matches($layerMatch.Value, '<path\b[^>]*?\bd="([^"]*)"') | ForEach-Object { $_.Groups[1].Value })
+
+if ($dSvg.Count -ne $dHtml.Count) { throw "Nombre de <path> différent : SVG=$($dSvg.Count) HTML=$($dHtml.Count)" }
+
+$ok = $true
+for ($i = 0; $i -lt $dSvg.Count; $i++) {
+  $hashSvg  = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($dSvg[$i])))  -Algorithm SHA256).Hash
+  $hashHtml = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($dHtml[$i]))) -Algorithm SHA256).Hash
+  if ($hashSvg -ne $hashHtml) { $ok = $false }
+  "Path #$($i+1) : longueur SVG=$($dSvg[$i].Length) HTML=$($dHtml[$i].Length) | SHA SVG=$hashSvg HTML=$hashHtml | identiques=$($hashSvg -eq $hashHtml)"
+}
+
+# Vérifier le viewBox
+$vb = [regex]::Match($layerMatch.Value, 'viewBox="([^"]*)"').Groups[1].Value
+"viewBox = $vb (attendu 0 0 3524 500 : $($vb -eq '0 0 3524 500'))"
+"Logo synchronisé : $ok"
 ```
 
