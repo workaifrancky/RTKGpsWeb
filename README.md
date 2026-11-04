@@ -16,7 +16,7 @@ Fonctionnalités principales :
 - **verrouillage d'écran** anti-fausse manip (glissement horizontal pour déverrouiller) ;
 - **file d'attente hors-ligne** des exports/partages, rejouée automatiquement au retour du
   réseau (`rtkOfflineQueue`) ;
-- **splash screen** vert avec le logo `🌾 RTK Mower` pendant 1 s au chargement ;
+- **écran d'accueil statique** : titre « RTK MOWER / RELEVÉ GPS RTK », bouton empreinte digitale dans un cercle (80 × 80 px) avec le texte « Appuyer pour continuer », logo `logo-rtk-mower_tablette.svg` en bas de l'écran. Fermeture en fondu (0,3 s) et ouverture de l'onglet Tracés au clic ;
 - **partage natif** sur mobile (`navigator.share`) : un GeoJSON pour une parcelle, un ZIP unique
   pour plusieurs (contourne le bug Android du multi-fichiers) ;
 - **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;

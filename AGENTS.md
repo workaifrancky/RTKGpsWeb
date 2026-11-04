@@ -137,6 +137,28 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 
 ## 7. Points de vigilance
 
+- **Écran d'accueil** : `index.html` s'ouvre **toujours** sur `#welcome-screen`
+  (`.welcome-screen`, `position: fixed`, `inset: 0`, `z-index: 5000`, fond
+  `var(--color-primary-deep)`), affiché à **chaque** démarrage — aucune mémorisation
+  `localStorage`. Contenu centré **légèrement au-dessus du milieu** (`translateY(-6vh)`) :
+  titre « RTK MOWER » (`.welcome-title`, Arial Black), sous-titre « RELEVÉ GPS RTK »
+  (`.welcome-subtitle`), **empreinte digitale Lucide** dans un cercle de **80 × 80 px**
+  (`#btnWelcomeEnter` / `.welcome-fingerprint-btn`, `aria-label="Appuyer pour continuer"`),
+  puis le texte « Appuyer pour continuer » (`.welcome-hint`). Le **logo complet**
+  `assets/logo-rtk-mower_tablette.svg` (viewBox `0 0 3524 500`, 1 `<path>`, 38 020 car.,
+  SHA-256 `9E8A1081…79FE43`) occupe le bas de l'écran (`.welcome-logo`, absolu,
+  `bottom: env(safe-area-inset-bottom) + 10px`, largeur 100 %) ; son `d` est **injecté par
+  script** depuis `assets/` (même règle que le logo du header, §10). Au clic :
+  `js/welcome.js` (`initWelcomeScreen()`, chargé **après** `js/app.js`) pose `.is-closing`
+  (fondu **0,3 s**, `--welcome-fade`), appelle `showTab('tab-points')` puis masque l'écran
+  (`hidden` + `aria-hidden="true"`). L'empreinte reçoit le focus au chargement (seule
+  action possible) ; le voile porte `role="dialog"`, `aria-modal="true"` et
+  `aria-labelledby="welcome-title"`.
+  **Le splash animé (rover qui tond) n'est PAS chargé dans RTK Mower** : `#splash-screen`,
+  `.splash-intro`, sa section CSS (retirée de `css/components.css`) et `js/splash.js`
+  (fichier **supprimé**) n'existent plus. Il est réservé à **Mower Planner** (tablette,
+  paysage) ; son prototype reste consultable dans `splash-test.html`, page autonome que
+  l'application ne charge jamais.
 - **Tuiles** : OSM (`tile.openstreetmap.org`) bloque les apps (418/403) ; CARTO Voyager
   sans clé renvoie un filigrane « API KEY REQUIRED ». Le fond Relief utilise Esri World Topo
   par défaut (`CARTO_API_KEY` vide dans `js/map.js`). `maxNativeZoom` = 19 avec clé CARTO,
@@ -576,6 +598,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   chargé que par `scan.html` (page réceptrice autonome), **après** JSZip 3.10.2 et le même
   bundle vendorisé : JSZip sert uniquement à compter et lister les GeoJSON de l'archive reçue
   (`describeZipPayload()`), son absence (CDN indisponible) ne bloque jamais le téléchargement.
+  `js/welcome.js` (écran d'accueil, voir le 1er point de ce §7) est chargé **juste après**
+  `js/app.js` : il n'appelle `showTab()` qu'au clic, donc aucun ordre de chargement
+  contraignant au-delà de cette position.
 - **API locale** : `serve-http.cjs` expose `GET /api/local-info` (`{ ok, port, addresses, urls }`,
   servi **avant** la résolution de fichiers, sans dépendance). Elle alimente le « mode serveur
   local » du hub de transfert ; sans elle (autre serveur), le JS retombe sur `location.origin`.
@@ -1475,6 +1500,23 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   2 parcelles : ZIP 1 152 o, 6 blocs / 9 frames, réception 2,8 s, « Archive ZIP —
   2 fichier(s) · 6 entité(s) », octets identiques. Hub : option « QR Code animé » visible et
   active dans les deux cas, sous-titre `Parcelle : PARCHELLE A` / `Sélection : 2 parcelles`.
+
+- **3.81 — Écran d'accueil statique (changement de stratégie)** : le splash animé
+  (rover qui tond, 8,5 s) est **retiré de RTK Mower** — trop long en usage terrain — et
+  réservé au futur **Mower Planner** (tablette, paysage). `index.html` perd son overlay
+  `#splash-screen` avec ses trois tracés SVG (herbe haute, herbe basse, rover) : **−61 Ko**
+  (193 185 → 131 764 octets). Il est remplacé par `#welcome-screen` (`.welcome-screen`,
+  `role="dialog"`, `aria-modal="true"`) : titre « RTK MOWER » + sous-titre « RELEVÉ GPS
+  RTK », **empreinte digitale Lucide** de 80 × 80 px (`#btnWelcomeEnter`,
+  `.welcome-fingerprint-btn`), texte « Appuyer pour continuer » (`.welcome-hint`) et **logo
+  complet** `assets/logo-rtk-mower_tablette.svg` collé en bas (`.welcome-logo`, `d` injecté
+  par script). `js/splash.js` est **supprimé** et remplacé par `js/welcome.js` (fondu de
+  0,3 s via `.is-closing`, puis `showTab('tab-points')` et `hidden`) ; la section
+  `SPLASH SCREEN` de `css/components.css` devient `ÉCRAN D'ACCUEIL` (`.welcome-*`).
+  Vérifié Chrome/CDP (390 × 844) : voile plein écran `--color-primary-deep`
+  (`rgb(27, 94, 32)`), empreinte 80 × 80 centrée à 26 px au-dessus du milieu, logo à 10 px
+  du bas, `splashResidue = 0`, `#tab-points` actif, carte montée, zéro erreur JS.
+  `splash-test.html` reste la référence du prototype animé (jamais chargé par l'app).
 
 ## 9. Langue et communication
 

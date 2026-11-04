@@ -3,39 +3,144 @@
    RTKGpsWeb v2 — RTK Mower
    ============================================================ */
 
-/* ─── SPLASH SCREEN ─────────────────────────────────────────── */
-/* Voile vert plein écran avec le logo, visible 1 s puis effacé.
+/* ─── ÉCRAN D'ACCUEIL (RTK Mower — téléphone) ─────────────────
+   Écran statique, volontairement rapide et épuré : titre, empreinte digitale
+   et logo complet. Un appui sur l'empreinte ferme l'écran en fondu et ouvre
+   l'onglet TRACÉS (js/welcome.js).
+   L'ancien splash animé (rover qui tond) est retiré de l'application : il est
+   réservé au futur Mower Planner (tablette) et reste consultable dans la page
+   de test `splash-test.html`.
    z-index supérieur au header (200), au verrouillage (3000), au menu
    Connexion (4000) et aux toasts (1200). */
-.splash-screen {
+.welcome-screen {
+  --welcome-fade: 0.3s;
+
   position:        fixed;
   inset:           0;
   z-index:         5000;
   display:         flex;
+  flex-direction:  column;
   align-items:     center;
   justify-content: center;
-  background:      var(--color-primary);
-  color:           white;   /* logo sur fond vert : exception documentée */
-  animation:       splash-hide 0.35s ease 1s forwards;
+  padding:         0 20px;
+  box-sizing:      border-box;
+  overflow:        hidden;
+  background:      var(--color-primary-deep);
+  /* Texte et logo en blanc sur fond vert : exception documentée (AGENTS.md). */
+  color:           white;
+  transition:      opacity var(--welcome-fade) ease;
 }
 
-.splash-logo {
+/* Fermeture demandée par l'utilisateur (appui sur l'empreinte). */
+.welcome-screen.is-closing {
+  opacity: 0;
+}
+
+/* Retiré du flux et de l'accessibilité une fois la fermeture terminée. */
+.welcome-screen[hidden] {
+  display: none;
+}
+
+.welcome-content {
   display:        flex;
+  flex-direction: column;
   align-items:    center;
-  gap:            10px;
-  font-size:      clamp(28px, 8vw, 42px);
+  text-align:     center;
+  /* Bloc légèrement au-dessus du milieu de l'écran (le logo occupe le bas). */
+  transform:      translateY(-6vh);
+}
+
+.welcome-title {
+  margin:         0;
+  font-family:    'Arial Black', 'Impact', sans-serif;
+  font-size:      clamp(24px, 7vw, 44px);
+  font-weight:    900;
+  letter-spacing: 1px;
+  line-height:    1;
+}
+
+.welcome-subtitle {
+  margin:         6px 0 0;
+  font-size:      clamp(10px, 2.6vw, 14px);
+  font-weight:    700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity:        0.75;
+}
+
+/* Empreinte digitale : cible tactile de la taille d'une vraie empreinte. */
+.welcome-fingerprint-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           80px;
+  height:          80px;
+  margin:          34px 0 0;
+  padding:         0;
+  border:          2px solid currentColor;
+  border-radius:   50%;
+  background:      transparent;
+  color:           inherit;
+  cursor:          pointer;
+  transition:      transform 0.15s ease, background-color 0.15s ease;
+}
+
+.welcome-fingerprint-btn > svg {
+  display: block;
+}
+
+.welcome-fingerprint-btn:active {
+  transform: scale(0.94);
+}
+
+/* Survol réservé aux pointeurs fins (convention projet). */
+@media (hover: hover) and (pointer: fine) {
+  .welcome-fingerprint-btn:hover {
+    background: var(--color-primary);
+  }
+}
+
+.welcome-hint {
+  margin:         14px 0 0;
+  font-size:      14px;
   font-weight:    800;
-  letter-spacing: 0.4px;
-  white-space:    nowrap;
+  letter-spacing: 0.3px;
+  opacity:        0.9;
 }
 
-@keyframes splash-hide {
-  from { opacity: 1; visibility: visible; }
-  to   { opacity: 0; visibility: hidden; }
+/* Logo complet, collé en bas de l'écran (viewBox 0 0 3524 500 : bande 7:1). */
+.welcome-logo {
+  position: absolute;
+  left:     0;
+  right:    0;
+  bottom:   calc(env(safe-area-inset-bottom, 0px) + 10px);
+  padding:  0 10px;
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .splash-screen { animation-duration: 0.01s; }
+.welcome-logo > svg {
+  display: block;
+  width:   100%;
+  height:  auto;
+  fill:    currentColor;
+}
+
+/* Écrans très bas (paysage) : logo réduit pour ne pas écraser le contenu. */
+@media (max-height: 520px) {
+  .welcome-content {
+    transform: none;
+  }
+  .welcome-fingerprint-btn {
+    width:  64px;
+    height: 64px;
+    margin-top: 16px;
+  }
+  .welcome-logo > svg {
+    height:   20vh;
+    width:    auto;
+    max-width: 100%;
+    margin:   0 auto;
+  }
 }
 
 /* ─── BADGES DE FIX ─────────────────────────────────────────── */

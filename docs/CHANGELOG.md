@@ -4,6 +4,22 @@ Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
 
+## [2026-11-04] — Écran d'accueil statique (RTK Mower)
+
+### Modifié
+
+- Suppression de l'overlay splash animé (`#splash-screen`, `js/splash.js`, section CSS `SPLASH SCREEN`).
+- Ajout d'un écran d'accueil statique `#welcome-screen` : titre "RTK MOWER / RELEVÉ GPS RTK", empreinte digitale dans un cercle, texte "Appuyer pour continuer", logo `logo-rtk-mower_tablette.svg` en bas.
+- Au clic sur l'empreinte : fermeture en fondu (0,3 s) et activation de l'onglet "Tracés" (`showTab('tab-points')`).
+- Nouveau script `js/welcome.js` (chargé après `js/app.js`).
+- `index.html` : −61 Ko (suppression des 3 tracés SVG d'herbe/rover).
+
+### Notes
+
+- Le splash animé (rover qui tond) est réservé à **Mower Planner** (tablette, mode paysage), à intégrer plus tard. Le prototype `splash-test.html` reste dans le dépôt comme référence.
+- `menu-test.html` contient encore un `#splashScreen`/`.splash-logo` orphelin (page de démo à aligner).
+- `assets/logo-rtk-mower_ancien.svg` supprimé, `assets/logo-rtk-mower_tablette.svg` ajouté (renommage manuel).
+
 ## [2026-11-04] — Réexport vectoriel du logo
 
 ### Modifié

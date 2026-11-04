@@ -97,13 +97,19 @@ Overrides de lisibilité :
   fictive dans le pipeline (bandeau Fix). **Inutilisé** pour la même raison.
 - `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
 
+### Écran d'accueil (`#welcome-screen`, `.welcome-screen`)
+
+Voile plein écran `position: fixed`, `inset: 0`, `z-index: 5000`, fond `--color-primary-deep`.
+Contenu centré (`translateY(-6vh)`) : titre `.welcome-title` (« RTK MOWER », Arial Black) + sous-titre `.welcome-subtitle` (« RELEVÉ GPS RTK »).
+Bouton `#btnWelcomeEnter` : 80 × 80 px, `border-radius: 50%`, icône empreinte Lucide 48 × 48 px.
+Texte `.welcome-hint` : « Appuyer pour continuer ».
+Logo `.welcome-logo` : `position: absolute`, `bottom: env(safe-area-inset-bottom) + 10px`, SVG `logo-rtk-mower_tablette.svg` injecté par script.
+Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-points')` → `hidden`.
+
+> **Note** : le splash animé (rover qui tond) n'est **pas** chargé dans RTK Mower — il est réservé à Mower Planner. Son prototype reste consultable dans `splash-test.html`.
+
 ### Indicateur de sauvegarde et verrouillage
 
-- `#splashScreen` (`.splash-screen`) : voile plein écran (`position: fixed`, `inset: 0`,
-  `z-index: 5000`), fond `--color-primary`, logo centré `.splash-logo` « 🌾 RTK Mower »
-  (clamp 28–42 px, blanc). Animation `splash-hide` : visible 1 s, puis fondu de 0,35 s et
-  `visibility: hidden` (`animation-fill-mode: forwards`). En `prefers-reduced-motion: reduce`,
-  la durée du fondu tombe à 0,01 s (le délai de 1 s est conservé).
 - `#saveIndicator` (`.save-indicator`) : **pastille verte** de la 1re ligne du panneau
   Connexion (à droite de la station NTRIP), fond `--color-primary-pale`, texte
   `--color-primary-deep` (thème nuit : `--color-primary-accent`), icône Lucide `save` de
