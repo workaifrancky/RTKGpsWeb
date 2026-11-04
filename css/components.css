@@ -15,8 +15,18 @@
 .welcome-screen {
   --welcome-fade: 0.3s;
 
+  /* Même largeur et même positionnement que l'application : `css/main.css`
+     définit `.app-wrapper { max-width: 480px; margin: 0 auto }`. L'écran
+     d'accueil est donc une colonne centrée de 480 px max, et non un voile
+     pleine fenêtre : sur PC ou tablette en paysage, il coïncide exactement
+     avec le header et la carte. */
   position:        fixed;
-  inset:           0;
+  top:             0;
+  bottom:          0;
+  left:            50%;
+  transform:       translateX(-50%);
+  width:           100%;
+  max-width:       480px;
   z-index:         5000;
   display:         flex;
   flex-direction:  column;
@@ -108,17 +118,22 @@
   opacity:        0.9;
 }
 
-/* Logo complet, collé en bas de l'écran (viewBox 0 0 3524 500 : bande 7:1). */
+/* Logo complet, collé en bas de l'écran (viewBox 0 0 3524 500 : bande 7:1).
+   `max-width: 480px` (taille mobile) + centrage horizontal : sur PC ou tablette
+   en paysage, le logo ne s'étire plus sur toute la largeur. */
 .welcome-logo {
-  position: absolute;
-  left:     0;
-  right:    0;
-  bottom:   calc(env(safe-area-inset-bottom, 0px) + 10px);
-  padding:  0 10px;
-  box-sizing: border-box;
+  position:   absolute;
+  bottom:     calc(env(safe-area-inset-bottom, 0px) + 10px);
+  left:       50%;
+  transform:  translateX(-50%);   /* centrage horizontal */
+  width:      100%;
+  max-width:  480px;              /* ne dépasse pas 480 px (taille mobile) */
+  padding:    0 12px;
+  box-sizing: border-box;         /* la largeur inclut le padding */
+  color:      white;              /* exception documentée : blanc sur fond vert */
 }
 
-.welcome-logo > svg {
+.welcome-logo svg {
   display: block;
   width:   100%;
   height:  auto;
@@ -135,7 +150,7 @@
     height: 64px;
     margin-top: 16px;
   }
-  .welcome-logo > svg {
+  .welcome-logo svg {
     height:   20vh;
     width:    auto;
     max-width: 100%;
