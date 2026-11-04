@@ -1599,3 +1599,18 @@ $vb = [regex]::Match($layerMatch.Value, 'viewBox="([^"]*)"').Groups[1].Value
 "Logo synchronisé : $ok"
 ```
 
+## 11. Convention des messages de commit
+
+- Langue : français.
+- Format : une seule phrase courte, à l'impératif ou au passé composé.
+- Pas de préfixe technique (feat, fix, chore, etc.).
+- Pas de corps de message (pas de liste à puces).
+- Décrire l'action de façon neutre et lisible.
+
+Exemples :
+
+- "Ajout du guidage caméra"
+- "Correction du calcul de surface"
+- "Mise à jour des styles du menu"
+- "Nettoyage des prototypes"
+
