@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // et rafraîchit le tiroir + le nom de la parcelle dans le header.
   saveProjects();
 
+  // Synchronisation Firestore : reprise de session + écoute temps réel.
+  // L'application reste utilisable sans compte (localStorage seul).
+  if (typeof initCloudSync === 'function') initCloudSync();
+
   // Fermeture du tiroir au clavier (Échap).
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeProjectDrawer();
@@ -543,6 +547,9 @@ function persistProjectStorage() {
     if (currentProject) localStorage.setItem(CURRENT_KEY, currentProject.id);
     else localStorage.removeItem(CURRENT_KEY);
     storageWarningShown = false;
+    // Synchronisation Firestore (compte connecté uniquement) : envoi groupé et
+    // différé, jamais bloquant pour l'écriture locale.
+    if (typeof scheduleCloudPush === 'function') scheduleCloudPush();
     return true;
   } catch (error) {
     console.warn('Sauvegarde locale impossible', error);

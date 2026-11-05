@@ -646,7 +646,16 @@
       </select>
     </div>
 
-    <!-- Bloc 4 : demandes d'export/partage en attente (hors-ligne). -->
+    <!-- Bloc 4 : synchronisation cloud (compte e-mail / mot de passe). -->
+    <div id="cloudSyncRow" class="menu-row menu-row-context" data-state="signedOut">
+      <span class="menu-label">Synchronisation</span>
+      <span id="cloudSyncEmail" class="cloud-sync-email">Aucun compte</span>
+      <span id="cloudSyncStatus" class="cloud-sync-status" aria-live="polite">Non connecté</span>
+      <button type="button" id="btnCloudAuth" class="cloud-sync-btn"
+        aria-label="Se connecter au compte cloud">Se connecter</button>
+    </div>
+
+    <!-- Bloc 5 : demandes d'export/partage en attente (hors-ligne). -->
     <div id="offlineQueueRow" class="menu-row menu-row-context" hidden>
       <span class="menu-label">Hors-ligne</span>
       <button type="button" id="offlineQueueIndicator" class="offline-queue-indicator"
@@ -873,6 +882,32 @@
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- MODALE COMPTE CLOUD (synchronisation Firestore)             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="authModal" class="modal-overlay" role="dialog" aria-modal="true"
+  aria-labelledby="authModalTitle" aria-hidden="true">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="authModalTitle">Compte cloud</div>
+    <p class="cloud-auth-intro">Connectez-vous pour synchroniser vos parcelles entre le téléphone et la tablette.</p>
+    <form id="cloudAuthForm" class="cloud-auth-form" novalidate>
+      <input type="email" id="cloudAuthEmail" class="form-input" placeholder="Adresse e-mail"
+        autocomplete="email" aria-label="Adresse e-mail">
+      <input type="password" id="cloudAuthPassword" class="form-input" placeholder="Mot de passe"
+        autocomplete="current-password" aria-label="Mot de passe">
+      <p id="cloudAuthError" class="cloud-auth-error" role="alert" hidden></p>
+      <button type="submit" class="action-button cloud-auth-primary">Se connecter</button>
+    </form>
+    <div class="cloud-auth-actions">
+      <button type="button" id="btnCloudSignUp" class="btn-secondary">Créer un compte</button>
+      <button type="button" id="btnCloudReset" class="btn-secondary">Mot de passe oublié</button>
+    </div>
+    <p class="cloud-auth-note">Hors-ligne, l'application continue de fonctionner : les parcelles restent enregistrées sur cet appareil et sont synchronisées au retour du réseau.</p>
+    <button type="button" id="btnCloudAuthClose" class="cloud-auth-close">Fermer</button>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <!-- MODALE GÉNÉRIQUE (confirm / prompt personnalisés)           -->
@@ -1187,11 +1222,24 @@
      npm/jsDelivr est indisponible (404). Voir js/vendor/animated-data-qr/README.md.
      Global exposé : window.AnimatedDataQR. -->
 <script src="js/vendor/animated-data-qr/animated-data-qr.umd.min.js"></script>
+
+<!-- Firebase (SDK « compat » : scripts classiques, global `firebase`) +
+     configuration du projet `mower-survey`. Voir js/cloud-sync.js et
+     docs/firebase.md. Sans réseau, ces scripts ne se chargent pas : l'app
+     reste pleinement utilisable en local (localStorage). -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+
 <script src="js/parser.js"></script>
 <script src="js/ntrip.js"></script>
 <script src="js/app.js"></script>
 <script src="js/welcome.js"></script>
 <script src="js/projects.js"></script>
+<!-- Synchronisation Firestore : après projects.js (dépend de loadProjects,
+     persistProjectStorage, normalizeProject). -->
+<script src="js/cloud-sync.js"></script>
 <script src="js/ble.js"></script>
 <script src="js/fab-press.js"></script>
 <script src="js/points.js"></script>

@@ -44,7 +44,8 @@ Mower Monitor, Mower Cloud) sont réservées pour l'avenir.
 | ZIP | JSZip 3.10.2 via CDN (partage multi-parcelles, `js/export.js`) |
 | QR animé | `animated-data-qr-js` v0.1.0 **vendorisé** dans `js/vendor/animated-data-qr/` (MIT, global `AnimatedDataQR`) — le paquet npm/jsDelivr renvoie 404 |
 | Bluetooth | Web Bluetooth API |
-| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, `rtkOfflineQueue`, …) |
+| Persistance | `localStorage` (`rtkProjects`, `rtkCurrentProject`, `rtkGlobalObstacles`, `rtkTheme`, `rtkShowPointNumbers`, `rtkOfflineQueue`, …) — **source locale** de référence |
+| Synchronisation | **Firebase** (Firestore + Authentication e-mail/mot de passe), SDK « compat » 10.14.1 via CDN, projet `mower-survey` — voir [docs/firebase.md](docs/firebase.md) |
 | Build | Aucun : pas de `package.json`, pas de bundler |
 | Serveur | `serve-http.cjs` (Node, sans dépendance) + `start-public.ps1` (localtunnel) |
 
@@ -508,6 +509,20 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   sauvegarde au survol). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
+- **Synchronisation cloud (Firestore)** : `localStorage` reste la **source locale** (terrain
+  sans réseau) ; Firestore synchronise les parcelles entre appareils. `js/firebase-config.js`
+  porte `FIREBASE_CONFIG` (valeurs publiques) et `CLOUD_SYNC_ENABLED` ; `js/cloud-sync.js`
+  gère l'authentification e-mail/mot de passe, `onSnapshot` temps réel, l'envoi groupé différé
+  (1,5 s, `scheduleCloudPush()` depuis `persistProjectStorage()`), la migration initiale
+  (cloud vide + parcelles locales, une fois par compte via `rtkCloudMigrated_<uid>`) et
+  l'interface (bloc « Synchronisation » du panneau Connexion + modale `#authModal`).
+  Modèle : `users/{uid}/projects/{projectId}` = `{ payload, name, updatedAt }`. **Un snapshot
+  vide n'écrase jamais le local** (protection contre les états transitoires). Hors-ligne :
+  `enablePersistence()` (cache IndexedDB) et l'application reste utilisable sans compte.
+  Prérequis et règles Firestore à publier : [docs/firebase.md](docs/firebase.md) —
+  notamment l'ajout des domaines (localtunnel, GitHub Pages) dans **Authentication →
+  Domaines autorisés**, sinon `auth/unauthorized-domain`. La configuration web Firebase
+  (`apiKey`) est publique : la sécurité repose sur les règles Firestore.
 - **Distances de tracés** : `leaflet-measure-path` est chargé par CDN **après Leaflet** (CSS
   dans `<head>`, JS après `leaflet.js`). Les polygones de tonte **et des zones interdites**
   passent `showMeasurements: true` et `ZONE_MEASUREMENT_OPTIONS` (`showArea: false`,
@@ -650,7 +665,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   **après `js/ble.js` et avant `js/points.js`** : `points.js` et `camera.js` y trouvent
   `bindTraceFabPress()`, `LONG_PRESS_MS` et `LONG_PRESS_MOVE_TOLERANCE_PX`. Le bundle
   vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
-  chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`. `js/scan.js` n'est
+  chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`. Les SDK **Firebase
+  « compat »** (10.14.1 : `firebase-app-compat.js`, `firebase-auth-compat.js`,
+  `firebase-firestore-compat.js`, CDN `gstatic`) et `js/firebase-config.js` sont chargés au
+  même endroit (avant `js/parser.js`) ; `js/cloud-sync.js` vient **juste après
+  `js/projects.js`** (il utilise `loadProjects`, `persistProjectStorage`,
+  `normalizeProject`). Sans réseau, ces scripts ne se chargent pas : l'application reste
+  utilisable en local, sans erreur bloquante. `js/scan.js` n'est
   chargé que par `scan.html` (page réceptrice autonome), **après** JSZip 3.10.2 et le même
   bundle vendorisé : JSZip sert uniquement à compter et lister les GeoJSON de l'archive reçue
   (`describeZipPayload()`), son absence (CDN indisponible) ne bloque jamais le téléchargement.
@@ -1695,6 +1716,31 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   aucun rendu, parcelle existante zone 2 à 2 points → `renderMap()`, zone courante à 1 point sur
   parcelle riche → aucun rendu, tonte → rendu, obstacle → aucun rendu ; ancienne règle
   (`pts.length >= 3` sur la parcelle) reproduite comme bug de référence.
+
+- **3.87 — Synchronisation Firestore (comptes e-mail / mot de passe)** : les parcelles sont
+  synchronisées entre le téléphone et la tablette tout en conservant `localStorage` comme
+  **source locale** (terrain hors-ligne). Nouveaux fichiers : `js/firebase-config.js`
+  (`FIREBASE_CONFIG` du projet `mower-survey`, `CLOUD_SYNC_ENABLED`) et `js/cloud-sync.js`
+  (authentification, `onSnapshot`, envoi groupé, migration, interface). Modèle Firestore :
+  `users/{uid}/projects/{projectId}` = `{ payload, name, updatedAt }`. Interface : bloc
+  « Synchronisation » (`.cloud-sync-*`, pastille colorée par `data-state`) dans le panneau
+  Connexion et modale `#authModal` (`.cloud-auth-*` : e-mail, mot de passe, « Créer un
+  compte », « Mot de passe oublié », message d'erreur traduit). `persistProjectStorage()`
+  appelle `scheduleCloudPush()` (debounce 1,5 s → `batch` : `set` par parcelle + `delete` des
+  documents distants absents) ; l'init de `projects.js` appelle `initCloudSync()`. Migration
+  automatique quand le cloud est vide et le local non vide (une fois par compte, clé
+  `rtkCloudMigrated_<uid>`). **Un snapshot vide n'écrase jamais le local.** Cache hors-ligne
+  `enablePersistence()`. SDK « compat » 10.14.1 via CDN `gstatic` (scripts classiques, global
+  `firebase`), chargés avant `js/parser.js` ; `cloud-sync.js` juste après `projects.js`.
+  Documentation et règles Firestore à publier : `docs/firebase.md` (dont **Authentication →
+  Domaines autorisés** : localtunnel et GitHub Pages). Vérifié :
+  `node --check js/cloud-sync.js js/firebase-config.js js/projects.js` ; banc Node **16/16**
+  avec Firebase simulé (migration : écriture + payload + horodatage serveur + marqueur + toast ;
+  snapshot vide : local préservé ; snapshot distant : 2 parcelles appliquées + `localStorage` ;
+  push différé : une écriture par parcelle ; suppression locale propagée en `delete` distant ;
+  3 messages d'erreur d'authentification). À valider en conditions réelles avec un compte créé
+  dans la console Firebase.
+
 
 ## 9. Langue et communication
 

@@ -6,6 +6,28 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-05] — Synchronisation Firestore (comptes e-mail / mot de passe)
+
+### Ajouté
+
+- `js/firebase-config.js` : configuration publique du projet Firebase `mower-survey` (`FIREBASE_CONFIG`) et interrupteur `CLOUD_SYNC_ENABLED`.
+- `js/cloud-sync.js` : authentification e-mail / mot de passe, écoute temps réel (`onSnapshot`), envoi groupé différé (1,5 s), migration initiale des parcelles locales, cache hors-ligne (`enablePersistence`), interface (bloc « Synchronisation » du panneau Connexion + modale `#authModal`).
+- `index.html` : SDK Firebase « compat » 10.14.1 (CDN `gstatic`), bloc « Synchronisation » dans le panneau Connexion, modale « Compte cloud ».
+- `css/main.css` : styles `.cloud-sync-*` et `.cloud-auth-*` (tokens uniquement, pastille d'état par `data-state`).
+- `docs/firebase.md` : modèle de données, prérequis console (domaines autorisés, règles Firestore), fonctionnement et limites.
+
+### Modifié
+
+- `js/projects.js` : `persistProjectStorage()` déclenche `scheduleCloudPush()` ; l'initialisation appelle `initCloudSync()`.
+
+### Notes
+
+- `localStorage` reste la **source locale** : l'application fonctionne sans compte et sans réseau.
+- Migration automatique une seule fois par compte (cloud vide + parcelles locales, clé `rtkCloudMigrated_<uid>`) ; un snapshot vide n'écrase jamais le local.
+- La configuration Firebase web (`apiKey`) est publique par nature ; la sécurité repose sur les règles Firestore (`users/{uid}/projects/{projectId}`) et les domaines autorisés à déclarer dans la console.
+- Vérifications : `node --check` OK (`cloud-sync.js`, `firebase-config.js`, `projects.js`) ; banc Node 16/16 avec Firebase simulé (migration, snapshot vide, snapshot distant, push différé, suppression propagée, messages d'erreur).
+- Limites : dernier écrivain gagne (pas de fusion champ par champ), 1 document par parcelle (limite 1 Mio), `rtkGlobalObstacles` non synchronisée.
+
 ## [2026-11-05] — Renommage de l'application en Mower Survey
 
 ### Modifié

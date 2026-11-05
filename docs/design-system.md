@@ -170,10 +170,22 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
   pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
   + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
-  44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) **si la file hors-ligne n'est pas
-  vide**, libellé « Hors-ligne » + bouton `#offlineQueueIndicator` (« N demande(s) en
-  attente ») qui appelle `processOfflineQueue()`. La parcelle n'est pas dans ce panneau :
-  elle reste accessible par la 1re ligne du menu FAB de TRACÉS.
+  44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) libellé « Synchronisation » +
+  `#cloudSyncEmail` (compte connecté, ellipse) + `#cloudSyncStatus` (pastille d'état colorée
+  par `#cloudSyncRow[data-state]` : `synced` vert, `connecting` ambre, `offline` ambre foncé,
+  `error` rouge) + bouton `#btnCloudAuth` (« Se connecter » / « Se déconnecter »,
+  `.cloud-sync-btn` 44 px) qui ouvre `#authModal` (`openAuthModal()`), (5) **si la file
+  hors-ligne n'est pas vide**, libellé « Hors-ligne » + bouton `#offlineQueueIndicator`
+  (« N demande(s) en attente ») qui appelle `processOfflineQueue()`. La parcelle n'est pas dans
+  ce panneau : elle reste accessible par la 1re ligne du menu FAB de TRACÉS.
+- **Modale « Compte cloud »** `#authModal` (`.cloud-auth-*`, mêmes `.modal-overlay` /
+  `.modal-box` que les autres modales) : intro (`.cloud-auth-intro`), formulaire
+  `.cloud-auth-form` (e-mail + mot de passe, `.form-input`), message d'erreur
+  `.cloud-auth-error` (`role="alert"`, `--color-danger`, masqué par `[hidden]`), bouton
+  principal `.cloud-auth-primary`, actions `.cloud-auth-actions` (« Créer un compte »,
+  « Mot de passe oublié »), note `.cloud-auth-note` (fonctionnement hors-ligne) et
+  `.cloud-auth-close`. Fermeture : voile, bouton « Fermer », Échap (priorité aux modales
+  confirm/prompt).
 - `.offline-queue-indicator` : bouton d'alerte de la ligne « Hors-ligne » (44 px, fond
   `--color-warning-pale`, texte `--color-warning-text`, bordure `--color-warning-strong`,
   11 px / 800). En thème nuit, fond `--color-bg-muted` et texte `--color-warning-strong`.

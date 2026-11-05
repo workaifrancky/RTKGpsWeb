@@ -20,6 +20,10 @@ Fonctionnalités principales :
 - **partage natif** sur mobile (`navigator.share`) : un GeoJSON pour une parcelle, un ZIP unique
   pour plusieurs (contourne le bug Android du multi-fichiers) ;
 - **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;
+- **synchronisation cloud** (facultative) : compte e-mail / mot de passe Firebase et
+  synchronisation temps réel des parcelles entre le téléphone et la tablette (Firestore),
+  `localStorage` restant la source locale pour le terrain hors-ligne — voir
+  [docs/firebase.md](docs/firebase.md) ;
 - choix d'une parcelle (projet) et d'une station NTRIP de référence ;
 - enregistrement de points `tonte`, `interdit` et `obstacle` ;
 - **bibliothèque globale d'obstacles** (`rtkGlobalObstacles`) : import par cases à cocher
