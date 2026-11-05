@@ -6,6 +6,38 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-05] — Synchronisation PC → téléphone (envoi sélectif et reprise au premier plan)
+
+### Corrigé
+
+- **Cause principale** : `pushProjectsToCloud()` renvoyait **toute** la liste locale à chaque envoi. Un envoi déclenché sur le téléphone réécrivait donc les parcelles modifiées sur le PC, écrasant ces modifications (asymétrie PC → téléphone).
+- L'envoi est désormais **sélectif** : seules les parcelles modifiées localement (`collectDirtyProjects()`) et les suppressions partent ; aucune écriture n'est faite quand tout est à jour.
+- `cloudBaseline` n'est mise à jour que pour les parcelles réellement poussées (signature capturée à l'envoi) : une parcelle modifiée pendant l'envoi reste « en attente » et repart au push suivant.
+- Un snapshot distant reçu **pendant** un envoi est mis en file (`cloudPendingRemote`) et appliqué à la fin de l'envoi, au lieu d'être ignoré.
+- `handleCloudSnapshot()` lit l'état local en **mémoire** (`projects`) plutôt que `localStorage`, qui peut être en retard sur l'autosauvegarde.
+- Ajout de `refreshCloudFromServer()` déclenché par `visibilitychange` (retour au premier plan) et `online` : lecture `get({ source: 'server' })` et réattachement de l'écoute `onSnapshot` si elle a été perdue (le navigateur mobile suspend les écoutes en arrière-plan).
+
+### Notes
+
+- La synchronisation téléphone → PC reste inchangée et fonctionne.
+- Le mode hors-ligne est préservé : cache IndexedDB conservé, `refreshCloudFromServer()` ne fait rien sans réseau.
+- Diagnostic : `window.__MOWER_SYNC_DEBUG = true` puis la console affiche chaque snapshot reçu.
+- Vérifications : `node --check js/cloud-sync.js` OK ; banc Node 13/13 (push sélectif : une écriture, parcelle du PC non écrasée ; aucune écriture inutile ; snapshot PC appliqué + rendu ; snapshot pendant envoi mis en file puis appliqué ; suppression propagée ; resynchronisation au premier plan appliquée).
+
+## [2026-11-05] — Correction du dernier point qui disparaissait (course snapshot / écriture locale)
+
+### Corrigé
+
+- Pendant la création d'une zone, un snapshot Firestore encore basé sur l'état précédent (cache, écho d'un push antérieur) remplaçait `projects` par une version sans le dernier point : le point, sa ligne et sa mesure disparaissaient jusqu'à revalidation.
+- `handleCloudSnapshot()` **fusionne** désormais au lieu d'écraser : une parcelle modifiée localement et pas encore poussée conserve sa version locale (`cloudBaseline` + `collectDirtyProjects()`), et un écho de push (contenu identique à `updatedAt` près) est ignoré.
+- Un résultat identique au local ne déclenche **aucun rendu** (ni écriture `localStorage`) : plus de clignotement.
+- `refreshCloudBaseline()` est appelée après chaque push réussi et après chaque application de snapshot ; le payload poussé porte un `updatedAt` ISO local (horodatage logique) en plus du timestamp serveur.
+
+### Notes
+
+- La synchronisation descendante reste active : un snapshot plus récent venu d'un autre appareil (parcelle non modifiée localement) est appliqué normalement, et les suppressions distantes sont propagées.
+- Vérifications : `node --check js/cloud-sync.js` OK ; banc Node 14/14 (snapshot ancien : dernier point conservé + aucun rendu + `localStorage` intact ; push complet avec `updatedAt` ; écho de push sans rendu ; snapshot distant plus récent appliqué ; suppression distante ; parcelle locale non poussée conservée).
+
 ## [2026-11-05] — Synchronisation Firestore (comptes e-mail / mot de passe)
 
 ### Ajouté

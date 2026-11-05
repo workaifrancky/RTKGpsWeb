@@ -86,6 +86,19 @@ service cloud.firestore {
 6. **Hors-ligne** : cache IndexedDB du SDK (`enablePersistence`) ; les écritures
    sont rejouées à la reconnexion. Sans réseau **et** sans cache, l'application
    fonctionne en local.
+7. **Protection des modifications locales** : chaque parcelle confirmée par
+   Firestore est mémorisée par sa signature (`cloudBaseline`). Tant qu'une
+   parcelle a été modifiée localement et n'a pas encore été poussée, un snapshot
+   distant ne l'écrase pas (fusion dans `handleCloudSnapshot()`), et un écho de
+   notre propre push ne déclenche aucun rendu.
+8. **Envoi sélectif** : `pushProjectsToCloud()` n'envoie que les parcelles
+   modifiées localement (et les suppressions). Envoyer toute la liste à chaque
+   fois écrasait les modifications faites sur l'autre appareil — c'était la
+   cause de l'asymétrie « PC → téléphone ».
+9. **Retour au premier plan** : `visibilitychange` / `online` déclenchent
+   `refreshCloudFromServer()` (`get({ source: 'server' })` + réattachement de
+   l'écoute si besoin), car le navigateur mobile suspend les écoutes en
+   arrière-plan. Diagnostic : `window.__MOWER_SYNC_DEBUG = true` dans la console.
 
 ## 5. Limites connues
 

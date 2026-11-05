@@ -519,6 +519,27 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Modèle : `users/{uid}/projects/{projectId}` = `{ payload, name, updatedAt }`. **Un snapshot
   vide n'écrase jamais le local** (protection contre les états transitoires). Hors-ligne :
   `enablePersistence()` (cache IndexedDB) et l'application reste utilisable sans compte.
+  **Protection des modifications locales (3.88)** : `cloudBaseline` mémorise la signature de
+  chaque parcelle telle que confirmée par Firestore (ou appliquée depuis le cloud) ;
+  `collectDirtyProjects()` déduit les parcelles modifiées localement et pas encore poussées.
+  `handleCloudSnapshot()` **fusionne** au lieu d'écraser : une parcelle « sale » garde sa
+  version locale, un écho de push (contenu identique à `updatedAt` près) est ignoré, et un
+  résultat identique au local ne déclenche **aucun** rendu — c'est ce qui faisait disparaître
+  puis réapparaître le dernier point d'une zone. `refreshCloudBaseline()` est appelée après
+  chaque push réussi et après chaque application de snapshot. Le payload poussé porte un
+  `updatedAt` ISO local (horodatage logique) en plus du `updatedAt` serveur du document.
+  **Synchronisation bidirectionnelle (3.89)** : `pushProjectsToCloud()` est **sélectif** —
+  seules les parcelles « sales » (`collectDirtyProjects()`) sont envoyées, plus les
+  suppressions ; avant, toute la liste était réécrite à chaque envoi, ce qui écrasait les
+  modifications faites sur l'autre appareil (asymétrie PC → téléphone). La référence
+  `cloudBaseline` n'est mise à jour que pour les parcelles réellement poussées (une parcelle
+  modifiée pendant l'envoi reste « sale »). Un snapshot distant reçu **pendant** un envoi est
+  mis en file (`cloudPendingRemote`) et rejoué à la fin de l'envoi au lieu d'être perdu. Au
+  **retour au premier plan** (`visibilitychange`) et au retour du réseau (`online`),
+  `refreshCloudFromServer()` force une lecture `get({ source: 'server' })` et réattache
+  l'écoute `onSnapshot` si nécessaire : sans cela, le téléphone en veille ne recevait pas les
+  modifications du PC. Diagnostic à chaud : `window.__MOWER_SYNC_DEBUG = true`
+  (`console.debug` à chaque snapshot).
   Prérequis et règles Firestore à publier : [docs/firebase.md](docs/firebase.md) —
   notamment l'ajout des domaines (localtunnel, GitHub Pages) dans **Authentication →
   Domaines autorisés**, sinon `auth/unauthorized-domain`. La configuration web Firebase
@@ -1741,6 +1762,45 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   3 messages d'erreur d'authentification). À valider en conditions réelles avec un compte créé
   dans la console Firebase.
 
+
+- **3.88 — Dernier point qui disparaissait (course snapshot / écriture locale)** : pendant la
+  création d'une zone, le point à peine ajouté apparaissait puis disparaissait (avec sa ligne et
+  sa mesure), sur les deux appareils. **Cause** : `handleCloudSnapshot()` (`js/cloud-sync.js`)
+  appliquait tout snapshot dont la signature différait de `cloudLastSignature` en remplaçant
+  `projects` par la version Firestore — y compris un état antérieur (cache IndexedDB au
+  démarrage, écho d'un push précédent) qui ne contenait pas le point en attente de push.
+  **Correction** : `cloudBaseline` (Map `id → signature` via `projectSignature()`, qui ignore
+  `updatedAt`) mémorise l'état confirmé ; `collectDirtyProjects()` déduit les parcelles
+  modifiées localement ; `handleCloudSnapshot()` **fusionne** : (1) parcelle sale → version
+  locale, (2) écho de push (contenu identique hors `updatedAt`) → version locale, (3) sinon
+  version distante. Si le résultat est identique au local, **aucun rendu ni écriture**
+  (fin du clignotement). `refreshCloudBaseline()` est appelée après chaque push réussi et chaque
+  application de snapshot ; le payload poussé porte un `updatedAt` ISO local en plus du
+  timestamp serveur. La synchronisation descendante (autre appareil, suppressions) est
+  préservée. Vérifié : `node --check js/cloud-sync.js` ; banc Node **14/14** (snapshot ancien :
+  dernier point conservé + aucun rendu + `localStorage` intact ; push complet + `updatedAt` ;
+  écho sans rendu ; snapshot distant plus récent appliqué ; suppression distante ; parcelle
+  locale non poussée conservée).
+
+- **3.89 — Synchronisation PC → téléphone (envoi sélectif et reprise au premier plan)** : la
+  synchronisation fonctionnait du téléphone vers le PC, mais les modifications du PC étaient
+  écrasées. **Cause** : `pushProjectsToCloud()` renvoyait **toute** la liste locale à chaque
+  envoi ; un push déclenché sur le téléphone réécrivait donc les parcelles modifiées sur le PC.
+  **Corrections** (`js/cloud-sync.js`) : (1) envoi **sélectif** — seules les parcelles sales
+  (`collectDirtyProjects()`) et les suppressions partent, et aucune écriture n'est faite si
+  rien n'a changé ; (2) `cloudBaseline` mise à jour uniquement pour les parcelles réellement
+  poussées (signature capturée à l'envoi : une modification survenue pendant l'envoi reste
+  « sale ») ; (3) file d'attente `cloudPendingRemote` — un snapshot reçu pendant un envoi est
+  rejoué à la fin au lieu d'être perdu ; (4) `handleCloudSnapshot()` lit l'état local en
+  **mémoire** (`projects`) et non `localStorage` (retard d'autosauvegarde) ;
+  (5) `refreshCloudFromServer()` sur `visibilitychange` et `online` — lecture
+  `get({ source: 'server' })` + réattachement de l'écoute `onSnapshot` si elle a été perdue
+  (les écoutes sont suspendues en arrière-plan sur mobile). Diagnostic à chaud :
+  `window.__MOWER_SYNC_DEBUG = true`. Vérifié : `node --check js/cloud-sync.js` ; banc Node
+  **13/13** (push sélectif : une seule écriture, parcelle du PC non écrasée ; aucune écriture
+  inutile ; snapshot PC appliqué + rendu ; snapshot pendant envoi mis en file puis appliqué ;
+  suppression locale propagée ; resynchronisation au premier plan appliquée). Le sens
+  téléphone → PC et le mode hors-ligne restent inchangés.
 
 ## 9. Langue et communication
 

@@ -25,8 +25,15 @@ let cloudUnsubscribe = null;
 let cloudPushTimer   = null;
 let cloudApplying    = false;   // vrai pendant l'application d'un snapshot distant
 let cloudPushing     = false;   // vrai pendant l'envoi local
+let cloudPendingRemote = null;  // snapshot distant reçu pendant un envoi
 let cloudLastSignature = '';
 let cloudKnownIds    = new Set();
+// Référence de synchronisation : signature de chaque parcelle telle qu'elle a
+// été confirmée par Firestore (ou appliquée depuis le cloud). Toute parcelle
+// dont la signature locale diffère est « en attente de push » : un snapshot
+// distant ne doit JAMAIS l'écraser (c'était la cause de la disparition du
+// dernier point ajouté).
+let cloudBaseline    = new Map();
 let cloudBound       = false;
 let cloudStatus      = 'local';        // local | signedOut | connecting | synced | offline | error
 let cloudStatusDetail = '';
@@ -74,6 +81,10 @@ function initCloudSync() {
     // fonctionnelle, sans cache hors-ligne.
   }
 
+  // Référence initiale : tout ce qui est modifié APRÈS cette ligne est
+  // considéré comme « en attente de push » et protégé des snapshots distants.
+  refreshCloudBaseline(typeof loadProjects === 'function' ? loadProjects() : []);
+
   cloudAuth.onAuthStateChanged(user => {
     cloudUser = user || null;
     renderCloudUi();
@@ -87,6 +98,40 @@ function initCloudSync() {
     }
   });
 }
+
+// ─── RÉSYNCHRONISATION AU RETOUR AU PREMIER PLAN ────────────
+// Sur mobile, le navigateur suspend les écoutes Firestore quand l'onglet passe
+// en arrière-plan (écran éteint, changement d'app). Au retour, on force une
+// lecture serveur et, si l'écoute temps réel a été perdue, on la réattache.
+// C'est ce qui manquait pour que les modifications du PC arrivent sur le
+// téléphone sans devoir recharger l'application.
+function refreshCloudFromServer() {
+  if (!isCloudEnabled() || !isCloudConnected() || !cloudDb) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    syncCloudStatus('offline', 'Hors-ligne — synchronisation en attente');
+    return;
+  }
+  if (!cloudListening) attachCloudSnapshot();
+  const ref = cloudProjectsRef();
+  ref.get({ source: 'server' })
+    .then(snapshot => handleCloudSnapshot(snapshot))
+    .catch(() => {
+      // Serveur injoignable : repli sur le cache local du SDK.
+      ref.get()
+        .then(snapshot => handleCloudSnapshot(snapshot))
+        .catch(() => syncCloudStatus('offline', 'Synchronisation indisponible'));
+    });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && isCloudConnected()) {
+    refreshCloudFromServer();
+  }
+});
+
+window.addEventListener('online', () => {
+  if (isCloudConnected()) refreshCloudFromServer();
+});
 
 // ─── ÉCOUTE DISTANTE (temps réel) ────────────────────────────
 function cloudProjectsRef() {
@@ -120,6 +165,45 @@ function cloudSignature(list) {
   return JSON.stringify(list);
 }
 
+// Signature d'une parcelle : `updatedAt` est ignoré (horodatage de push, il ne
+// fait pas partie du contenu métier).
+function projectSignature(project) {
+  if (!project || typeof project !== 'object') return '';
+  const { updatedAt, ...rest } = project;
+  return JSON.stringify(rest);
+}
+
+// Enregistre l'état de référence : ce qui est considéré comme synchronisé.
+function refreshCloudBaseline(list) {
+  cloudBaseline = new Map();
+  (Array.isArray(list) ? list : []).forEach(project => {
+    if (project && project.id) {
+      cloudBaseline.set(String(project.id), projectSignature(project));
+    }
+  });
+}
+
+// Parcelles locales actuelles : l'état en MÉMOIRE (`projects`) est plus frais
+// que `localStorage` (l'autosauvegarde peut être en retard). Repli sur le
+// stockage si le module `projects.js` n'est pas chargé.
+function currentLocalProjects() {
+  if (typeof projects !== 'undefined' && Array.isArray(projects)) return projects;
+  return typeof loadProjects === 'function' ? loadProjects() : [];
+}
+
+// Parcelles modifiées localement depuis la dernière synchronisation
+// (Map id → signature). Elles priment sur les versions distantes.
+function collectDirtyProjects(list) {
+  const dirty = new Map();
+  (Array.isArray(list) ? list : []).forEach(project => {
+    if (!project || !project.id) return;
+    const id = String(project.id);
+    const signature = projectSignature(project);
+    if (cloudBaseline.get(id) !== signature) dirty.set(id, signature);
+  });
+  return dirty;
+}
+
 function migrationDoneForUser() {
   try {
     return localStorage.getItem(`${CLOUD_MIGRATED_KEY}_${cloudUser.uid}`) === '1';
@@ -140,15 +224,20 @@ function handleCloudSnapshot(snapshot) {
   if (!isCloudConnected()) return;
 
   const remote = [];
-  const ids = new Set();
+  const remoteIds = new Set();
   snapshot.forEach(doc => {
     const data = doc.data() || {};
-    ids.add(doc.id);
+    remoteIds.add(doc.id);
     if (data.payload && typeof data.payload === 'object') {
       remote.push({ ...data.payload, id: data.payload.id || doc.id });
     }
   });
-  cloudKnownIds = ids;
+  cloudKnownIds = remoteIds;
+
+  // Diagnostic activable à chaud dans la console : window.__MOWER_SYNC_DEBUG = true
+  if (typeof window !== 'undefined' && window.__MOWER_SYNC_DEBUG) {
+    console.debug('[sync] snapshot reçu :', remote.length, 'parcelle(s) distante(s)');
+  }
 
   // Première connexion : cloud vide + parcelles locales → migration unique
   // par compte (le téléphone devient la référence initiale).
@@ -172,21 +261,64 @@ function handleCloudSnapshot(snapshot) {
     return;
   }
 
-  const signature = cloudSignature(remote);
-  if (signature === cloudLastSignature) {
+  // ─── Fusion protectrice (cœur du correctif) ─────────────────
+  // Les parcelles modifiées localement depuis la dernière synchronisation
+  // (signature différente de la référence) sont CONSERVÉES : un snapshot
+  // Firestore encore basé sur l'état précédent (cache, écho d'un push antérieur,
+  // autre appareil) ne doit jamais faire disparaître le dernier point ajouté.
+  const local = currentLocalProjects();
+  const dirty = collectDirtyProjects(local);
+  const localById = new Map(local.map(p => [String(p.id), p]));
+  const merged = [];
+
+  remote.forEach(remoteProject => {
+    const id = String(remoteProject.id);
+    const localProject = localById.get(id);
+    // 1. Parcelle modifiée localement et pas encore confirmée : le local prime.
+    if (localProject && dirty.has(id)) {
+      merged.push(localProject);
+      return;
+    }
+    // 2. Écho de notre propre push (`updatedAt` en plus, contenu identique) :
+    // on conserve la version locale pour éviter un rendu et une écriture
+    // localStorage inutiles — c'est ce qui provoquait le clignotement.
+    if (localProject && projectSignature(localProject) === projectSignature(remoteProject)) {
+      merged.push(localProject);
+      return;
+    }
+    merged.push(remoteProject);
+  });
+
+  // Parcelles locales absentes du cloud : conservées tant qu'elles sont en
+  // attente de push (sinon elles ont été supprimées sur un autre appareil).
+  dirty.forEach((signature, id) => {
+    if (!remoteIds.has(id) && localById.has(id)) merged.push(localById.get(id));
+  });
+
+  // Aucun changement par rapport au local → aucun rendu (pas de clignotement).
+  if (cloudSignature(merged) === cloudSignature(local)) {
     syncCloudStatus('synced');
     return;
   }
-  cloudLastSignature = signature;
-  applyProjectsFromCloud(remote);
+
+  cloudLastSignature = cloudSignature(merged);
+  applyProjectsFromCloud(merged);
 }
 
 // Applique les parcelles distantes au stockage local et rafraîchit l'interface.
 function applyProjectsFromCloud(list) {
-  if (cloudPushing) return;          // nos écritures ne sont pas confirmées
+  // Envoi local en vol : on mémorise le snapshot et il sera rejoué dès la fin
+  // de l'envoi (avant, il était simplement perdu → l'autre appareil semblait
+  // ne pas recevoir les modifications).
+  if (cloudPushing) {
+    cloudPendingRemote = list;
+    return;
+  }
   cloudApplying = true;
   try {
     projects = (Array.isArray(list) ? list : []).map(normalizeProject);
+    // Référence = état qui vient d'être appliqué : plus rien n'est en attente.
+    refreshCloudBaseline(projects);
     if (typeof persistProjectStorage === 'function') persistProjectStorage();
     // La parcelle courante peut avoir été supprimée sur un autre appareil.
     if (currentProject) {
@@ -227,40 +359,74 @@ function pushProjectsToCloud(options = {}) {
   }
   const list = Array.isArray(options.projectsOverride)
     ? options.projectsOverride
-    : (typeof loadProjects === 'function' ? loadProjects() : []);
+    : currentLocalProjects();
+
+  // ─── ENVOI SÉLECTIF (corrige l'asymétrie PC → téléphone) ──
+  // Seules les parcelles modifiées localement sont envoyées. Avant, la totalité
+  // de la liste était réécrite à chaque envoi : une modification faite sur
+  // l'autre appareil était donc écrasée par l'état local, plus ancien.
+  const dirty = collectDirtyProjects(list);
+  const localIds = new Set(list.filter(p => p && p.id).map(p => String(p.id)));
+  const deletedIds = [...cloudKnownIds].filter(id => !localIds.has(String(id)));
+
+  if (dirty.size === 0 && deletedIds.length === 0) {
+    // Rien à envoyer : aucune écriture inutile sur le cloud.
+    syncCloudStatus('synced');
+    return;
+  }
+
   const ref = cloudProjectsRef();
   const batch = cloudDb.batch();
-  const sentIds = new Set();
+  const pushedSignatures = new Map();
 
   list.forEach(project => {
     if (!project || !project.id) return;
     const id = String(project.id);
-    sentIds.add(id);
+    if (!dirty.has(id)) return;       // parcelle déjà à jour : on n'y touche pas
+    pushedSignatures.set(id, dirty.get(id));
+    // `updatedAt` local (ISO) : horodatage logique de la version poussée (le
+    // document porte aussi le timestamp serveur pour l'ordre des écritures).
+    const payload = { ...project, updatedAt: new Date().toISOString() };
     batch.set(ref.doc(id), {
-      payload: project,
-      name: project.name || '',
+      payload,
+      name: payload.name || '',
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
   });
 
   // Parcelles supprimées localement → suppression des documents distants.
-  cloudKnownIds.forEach(id => {
-    if (!sentIds.has(String(id))) batch.delete(ref.doc(String(id)));
-  });
+  deletedIds.forEach(id => batch.delete(ref.doc(String(id))));
 
   cloudPushing = true;
   syncCloudStatus('connecting');
   batch.commit()
     .then(() => {
-      cloudKnownIds = sentIds;
-      cloudLastSignature = cloudSignature(list);
+      // Référence mise à jour pour les SEULES parcelles réellement poussées :
+      // une parcelle modifiée pendant l'envoi reste « en attente ».
+      pushedSignatures.forEach((signature, id) => {
+        cloudBaseline.set(id, signature);
+        cloudKnownIds.add(id);
+      });
+      deletedIds.forEach(id => {
+        cloudKnownIds.delete(String(id));
+        cloudBaseline.delete(String(id));
+      });
+      cloudLastSignature = cloudSignature(currentLocalProjects());
       syncCloudStatus('synced');
     })
     .catch(error => {
       console.warn('Envoi vers le cloud impossible', error);
       syncCloudStatus('offline', 'Envoi impossible — hors-ligne ?');
     })
-    .finally(() => { cloudPushing = false; });
+    .finally(() => {
+      cloudPushing = false;
+      // Snapshot distant reçu pendant l'envoi : on l'applique maintenant.
+      if (cloudPendingRemote) {
+        const pending = cloudPendingRemote;
+        cloudPendingRemote = null;
+        applyProjectsFromCloud(pending);
+      }
+    });
 }
 
 // ─── ÉTAT AFFICHÉ (panneau Connexion) ────────────────────────
