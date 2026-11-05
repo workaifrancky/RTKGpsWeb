@@ -533,13 +533,16 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   suppressions ; avant, toute la liste était réécrite à chaque envoi, ce qui écrasait les
   modifications faites sur l'autre appareil (asymétrie PC → téléphone). La référence
   `cloudBaseline` n'est mise à jour que pour les parcelles réellement poussées (une parcelle
-  modifiée pendant l'envoi reste « sale »). Un snapshot distant reçu **pendant** un envoi est
-  mis en file (`cloudPendingRemote`) et rejoué à la fin de l'envoi au lieu d'être perdu. Au
+  modifiée pendant l'envoi reste « sale »). Un snapshot distant reçu **pendant** un envoi
+  **ne rejoue jamais la liste brute** : `mergeRemoteProjects()` est rappelée sur le dernier état
+  distant connu (`cloudLastRemote`) afin de **recalculer la fusion** sur l'état local à jour —
+  c'est ce qui faisait disparaître le point ajouté pendant l'envoi (3.90). Au
   **retour au premier plan** (`visibilitychange`) et au retour du réseau (`online`),
   `refreshCloudFromServer()` force une lecture `get({ source: 'server' })` et réattache
   l'écoute `onSnapshot` si nécessaire : sans cela, le téléphone en veille ne recevait pas les
-  modifications du PC. Diagnostic à chaud : `window.__MOWER_SYNC_DEBUG = true`
-  (`console.debug` à chaque snapshot).
+  modifications du PC. Diagnostic à chaud : `window.__MOWER_SYNC_DEBUG = true` →
+  `syncLog()` trace `envoi planifié`, `envoi`, `snapshot reçu`, `fusion … conservée`,
+  `application différée`, `rejeu de la fusion`, `application distante`.
   Prérequis et règles Firestore à publier : [docs/firebase.md](docs/firebase.md) —
   notamment l'ajout des domaines (localtunnel, GitHub Pages) dans **Authentication →
   Domaines autorisés**, sinon `auth/unauthorized-domain`. La configuration web Firebase
@@ -1801,6 +1804,25 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   inutile ; snapshot PC appliqué + rendu ; snapshot pendant envoi mis en file puis appliqué ;
   suppression locale propagée ; resynchronisation au premier plan appliquée). Le sens
   téléphone → PC et le mode hors-ligne restent inchangés.
+
+- **3.90 — Clignotement du dernier point : rejeu de la fusion, pas de la liste brute** : le
+  point ajouté pendant un envoi Firestore disparaissait encore. **Cause** : le correctif 3.89
+  mettait le snapshot reçu pendant un envoi dans `cloudPendingRemote`, puis le rejouait tel quel
+  via `applyProjectsFromCloud()` à la fin de l'envoi. Cette liste avait été calculée **avant** le
+  point ajouté pendant l'envoi et **contournait la fusion** : `projects` et `localStorage`
+  étaient réécrits sans le dernier point (clignotement), puis `renderMap()` redessinait la zone
+  sans lui. **Correction** : `mergeRemoteProjects(remote, remoteIds)` est extraite de
+  `handleCloudSnapshot()` ; le dernier état distant connu est mémorisé (`cloudLastRemote`) et le
+  rejeu rappelle la **fusion** (recalculée sur l'état local à jour, donc une parcelle encore
+  sale conserve ses points). `applyProjectsFromCloud()` ne reçoit plus jamais de liste brute ; la
+  mise en file se limite au drapeau `cloudPendingMerge`. Ajout de `syncLog()`
+  (`window.__MOWER_SYNC_DEBUG`) : traces `envoi planifié` / `envoi` / `snapshot reçu` /
+  `fusion … conservée` / `application différée` / `rejeu de la fusion` / `application distante`.
+  Vérifié : `node --check js/cloud-sync.js` ; banc Node **13/13** reproduisant un point ajouté
+  **pendant** un envoi (commit non résolu) avec snapshot concurrent : 3ᵉ et 4ᵉ point conservés,
+  aucun écrasement, `localStorage` à jour, puis snapshot du PC appliqué ; trace obtenue
+  `fusion : p1 (4 pt) conservée (en attente de push)` → `application distante : p1 (4 pt) |
+  p2 (1 pt)`.
 
 ## 9. Langue et communication
 

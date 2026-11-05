@@ -6,6 +6,20 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-05] — Clignotement du dernier point : rejeu de la fusion (et non de la liste brute)
+
+### Corrigé
+
+- **Cause** : le correctif précédent mettait le snapshot reçu pendant un envoi dans `cloudPendingRemote`, puis le rejouait via `applyProjectsFromCloud(liste)` à la fin de l'envoi. Cette liste avait été calculée **avant** le point ajouté pendant l'envoi et **court-circuitait la fusion protectrice** : `projects` et `localStorage` étaient réécrits sans le dernier point (clignotement), puis `renderMap()` redessinait la zone sans lui.
+- Le rejeu passe désormais par `mergeRemoteProjects()` sur le dernier état distant connu (`cloudLastRemote`) : la fusion est **recalculée** sur l'état local à jour, donc une parcelle encore « sale » conserve ses points.
+- `applyProjectsFromCloud()` n'est plus jamais appelée avec une liste brute : elle reçoit uniquement le résultat d'une fusion.
+- Ajout de `syncLog()` (activable par `window.__MOWER_SYNC_DEBUG = true`) : trace `envoi planifié`, `envoi`, `snapshot reçu`, `fusion … conservée`, `application différée`, `rejeu de la fusion`, `application distante`.
+
+### Notes
+
+- La synchronisation descendante (PC → téléphone) et le mode hors-ligne restent inchangés.
+- Vérifications : `node --check js/cloud-sync.js` OK ; banc Node 13/13 reproduisant un point ajouté **pendant** un envoi (commit non résolu) + snapshot distant concurrent : le 3ᵉ et le 4ᵉ point restent en place, aucun écrasement, `localStorage` à jour, puis un snapshot du PC (5 points, local non modifié) est bien appliqué. Trace `[sync]` obtenue : `fusion : p1 (4 pt) conservée (en attente de push)` puis `application distante : p1 (4 pt) | p2 (1 pt)`.
+
 ## [2026-11-05] — Synchronisation PC → téléphone (envoi sélectif et reprise au premier plan)
 
 ### Corrigé

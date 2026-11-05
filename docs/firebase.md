@@ -94,7 +94,10 @@ service cloud.firestore {
 8. **Envoi sélectif** : `pushProjectsToCloud()` n'envoie que les parcelles
    modifiées localement (et les suppressions). Envoyer toute la liste à chaque
    fois écrasait les modifications faites sur l'autre appareil — c'était la
-   cause de l'asymétrie « PC → téléphone ».
+   cause de l'asymétrie « PC → téléphone ». Un snapshot reçu **pendant** un
+   envoi est rejoué via la **fusion** (`mergeRemoteProjects()` sur
+   `cloudLastRemote`), jamais appliqué tel quel : le point ajouté pendant
+   l'envoi est conservé (sinon il disparaissait → clignotement).
 9. **Retour au premier plan** : `visibilitychange` / `online` déclenchent
    `refreshCloudFromServer()` (`get({ source: 'server' })` + réattachement de
    l'écoute si besoin), car le navigateur mobile suspend les écoutes en

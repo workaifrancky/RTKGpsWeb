@@ -25,7 +25,8 @@ let cloudUnsubscribe = null;
 let cloudPushTimer   = null;
 let cloudApplying    = false;   // vrai pendant l'application d'un snapshot distant
 let cloudPushing     = false;   // vrai pendant l'envoi local
-let cloudPendingRemote = null;  // snapshot distant reçu pendant un envoi
+let cloudPendingMerge = false;  // un snapshot est arrivé pendant un envoi
+let cloudLastRemote  = null;    // dernier état distant connu { list, ids }
 let cloudLastSignature = '';
 let cloudKnownIds    = new Set();
 // Référence de synchronisation : signature de chaque parcelle telle qu'elle a
@@ -220,6 +221,25 @@ function markMigrationDone() {
   }
 }
 
+// ─── JOURNAL DE SYNCHRONISATION ─────────────────────────────
+// Activé à chaud dans la console : window.__MOWER_SYNC_DEBUG = true
+function syncLog(...args) {
+  if (typeof window === 'undefined' || !window.__MOWER_SYNC_DEBUG) return;
+  console.debug('[sync]', ...args);
+}
+
+function projectBrief(project) {
+  if (!project) return '∅';
+  const count = Array.isArray(project.points) ? project.points.length : 0;
+  return `${project.id} (${count} pt)`;
+}
+
+function listBrief(list) {
+  const items = (Array.isArray(list) ? list : []).filter(Boolean).map(projectBrief);
+  return items.length ? items.join(' | ') : '∅';
+}
+
+// ─── RÉCEPTION D'UN SNAPSHOT ────────────────────────────────
 function handleCloudSnapshot(snapshot) {
   if (!isCloudConnected()) return;
 
@@ -233,16 +253,24 @@ function handleCloudSnapshot(snapshot) {
     }
   });
   cloudKnownIds = remoteIds;
+  // Dernier état distant connu : sert à rejouer la FUSION (jamais la liste
+  // brute) quand un snapshot arrive pendant un envoi.
+  cloudLastRemote = { list: remote, ids: remoteIds };
 
-  // Diagnostic activable à chaud dans la console : window.__MOWER_SYNC_DEBUG = true
-  if (typeof window !== 'undefined' && window.__MOWER_SYNC_DEBUG) {
-    console.debug('[sync] snapshot reçu :', remote.length, 'parcelle(s) distante(s)');
-  }
+  syncLog('snapshot reçu :', listBrief(remote), '| local :', listBrief(currentLocalProjects()));
+  mergeRemoteProjects(remote, remoteIds);
+}
+
+// ─── FUSION DISTANT / LOCAL ─────────────────────────────────
+// Utilisée par la réception temps réel ET par le rejeu après un envoi : la
+// fusion est toujours recalculée sur l'état local le plus récent.
+function mergeRemoteProjects(remote, remoteIds) {
+  if (!isCloudConnected()) return;
 
   // Première connexion : cloud vide + parcelles locales → migration unique
   // par compte (le téléphone devient la référence initiale).
   if (remote.length === 0 && !migrationDoneForUser()) {
-    const local = typeof loadProjects === 'function' ? loadProjects() : [];
+    const local = currentLocalProjects();
     if (local.length > 0) {
       markMigrationDone();
       cloudLastSignature = cloudSignature(local);
@@ -264,8 +292,8 @@ function handleCloudSnapshot(snapshot) {
   // ─── Fusion protectrice (cœur du correctif) ─────────────────
   // Les parcelles modifiées localement depuis la dernière synchronisation
   // (signature différente de la référence) sont CONSERVÉES : un snapshot
-  // Firestore encore basé sur l'état précédent (cache, écho d'un push antérieur,
-  // autre appareil) ne doit jamais faire disparaître le dernier point ajouté.
+  // Firestore encore basé sur l'état précédent ne doit jamais faire disparaître
+  // le dernier point ajouté.
   const local = currentLocalProjects();
   const dirty = collectDirtyProjects(local);
   const localById = new Map(local.map(p => [String(p.id), p]));
@@ -276,12 +304,12 @@ function handleCloudSnapshot(snapshot) {
     const localProject = localById.get(id);
     // 1. Parcelle modifiée localement et pas encore confirmée : le local prime.
     if (localProject && dirty.has(id)) {
+      syncLog('fusion :', projectBrief(localProject), 'conservée (en attente de push)');
       merged.push(localProject);
       return;
     }
     // 2. Écho de notre propre push (`updatedAt` en plus, contenu identique) :
-    // on conserve la version locale pour éviter un rendu et une écriture
-    // localStorage inutiles — c'est ce qui provoquait le clignotement.
+    // on conserve la version locale pour éviter rendu et écriture inutiles.
     if (localProject && projectSignature(localProject) === projectSignature(remoteProject)) {
       merged.push(localProject);
       return;
@@ -297,6 +325,7 @@ function handleCloudSnapshot(snapshot) {
 
   // Aucun changement par rapport au local → aucun rendu (pas de clignotement).
   if (cloudSignature(merged) === cloudSignature(local)) {
+    syncLog('fusion : aucune différence avec le local → aucun rendu');
     syncCloudStatus('synced');
     return;
   }
@@ -307,14 +336,16 @@ function handleCloudSnapshot(snapshot) {
 
 // Applique les parcelles distantes au stockage local et rafraîchit l'interface.
 function applyProjectsFromCloud(list) {
-  // Envoi local en vol : on mémorise le snapshot et il sera rejoué dès la fin
-  // de l'envoi (avant, il était simplement perdu → l'autre appareil semblait
-  // ne pas recevoir les modifications).
+  // Envoi local en vol : on NE rejoue PAS cette liste telle quelle (elle peut
+  // être antérieure à un point ajouté pendant l'envoi → clignotement). On
+  // rejoue la FUSION complète à la fin de l'envoi, sur l'état local à jour.
   if (cloudPushing) {
-    cloudPendingRemote = list;
+    cloudPendingMerge = true;
+    syncLog('application différée : un envoi est en cours, fusion rejouée à la fin');
     return;
   }
   cloudApplying = true;
+  syncLog('application distante :', listBrief(list));
   try {
     projects = (Array.isArray(list) ? list : []).map(normalizeProject);
     // Référence = état qui vient d'être appliqué : plus rien n'est en attente.
@@ -345,6 +376,9 @@ function applyProjectsFromCloud(list) {
 function scheduleCloudPush() {
   if (!isCloudEnabled() || !isCloudConnected() || cloudApplying) return;
   if (cloudPushTimer) clearTimeout(cloudPushTimer);
+  const pending = collectDirtyProjects(currentLocalProjects());
+  syncLog('envoi planifié dans', CLOUD_PUSH_DELAY, 'ms :',
+    pending.size ? [...pending.keys()].join(', ') : 'aucune parcelle modifiée');
   cloudPushTimer = setTimeout(() => {
     cloudPushTimer = null;
     pushProjectsToCloud();
@@ -371,9 +405,13 @@ function pushProjectsToCloud(options = {}) {
 
   if (dirty.size === 0 && deletedIds.length === 0) {
     // Rien à envoyer : aucune écriture inutile sur le cloud.
+    syncLog('envoi : rien à envoyer (état local identique à la référence)');
     syncCloudStatus('synced');
     return;
   }
+
+  syncLog('envoi :', listBrief(list.filter(p => p && dirty.has(String(p.id)))),
+    '| suppressions :', deletedIds.length ? deletedIds.join(', ') : 'aucune');
 
   const ref = cloudProjectsRef();
   const batch = cloudDb.batch();
@@ -420,11 +458,14 @@ function pushProjectsToCloud(options = {}) {
     })
     .finally(() => {
       cloudPushing = false;
-      // Snapshot distant reçu pendant l'envoi : on l'applique maintenant.
-      if (cloudPendingRemote) {
-        const pending = cloudPendingRemote;
-        cloudPendingRemote = null;
-        applyProjectsFromCloud(pending);
+      // Un snapshot est arrivé pendant l'envoi : on rejoue la FUSION sur l'état
+      // local à jour (le point ajouté pendant l'envoi est donc conservé).
+      if (cloudPendingMerge) {
+        cloudPendingMerge = false;
+        if (cloudLastRemote) {
+          syncLog('rejeu de la fusion après envoi :', listBrief(cloudLastRemote.list));
+          mergeRemoteProjects(cloudLastRemote.list, cloudLastRemote.ids);
+        }
       }
     });
 }
