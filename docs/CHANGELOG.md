@@ -1,8 +1,41 @@
-# Journal des modifications — RTK Mower
+# Journal des modifications — Mower Survey
 
 Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
+
+> *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
+
+## [2026-11-05] — Renommage de l'application en Mower Survey
+
+### Modifié
+
+- `index.html` : titre, header et écran d'accueil mis à jour (titre `Mower Survey`, header et écran d'accueil « MOWER SURVEY », sous-titre « ACQUISITION TERRAIN »).
+- `scan.html` : titre et en-tête (« Mower Survey — Récepteur QR animé »).
+- `css/main.css` : `.header-title` adapté au libellé plus long (`left: min(180px, 44vw)`, `right: min(60px, 14vw)`, `font-size: clamp(12px, 4.3vw, 20px)`, `white-space: nowrap`).
+- `js/export.js` : textes du menu de partage (« Export Mower Survey — … »).
+- Commentaires d'en-tête des fichiers `js/` et `css/` mis à jour.
+- `README.md`, `AGENTS.md` (§1 et §7) et `docs/*.md` : renommage de « RTK Mower » en « Mower Survey » dans les descriptions actuelles (les entrées historiques du CHANGELOG et du §8 d'AGENTS.md sont conservées telles quelles).
+
+### Notes
+
+- Le nom du dépôt (`RTKGpsWeb`), les URLs (GitHub Pages) et les noms de fichiers (`Start-RTKGpsWeb.bat`, `serve-http.cjs`, `start-public.ps1`) restent inchangés pour ne pas casser les liens.
+- Les assets (`logo-rtk-mower.svg`, `logo-rtk-mower_tablette.svg`) gardent leur nom (noms techniques).
+- **Contrat GeoJSON préservé** : `source: 'rtk-mower'` reste inchangé (clé lue par Mower Planner).
+- **Matériel** : le nom BLE du module ESP32 (`RTK_Mower`, `BLE_CONFIG.deviceName`) reste inchangé.
+- La nomenclature de l'écosystème est actée : Mower Survey (téléphone), Mower Planner (tablette), Mower Control, Mower Monitor, Mower Cloud (futurs).
+
+## [2026-11-05] — Trait et métré de la zone interdite dès le 2ᵉ point
+
+### Corrigé
+
+- Sur une **nouvelle parcelle**, le segment entre les 2 premiers points d'une zone interdite et sa distance n'apparaissaient qu'à partir du 3ᵉ point : `addPointToMap()` (`js/map.js`) ne déclenchait `renderMap()` (seul créateur de la polyligne temporaire et de son métré) que si la **parcelle** comptait déjà ≥ 3 points interdits.
+- Le rendu complet est désormais déclenché dès que la **zone courante** compte ≥ 2 points (`getInterditZones()[getCurrentInterditZoneId()]`). À 1 point, l'ajout direct du marqueur est conservé (pas de rendu inutile).
+
+### Notes
+
+- Comportements inchangés : zones de tonte (rendu complet dès le 1ᵉʳ point), obstacles (ajout direct), polygone mesuré à 3 points, suppression de la polyligne temporaire au 3ᵉ point.
+- Vérifications : `node --check js/map.js` OK ; banc Node 13/13 (vrai `renderMap()` : polyligne `showDistances` à 2 points, polygone `showMeasurements` à 3 points ; décisions de `addPointToMap()` neuve/existante/tonte/obstacle) ; contrat GeoJSON inchangé.
 
 ## [2026-11-05] — Mode boucle des obstacles (type → point → type)
 

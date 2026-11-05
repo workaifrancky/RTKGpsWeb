@@ -1,6 +1,6 @@
 /* ============================================================
    main.css — Design B Haute Visibilité Terrain
-   RTKGpsWeb v2 — RTK Mower
+   RTKGpsWeb v2 — Mower Survey
    ============================================================ */
 
 /* ─── VARIABLES THÈME JOUR (défaut) ─────────────────────────── */
@@ -28,7 +28,7 @@
   --text3:        #6b7280;
   --text4:        var(--color-text-secondary);
 
-  /* Couleurs types de points (spécifiques RTK Mower) → tokens */
+  /* Couleurs types de points (spécifiques Mower Survey) → tokens */
   --color-tonte:    var(--color-primary-light);
   --color-interdit: var(--color-danger);
   --color-obstacle: var(--color-warning);
@@ -45,14 +45,14 @@
      étant en flux et non compressible, ce padding reste à 0 px par défaut. */
   --header-height: 104px;
 
-  /* Couleurs fix GPS (spécifiques RTK Mower) → tokens */
+  /* Couleurs fix GPS (spécifiques Mower Survey) → tokens */
   --color-rtk:    var(--color-primary-light);
   --color-float:  var(--color-warning);
   --color-dgps:   var(--color-info);
   --color-gps:    #6b7280;
   --color-none:   var(--color-danger);
 
-  /* Variantes de teinte (spécifiques RTK Mower, absentes des tokens) */
+  /* Variantes de teinte (spécifiques Mower Survey, absentes des tokens) */
   --color-primary-pale-bg:     #dcfce7;
   --color-primary-accent:      #4ade80;
   --color-primary-accent-text: #86efac;
@@ -71,6 +71,10 @@
   --stakeout-control-border:   rgba(255,255,255,0.45);
   --stakeout-control-bg:       rgba(255,255,255,0.12);
   --stakeout-control-bg-hover: rgba(255,255,255,0.22);
+
+  /* Voile translucide posé sur un fond vert foncé (survol de l'empreinte de
+     l'écran d'accueil) : même teinte que les contrôles du HUD Stakeout. */
+  --color-on-primary-hover:    rgba(255,255,255,0.12);
 
   /* Tokens complémentaires (boutons / modales — Mower Planner) */
   --shadow-xl:           0 8px 24px rgba(0,0,0,0.22);
@@ -99,7 +103,7 @@
   --color-text-primary:   #f9fafb;
   --color-text-secondary: #6b7280;
 
-  /* Surfaces / texte spécifiques RTK Mower */
+  /* Surfaces / texte spécifiques Mower Survey */
   --border:   #2a2d3a;
   --border2:  #3a3d50;
   --text2:    #e5e7eb;
@@ -163,7 +167,7 @@ body {
 }
 
 /* ─── HEADER COMPACT (3 COUCHES ABSOLUES, 121 px) ───────────── */
-/* 1. couche logo SVG pleine largeur (65 px) ; 2. titre « RTK MOWER » centré
+/* 1. couche logo SVG pleine largeur (65 px) ; 2. titre « Mower Survey » centré
    entre le rover et la roue dentée ; 3. bandeau bas : pastille FIX à gauche,
    Thème / BLE à droite. La roue dentée (#btnConnectionSettings) est seule en
    haut à droite. Toutes les couches sont positionnées en absolu dans
@@ -208,12 +212,14 @@ header {
 }
 
 /* 2. Titre : centré dans l'espace libre entre le rover (à gauche) et la roue
-      dentée (à droite), posé au-dessus de la couche logo. */
+      dentée (à droite), posé au-dessus de la couche logo. Les marges se
+      resserrent sur petit écran : « MOWER SURVEY » (12 caractères) est plus
+      long que l'ancien libellé et doit rester sur une seule ligne. */
 .header-title {
   position:       absolute;
   top:            20px;
-  left:           180px;
-  right:          60px;
+  left:           min(180px, 44vw);
+  right:          min(60px, 14vw);
   z-index:        2;
   text-align:     center;
   pointer-events: none;
@@ -221,9 +227,12 @@ header {
 
 .header-title .logo-text {
   font-family:    'Arial Black', 'Impact', sans-serif;
-  font-size:      24px;
+  /* Taille calée sur la largeur disponible (20 px au plus) : 12 caractères
+     doivent tenir entre 360 px et 480 px de large. */
+  font-size:      clamp(12px, 4.3vw, 20px);
   font-weight:    900;
   letter-spacing: normal;
+  white-space:    nowrap;
   color:          #fff;
 }
 

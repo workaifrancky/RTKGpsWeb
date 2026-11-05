@@ -1,6 +1,6 @@
 // ============================================================
 // simulation.js — Mode simulation (tests sans GPS)
-// RTKGpsWeb v2 — RTK Mower
+// RTKGpsWeb v2 — Mower Survey
 // ============================================================
 
 // Permet de réactiver les outils de simulation (développement / démonstration).

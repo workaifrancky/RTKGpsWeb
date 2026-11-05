@@ -1,10 +1,10 @@
-# RTK Mower
+# Mower Survey
 
 Application web de relevé GPS RTK pour le terrain.
 
 ## Description
 
-RTK Mower est une application web mobile (téléphone / tablette) destinée au relevé de
+Mower Survey est une application web mobile (téléphone / tablette) destinée au relevé de
 parcelles et d'obstacles pour la tonte autonome. Elle se connecte en **Bluetooth Low
 Energy (BLE)** à un module **ESP32** relié à un récepteur GNSS **Unicore UM980**, reçoit
 les corrections **NTRIP**, affiche la position en temps réel et enregistre des points
@@ -16,7 +16,7 @@ Fonctionnalités principales :
 - **verrouillage d'écran** anti-fausse manip (glissement horizontal pour déverrouiller) ;
 - **file d'attente hors-ligne** des exports/partages, rejouée automatiquement au retour du
   réseau (`rtkOfflineQueue`) ;
-- **écran d'accueil statique** : titre « RTK MOWER / RELEVÉ GPS RTK », bouton empreinte digitale dans un cercle (80 × 80 px) avec le texte « Appuyer pour continuer », logo `logo-rtk-mower_tablette.svg` en bas de l'écran. Fermeture en fondu (0,3 s) et ouverture de l'onglet Tracés au clic ;
+- **écran d'accueil statique** : titre « MOWER SURVEY / RTK - ACQUISITION TERRAIN », bouton empreinte digitale dans un cercle (80 × 80 px) avec le texte « Appuyer pour continuer », logo `logo-rtk-mower_tablette.svg` en bas de l'écran. Fermeture en fondu (0,3 s) et ouverture de l'onglet Tracés au clic ;
 - **partage natif** sur mobile (`navigator.share`) : un GeoJSON pour une parcelle, un ZIP unique
   pour plusieurs (contourne le bug Android du multi-fichiers) ;
 - **sauvegarde locale automatique** (30 s, fermeture d'onglet) avec indicateur 💾 ;
@@ -181,7 +181,7 @@ RTKGpsWeb/
 
 > **Page de test, non chargée par l'application.** `splash-test.html` contient le prototype du
 > splash animé (rover qui tond) : il est réservé à **Mower Planner** (tablette) et n'est jamais
-> chargé par RTK Mower. Les anciennes pages de test `header-test.html` et `menu-test.html` ont été
+> chargé par Mower Survey. Les anciennes pages de test `header-test.html` et `menu-test.html` ont été
 > **supprimées** le 2026-11-04 (voir `docs/CHANGELOG.md`).
 
 ## Format d'export GeoJSON

@@ -1,11 +1,13 @@
 # AGENTS.md — Instructions projet
 
-Ce document s'adresse aux développeurs et aux assistants IA qui interviennent sur RTK Mower.
+Ce document s'adresse aux développeurs et aux assistants IA qui interviennent sur Mower Survey.
 Il décrit le contexte, les règles non négociables, les conventions et les pièges connus.
 
 ## 1. Contexte du projet
 
-RTK Mower est une application web de relevé GPS RTK pour le terrain (tonte autonome).
+Mower Survey est l'application de terrain de l'écosystème **Mower** : relevé GPS RTK pour la
+tonte autonome (téléphone). Les autres briques (Mower Planner — tablette, Mower Control,
+Mower Monitor, Mower Cloud) sont réservées pour l'avenir.
 
 - **Matériel** : récepteur GNSS **Unicore UM980** + module **ESP32** exposé en BLE sous le nom
   `RTK_Mower`, avec corrections **NTRIP**.
@@ -140,10 +142,15 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Écran d'accueil** : `index.html` s'ouvre **toujours** sur `#welcome-screen`
   (`.welcome-screen`, `position: fixed`, `inset: 0`, `z-index: 5000`, fond
   `var(--color-primary-deep)`), affiché à **chaque** démarrage — aucune mémorisation
-  `localStorage`. Contenu centré **légèrement au-dessus du milieu** (`translateY(-6vh)`) :
-  titre « RTK MOWER » (`.welcome-title`, Arial Black), sous-titre « RELEVÉ GPS RTK »
-  (`.welcome-subtitle`), **empreinte digitale Lucide** dans un cercle de **80 × 80 px**
-  (`#btnWelcomeEnter` / `.welcome-fingerprint-btn`, `aria-label="Appuyer pour continuer"`),
+  `localStorage`. Contenu **ancré à 1/3 de la hauteur depuis le HAUT**
+  (`.welcome-content`, `position: absolute; left: 0; right: 0; top: 33vh; padding: 0 24px`,
+  `22vh` en paysage `max-height: 520px`) :
+  titre « MOWER SURVEY » (`.welcome-title`, Arial Black), sous-titre
+  « RTK - ACQUISITION TERRAIN » (`.welcome-subtitle`),
+  **empreinte digitale Lucide** dans un cercle de **80 × 80 px sans fond**
+  (seule la bordure `2px solid currentColor`, blanche ; forme ronde ; survol = voile
+  `--color-on-primary-hover`) (`#btnWelcomeEnter` / `.welcome-fingerprint-btn`,
+  `aria-label="Appuyer pour continuer"`),
   puis le texte « Appuyer pour continuer » (`.welcome-hint`). Le **logo complet**
   `assets/logo-rtk-mower_tablette.svg` (viewBox `0 0 3524 500`, 1 `<path>`, 38 020 car.,
   SHA-256 `9E8A1081…79FE43`) occupe le bas de l'écran (`.welcome-logo`, absolu,
@@ -152,9 +159,13 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `js/welcome.js` (`initWelcomeScreen()`, chargé **après** `js/app.js`) pose `.is-closing`
   (fondu **0,3 s**, `--welcome-fade`), appelle `showTab('tab-points')` puis masque l'écran
   (`hidden` + `aria-hidden="true"`). L'empreinte reçoit le focus au chargement (seule
-  action possible) ; le voile porte `role="dialog"`, `aria-modal="true"` et
+  action possible) **sans anneau de focus** : `initWelcomeScreen()` pose la classe
+  `.focus-silent` avant `focus()`, retirée au premier `keydown` (`:focus-visible` du thème
+  → contour vert `--color-primary-accent`, `outline-offset: 4px`) ; sans cela le navigateur
+  dessine son liseré sombre par défaut collé à la bordure blanche. Le voile porte
+  `role="dialog"`, `aria-modal="true"` et
   `aria-labelledby="welcome-title"`.
-  **Le splash animé (rover qui tond) n'est PAS chargé dans RTK Mower** : `#splash-screen`,
+  **Le splash animé (rover qui tond) n'est PAS chargé dans Mower Survey** : `#splash-screen`,
   `.splash-intro`, sa section CSS (retirée de `css/components.css`) et `js/splash.js`
   (fichier **supprimé**) n'existent plus. Il est réservé à **Mower Planner** (tablette,
   paysage) ; son prototype reste consultable dans `splash-test.html`, page autonome que
@@ -204,8 +215,9 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   1. `.header-logo-layer` — logo vectoriel `assets/logo-rtk-mower.svg` (un seul `<path>`), bande
      de 65 px de haut sur toute la largeur, `preserveAspectRatio="xMidYMid slice"` (≈ 3 px
      rognés), en `fill="currentColor"` blanc, `aria-hidden="true"` (décoratif) ;
-  2. `.header-title` — `RTK MOWER` (24 px, Arial Black) centré entre le rover et la roue dentée
-     (bloc `left: 180px` / `right: 60px`, `z-index: 2`) ;
+  2. `.header-title` — `MOWER SURVEY` (`clamp(12px, 4.3vw, 20px)`, Arial Black, `nowrap`)
+     centré entre le rover et la roue dentée
+     (bloc `left: min(180px, 44vw)` / `right: min(60px, 14vw)`, `z-index: 2`) ;
   3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
      cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
      `header #btnConnectionSettings { position: absolute !important; top: 6px; right: 12px; z-index: 3 }`,
@@ -502,8 +514,12 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `showTotalDistance: false`, `minPixelDistance: 10`) dans `js/map.js`. À **2 points**,
   `renderMap()` crée une `L.polyline` temporaire mesurée par type (`tempMeasureLine` pour la
   tonte, `tempMeasureLineInterdit` pour l'interdit), supprimée dès le 3ᵉ point où le polygone
-  prend le relais (`clearTempMeasureLine('tonte'|'interdit')`). Ne pas retirer ces deux
-  balises CDN.
+  prend le relais (`clearTempMeasureLine('tonte'|'interdit')`). **Le trait et le métré à
+  2 points dépendent entièrement de `renderMap()`** : `addPointToMap()` doit donc appeler le
+  rendu complet dès que la **zone courante** compte ≥ 2 points
+  (`getInterditZones()[getCurrentInterditZoneId()]`), et non plus à partir de 3 points de toute
+  la parcelle (ancienne règle qui privait une parcelle neuve du trait et de la mesure jusqu'au
+  3ᵉ point, corrigée en 3.86). Ne pas retirer ces deux balises CDN.
 - **Labels de zone et numéros de points** : `addZoneLabel(type, zoneId, zonePts)` pose un
   `L.tooltip` permanent au centre de chaque zone, **avec le code seul** (`ZT1`, `ZT2`, `ZI1`…,
   classe `.zone-name-label`, zoom ≥ `ZONE_LABEL_MIN_ZOOM = 18`). La **surface n'est jamais
@@ -653,6 +669,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   complète dans [docs/simulation.md](docs/simulation.md).
 
 ## 8. Sessions validées
+
+> *Note : les sessions antérieures à la 3.86 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey".*
 
 Historique des évolutions majeures (à compléter à chaque lot terminé) :
 
@@ -1656,6 +1674,27 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   compteur + réouverture + animation, changement de type, tap carte (coordonnées exactes,
   hors boucle ignoré, panoramique ignoré, binding unique), sortie « Terminer », sortie
   Échap/voile, non-régression hors boucle).
+
+- **3.86 — Trait et métré de la zone interdite dès le 2ᵉ point** : régression « sur une
+  **nouvelle parcelle**, le segment entre les 2 premiers points interdits et sa distance
+  n'apparaissent qu'au 3ᵉ point ; sur une parcelle existante, tout est correct ». **Cause** :
+  la polyligne temporaire (`tempMeasureLineInterdit`) et son `showMeasurements()` sont créés
+  **uniquement dans `renderMap()`**, or `addPointToMap()` (`js/map.js`) ne déclenchait ce rendu
+  pour un point `interdit` que si `pts.length >= 3`, où `pts` comptait les points interdits de
+  **toute la parcelle**. Une parcelle neuve restait donc sous le seuil (le marqueur seul était
+  ajouté) jusqu'au 3ᵉ point, alors qu'une parcelle déjà pourvue de ≥ 3 points interdits
+  déclenchait le rendu à chaque ajout — d'où la différence « neuve / existante ». **Correction**
+  (`addPointToMap()`) : le rendu complet est déclenché dès que la **zone courante** compte
+  ≥ 2 points (`getInterditZones()[getCurrentInterditZoneId()]`, repli sur les points du type si
+  les helpers ne sont pas disponibles) ; à 1 point, l'ajout direct du marqueur est conservé
+  (aucun rendu inutile). Tonte (rendu dès 1 point) et obstacles (ajout direct) inchangés.
+  Vérifié : `node --check js/map.js` ; banc Node 13/13 — exécution du vrai `renderMap()` sur une
+  zone interdite à 2 points (une `L.polyline` créée, `showDistances: true`, aucun polygone, deux
+  sommets), à 3 points (polygone `showMeasurements: true`, plus de polyligne), et décision de
+  `addPointToMap()` : parcelle neuve à 2 points → `renderMap()` (correctif), zone à 1 point →
+  aucun rendu, parcelle existante zone 2 à 2 points → `renderMap()`, zone courante à 1 point sur
+  parcelle riche → aucun rendu, tonte → rendu, obstacle → aucun rendu ; ancienne règle
+  (`pts.length >= 3` sur la parcelle) reproduite comme bug de référence.
 
 ## 9. Langue et communication
 

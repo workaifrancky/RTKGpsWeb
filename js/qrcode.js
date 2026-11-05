@@ -1,6 +1,6 @@
 // ============================================================
 // qrcode.js — Générateur de QR code autonome (sans CDN)
-// RTK Mower
+// Mower Survey
 // ============================================================
 // Encodeur QR Code modèle 2 : mode octet uniquement, niveau de
 // correction d'erreur M, versions 1 à 10 (très large pour une adresse

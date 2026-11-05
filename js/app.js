@@ -1,6 +1,6 @@
 // ============================================================
 // app.js — Initialisation et coordination v2
-// RTKGpsWeb v2 — RTK Mower
+// RTKGpsWeb v2 — Mower Survey
 // ============================================================
 
 const APP = {

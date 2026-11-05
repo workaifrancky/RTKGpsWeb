@@ -1,6 +1,6 @@
 /* ============================================================
-   welcome.js — Écran d'accueil statique (RTK Mower, téléphone)
-   RTKGpsWeb v2 — RTK Mower
+   welcome.js — Écran d'accueil statique (Mower Survey, téléphone)
+   RTKGpsWeb v2 — Mower Survey
    ------------------------------------------------------------
    Écran volontairement rapide : aucun minuteur, aucune animation. Un appui
    sur l'empreinte ferme l'écran en fondu (0,3 s, `--welcome-fade`) et ouvre
@@ -37,8 +37,17 @@ function initWelcomeScreen() {
   const button = document.getElementById('btnWelcomeEnter');
   if (!button) return;
   button.addEventListener('click', closeWelcomeScreen);
-  // Seule action possible : on y place le focus pour le clavier.
+  // Seule action possible : on y place le focus pour le clavier. La classe
+  // `focus-silent` empêche l'anneau de focus du navigateur de s'afficher au
+  // chargement (liseré sombre collé à la bordure blanche de l'empreinte) ;
+  // le premier geste clavier la retire pour rendre l'indicateur de focus.
+  button.classList.add('focus-silent');
   button.focus({ preventScroll: true });
+  const revealFocusRing = () => {
+    button.classList.remove('focus-silent');
+    window.removeEventListener('keydown', revealFocusRing, true);
+  };
+  window.addEventListener('keydown', revealFocusRing, true);
 }
 
 document.addEventListener('DOMContentLoaded', initWelcomeScreen);

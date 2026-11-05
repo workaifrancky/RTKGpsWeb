@@ -1,4 +1,4 @@
-# Design system — RTK Mower
+# Design system — Mower Survey
 
 Le design system est aligné sur **Mower Planner**. Il repose sur un fichier de tokens chargé
 avant tous les autres styles.
@@ -48,7 +48,7 @@ avant tous les autres styles.
 - Espacements : `--spacing-xs` 4 px, `--spacing-sm` 8 px, `--spacing-md` 12 px,
   `--spacing-lg` 16 px, `--spacing-xl` 24 px.
 
-## Variables spécifiques RTK Mower (`main.css`)
+## Variables spécifiques Mower Survey (`main.css`)
 
 Elles pointent vers les tokens quand c'est possible :
 
@@ -101,13 +101,13 @@ Overrides de lisibilité :
 ### Écran d'accueil (`#welcome-screen`, `.welcome-screen`)
 
 Voile plein écran `position: fixed`, `inset: 0`, `z-index: 5000`, fond `--color-primary-deep`.
-Contenu centré (`translateY(-6vh)`) : titre `.welcome-title` (« RTK MOWER », Arial Black) + sous-titre `.welcome-subtitle` (« RELEVÉ GPS RTK »).
-Bouton `#btnWelcomeEnter` : 80 × 80 px, `border-radius: 50%`, icône empreinte Lucide 48 × 48 px.
+Contenu **ancré à 1/3 de la hauteur depuis le HAUT** (`.welcome-content` : `position: absolute`, `left: 0`, `right: 0`, `top: 33vh`, `padding: 0 24px` ; `22vh` en paysage) : titre `.welcome-title` (« MOWER SURVEY », Arial Black) + sous-titre `.welcome-subtitle` (« RTK - ACQUISITION TERRAIN »).
+Bouton `#btnWelcomeEnter` : 80 × 80 px, `border-radius: 50%`, **sans fond** (seule la bordure `2px solid currentColor` blanche), icône empreinte Lucide 48 × 48 px ; survol = voile `--color-on-primary-hover`. Focus automatique **sans anneau** : la classe `.focus-silent` (posée par `js/welcome.js` avant `focus()`) neutralise l'outline du navigateur, qui réapparaît (`:focus-visible`, vert) au premier `keydown`.
 Texte `.welcome-hint` : « Appuyer pour continuer ».
 Logo `.welcome-logo` : `position: absolute`, `bottom: env(safe-area-inset-bottom) + 10px`, SVG `logo-rtk-mower_tablette.svg` injecté par script.
 Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-points')` → `hidden`.
 
-> **Note** : le splash animé (rover qui tond) n'est **pas** chargé dans RTK Mower — il est réservé à Mower Planner. Son prototype reste consultable dans `splash-test.html`.
+> **Note** : le splash animé (rover qui tond) n'est **pas** chargé dans Mower Survey — il est réservé à Mower Planner. Son prototype reste consultable dans `splash-test.html`.
 
 ### Indicateur de sauvegarde et verrouillage
 
@@ -136,7 +136,7 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
 
 - `header` : **deux lignes** collantes (`position: sticky`, `z-index: 200`,
   `flex-direction: column`, `gap: 6px`, fond `--color-primary`) :
-  - `.header-top-row` : logo (🌾 + « RTK Mower ») à gauche + bouton BLE `#btnBle` à droite ;
+  - `.header-top-row` : logo (🌾 + « Mower Survey ») à gauche + bouton BLE `#btnBle` à droite ;
   - `.header-bottom-row` : pastille `#headerGpsStatus` (`.gps-status-pill`,
     `flex: 1 1 auto`) à gauche + `.header-actions-group` (Réglages `#btnConnectionSettings`,
     puis thème `#btnTheme`) à droite. Les deux lignes sont en `justify-content: space-between`.

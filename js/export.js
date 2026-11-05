@@ -502,7 +502,7 @@ async function shareGeoJSONPayload(payload) {
   try {
     await navigator.share({
       title: `GeoJSON — ${payload.projectName}`,
-      text:  `Export RTK Mower — ${payload.projectName}`,
+      text:  `Export Mower Survey — ${payload.projectName}`,
       files: [file],
     });
     showToast('✅ GeoJSON partagé','info');
@@ -800,7 +800,7 @@ async function shareProjectsZip(projects) {
     try {
       await navigator.share({
         title: `GeoJSON — ${archive.count} parcelles`,
-        text:  `Export RTK Mower — ${archive.count} parcelles (ZIP)`,
+        text:  `Export Mower Survey — ${archive.count} parcelles (ZIP)`,
         files: [file],
       });
       showToast(`${archive.count} parcelles partagées (ZIP)`, 'info');

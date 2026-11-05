@@ -1,6 +1,6 @@
 // ============================================================
 // fab-press.js — Gestuelle des boutons du FAB (TRACÉS et CAMÉRA)
-// RTKGpsWeb v2 — RTK Mower
+// RTKGpsWeb v2 — Mower Survey
 // ============================================================
 // Module partagé, sans dépendance, chargé **avant** `points.js` et
 // `camera.js` (voir index.html). Script classique : les constantes et la

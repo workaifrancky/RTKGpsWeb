@@ -1,8 +1,8 @@
-# Architecture — RTK Mower
+# Architecture — Mower Survey
 
 ## Vue d'ensemble
 
-RTK Mower est une **application web statique mono-page** : aucun serveur applicatif, aucune
+Mower Survey est une **application web statique mono-page** : aucun serveur applicatif, aucune
 base de données, aucun build. `index.html` est servi tel quel et charge les styles puis les
 scripts dans un ordre contractuel.
 

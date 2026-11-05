@@ -1,6 +1,6 @@
 // ============================================================
 // scan.js — Récepteur du QR code animé (page scan.html)
-// RTK Mower
+// Mower Survey
 // ============================================================
 // Décode en continu la séquence affichée par l'émetteur du hub
 // (js/export.js → startAnimatedQrTransfer()) avec `createQrReceiver` de
@@ -346,7 +346,7 @@ function getScanFallbackName(fileName, blob) {
   return isZipPayload(fileName, blob) ? 'RTK_transfert.zip' : 'RTK_transfert.geojson';
 }
 
-// La bibliothèque peut renvoyer `{ kind: 'file' }` (cas RTK Mower : GeoJSON ou
+// La bibliothèque peut renvoyer `{ kind: 'file' }` (cas Mower Survey : GeoJSON ou
 // ZIP) ou `{ kind: 'folder' }` pour son propre format d'archive « SARC1 ».
 // On normalise pour ne jamais dépendre du nom exact du champ côté appelant.
 function normalizeScanResult(result) {

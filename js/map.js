@@ -471,8 +471,16 @@ function addPointToMap(pt) {
   } else {
     L.circleMarker([pt.lat,pt.lon],{radius:8,fillColor:color,color:'white',weight:2,fillOpacity:0.95})
       .addTo(layer).bindPopup(pointPopup(pt,idx));
-    // Redessine le polygone si ≥3 pts
-    if (pts.length >= 3) {
+    // Rendu complet dès 2 points DANS LA ZONE COURANTE : c'est renderMap() qui
+    // crée la polyligne temporaire et son métré (le polygone prend le relais à
+    // 3 points). Avant 3.86, le test portait sur le nombre de points interdits
+    // de TOUTE la parcelle : une parcelle neuve (< 3 points) n'atteignait donc
+    // jamais ce rendu avant le 3e point, et le trait + la mesure manquaient.
+    const zonePts = typeof getInterditZones === 'function'
+      && typeof getCurrentInterditZoneId === 'function'
+      ? (getInterditZones()[getCurrentInterditZoneId()] || [])
+      : pts;
+    if (zonePts.length >= 2) {
       renderMap(); return;
     }
   }
