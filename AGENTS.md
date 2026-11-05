@@ -541,8 +541,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `refreshCloudFromServer()` force une lecture `get({ source: 'server' })` et réattache
   l'écoute `onSnapshot` si nécessaire : sans cela, le téléphone en veille ne recevait pas les
   modifications du PC. Diagnostic à chaud : `window.__MOWER_SYNC_DEBUG = true` →
-  `syncLog()` trace `envoi planifié`, `envoi`, `snapshot reçu`, `fusion … conservée`,
+  `syncLog()` (en `console.log`, pas `console.debug` : le niveau « Verbose » est masqué par
+  défaut) trace `envoi planifié`, `envoi`, `snapshot reçu`, `fusion … conservée`,
   `application différée`, `rejeu de la fusion`, `application distante`.
+  **Protection d'édition locale (3.91)** : `isProjectBeingEdited(project)` bloque tout snapshot
+  distant pour la parcelle **en cours de tracé** (`APP.tracesMode === 'creation'` ou
+  `APP.currentTraceMode` sur `currentProject`) et pendant `CLOUD_EDIT_GUARD_MS` (2 s) après une
+  saisie locale (`cloudEditGuard`, alimentée par `scheduleCloudPush()`). C'est la garantie
+  ultime : le dernier point d'une zone en création ne peut plus être écrasé par le cloud.
   Prérequis et règles Firestore à publier : [docs/firebase.md](docs/firebase.md) —
   notamment l'ajout des domaines (localtunnel, GitHub Pages) dans **Authentication →
   Domaines autorisés**, sinon `auth/unauthorized-domain`. La configuration web Firebase
@@ -1823,6 +1829,21 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   aucun écrasement, `localStorage` à jour, puis snapshot du PC appliqué ; trace obtenue
   `fusion : p1 (4 pt) conservée (en attente de push)` → `application distante : p1 (4 pt) |
   p2 (1 pt)`.
+
+- **3.91 — Journal de synchronisation visible et protection d'édition locale** : aucun log
+  `[sync]` n'apparaissait sur le terrain. **Cause** : `syncLog()` utilisait `console.debug`,
+  masqué par défaut dans la console Chrome (niveau « Verbose » inactif) — le flag
+  `window.__MOWER_SYNC_DEBUG = true` fonctionnait, mais les messages étaient filtrés.
+  **Corrections** : `syncLog()` passe en `console.log` (visible au niveau « Info »),
+  `initCloudSync()` affiche une aide `console.info` quand le journal est désactivé, et le
+  clignotement résiduel est traité par `isProjectBeingEdited(project)` : un snapshot distant ne
+  peut plus remplacer la parcelle **en cours de tracé** (`APP.tracesMode === 'creation'` /
+  `APP.currentTraceMode` sur `currentProject`) ni pendant `CLOUD_EDIT_GUARD_MS = 2000` ms après
+  une saisie locale (`cloudEditGuard`, marquée par `scheduleCloudPush()`). Vérifié :
+  `node --check js/cloud-sync.js` ; banc Node **9/9** (tracé actif : snapshot ancien ignoré,
+  4 points conservés, aucun rendu ; tracé terminé : snapshot appliqué ; garde 2 s : snapshot
+  retardataire ignoré ; garde expirée : appliqué ; nouvelle parcelle distante reçue) avec la
+  trace `fusion : p1 (4 pt) conservée (édition locale en cours)`.
 
 ## 9. Langue et communication
 

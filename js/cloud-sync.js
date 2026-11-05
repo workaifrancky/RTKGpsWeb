@@ -15,6 +15,10 @@
 const CLOUD_COLLECTION   = 'projects';
 const CLOUD_PUSH_DELAY   = 1500;   // ms : regroupe les écritures rapprochées
 const CLOUD_MIGRATED_KEY = 'rtkCloudMigrated';
+// Fenêtre de protection après une saisie locale (ajout/suppression de point) :
+// un snapshot Firestore retardataire ne doit pas réécrire la parcelle pendant
+// ce délai, même si sa signature paraît plus récente.
+const CLOUD_EDIT_GUARD_MS = 2000;
 
 // État de la synchronisation (aucune donnée métier ici).
 let cloudAuth        = null;
@@ -27,6 +31,10 @@ let cloudApplying    = false;   // vrai pendant l'application d'un snapshot dist
 let cloudPushing     = false;   // vrai pendant l'envoi local
 let cloudPendingMerge = false;  // un snapshot est arrivé pendant un envoi
 let cloudLastRemote  = null;    // dernier état distant connu { list, ids }
+// Dernière saisie locale par parcelle (id → timestamp) : protège la parcelle en
+// cours de modification des snapshots retardataires. Au plus une entrée par
+// parcelle (la clé est l'identifiant), donc aucune purge n'est nécessaire.
+let cloudEditGuard   = new Map();
 let cloudLastSignature = '';
 let cloudKnownIds    = new Set();
 // Référence de synchronisation : signature de chaque parcelle telle qu'elle a
@@ -51,6 +59,11 @@ function isCloudConnected() {
 // ─── INITIALISATION ──────────────────────────────────────────
 function initCloudSync() {
   bindCloudUi();
+  // Aide au diagnostic : la console affiche au niveau « Info » (visible par
+  // défaut) comment activer la trace de synchronisation.
+  if (typeof window !== 'undefined' && !window.__MOWER_SYNC_DEBUG) {
+    console.info('[sync] journal désactivé — tapez window.__MOWER_SYNC_DEBUG = true pour tracer la synchronisation');
+  }
   if (!isCloudEnabled()) {
     // Deux cas : fonctionnalité désactivée volontairement, ou SDK Firebase
     // indisponible (CDN inaccessible hors-ligne) → mode local, sans erreur.
@@ -184,6 +197,25 @@ function refreshCloudBaseline(list) {
   });
 }
 
+// Vrai si la parcelle est en cours de saisie locale : tracé actif sur la
+// parcelle courante, ou point ajouté il y a moins de CLOUD_EDIT_GUARD_MS.
+// Dans ce cas, un snapshot distant ne doit JAMAIS la remplacer (c'est ce qui
+// protège le dernier point d'une zone en cours de création).
+function isProjectBeingEdited(project) {
+  if (!project || !project.id) return false;
+  const id = String(project.id);
+
+  // 1. Tracé en cours sur cette parcelle (création de zone) : priorité absolue.
+  if (typeof APP !== 'undefined' && typeof currentProject !== 'undefined'
+      && currentProject && String(currentProject.id) === id
+      && (APP.tracesMode === 'creation' || !!APP.currentTraceMode)) {
+    return true;
+  }
+  // 2. Saisie très récente : un snapshot retardataire ne l'écrase pas.
+  const last = cloudEditGuard.get(id) || 0;
+  return (Date.now() - last) < CLOUD_EDIT_GUARD_MS;
+}
+
 // Parcelles locales actuelles : l'état en MÉMOIRE (`projects`) est plus frais
 // que `localStorage` (l'autosauvegarde peut être en retard). Repli sur le
 // stockage si le module `projects.js` n'est pas chargé.
@@ -223,9 +255,11 @@ function markMigrationDone() {
 
 // ─── JOURNAL DE SYNCHRONISATION ─────────────────────────────
 // Activé à chaud dans la console : window.__MOWER_SYNC_DEBUG = true
+// `console.log` (et non `console.debug`) : le niveau « Verbose » est masqué par
+// défaut dans la console Chrome, d'où l'absence de logs constatée sur le terrain.
 function syncLog(...args) {
   if (typeof window === 'undefined' || !window.__MOWER_SYNC_DEBUG) return;
-  console.debug('[sync]', ...args);
+  console.log('[sync]', ...args);
 }
 
 function projectBrief(project) {
@@ -302,9 +336,11 @@ function mergeRemoteProjects(remote, remoteIds) {
   remote.forEach(remoteProject => {
     const id = String(remoteProject.id);
     const localProject = localById.get(id);
-    // 1. Parcelle modifiée localement et pas encore confirmée : le local prime.
-    if (localProject && dirty.has(id)) {
-      syncLog('fusion :', projectBrief(localProject), 'conservée (en attente de push)');
+    // 1. Parcelle modifiée localement ou en cours de saisie : le local prime.
+    //    `isProjectBeingEdited()` couvre le tracé actif ET la fenêtre de 2 s qui
+    //    suit un ajout de point : c'est ce qui protège le dernier point ajouté.
+    if (localProject && (dirty.has(id) || isProjectBeingEdited(localProject))) {
+      syncLog('fusion :', projectBrief(localProject), 'conservée (édition locale en cours)');
       merged.push(localProject);
       return;
     }
@@ -377,6 +413,8 @@ function scheduleCloudPush() {
   if (!isCloudEnabled() || !isCloudConnected() || cloudApplying) return;
   if (cloudPushTimer) clearTimeout(cloudPushTimer);
   const pending = collectDirtyProjects(currentLocalProjects());
+  const now = Date.now();
+  pending.forEach((signature, id) => cloudEditGuard.set(String(id), now));
   syncLog('envoi planifié dans', CLOUD_PUSH_DELAY, 'ms :',
     pending.size ? [...pending.keys()].join(', ') : 'aucune parcelle modifiée');
   cloudPushTimer = setTimeout(() => {

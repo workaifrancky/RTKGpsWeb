@@ -90,7 +90,13 @@ service cloud.firestore {
    Firestore est mémorisée par sa signature (`cloudBaseline`). Tant qu'une
    parcelle a été modifiée localement et n'a pas encore été poussée, un snapshot
    distant ne l'écrase pas (fusion dans `handleCloudSnapshot()`), et un écho de
-   notre propre push ne déclenche aucun rendu.
+   notre propre push ne déclenche aucun rendu. En complément,
+   `isProjectBeingEdited()` bloque tout snapshot pour la parcelle **en cours de
+   tracé** et pendant 2 s après une saisie locale : le dernier point d'une zone
+   ne peut pas être écrasé par le cloud.
+   Journal de diagnostic : `window.__MOWER_SYNC_DEBUG = true` dans la console ;
+   les messages `[sync] …` s'affichent alors en `console.log` (niveau « Info »,
+   visible par défaut, contrairement à `console.debug`).
 8. **Envoi sélectif** : `pushProjectsToCloud()` n'envoie que les parcelles
    modifiées localement (et les suppressions). Envoyer toute la liste à chaque
    fois écrasait les modifications faites sur l'autre appareil — c'était la

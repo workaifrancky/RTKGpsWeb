@@ -6,6 +6,21 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-05] — Journal de synchronisation visible et protection de la zone en cours de tracé
+
+### Corrigé
+
+- **Aucun log `[sync]` visible** : `syncLog()` utilisait `console.debug`, masqué par défaut dans la console Chrome (niveau « Verbose » inactif). Le flag `window.__MOWER_SYNC_DEBUG = true` fonctionnait, mais les messages étaient filtrés.
+- `syncLog()` utilise désormais `console.log` (visible au niveau « Info ») ; `initCloudSync()` affiche une aide `console.info` (« journal désactivé — tapez window.__MOWER_SYNC_DEBUG = true ») quand le journal est coupé.
+- **Clignotement résiduel** : ajout de `isProjectBeingEdited(project)`. Un snapshot distant ne peut plus remplacer la parcelle **en cours de tracé** (`APP.tracesMode === 'creation'` ou `APP.currentTraceMode` sur `currentProject`) ni pendant `CLOUD_EDIT_GUARD_MS` (2 s) après une saisie locale (`cloudEditGuard`, alimentée par `scheduleCloudPush()`).
+- La fusion conserve alors la version locale (`fusion : … conservée (édition locale en cours)`) et ne déclenche aucun rendu.
+
+### Notes
+
+- La synchronisation descendante reste active : après la fin du tracé (ou 2 s après la dernière saisie), les snapshots distants s'appliquent normalement, et les parcelles non éditées sont mises à jour immédiatement.
+- Mode hors-ligne et envoi sélectif inchangés.
+- Vérifications : `node --check js/cloud-sync.js` OK ; banc Node 9/9 (tracé actif : snapshot ancien ignoré + 4 points conservés + aucun rendu ; tracé terminé : snapshot appliqué ; garde 2 s : ignoré ; garde expirée : appliqué ; nouvelle parcelle distante reçue).
+
 ## [2026-11-05] — Clignotement du dernier point : rejeu de la fusion (et non de la liste brute)
 
 ### Corrigé
