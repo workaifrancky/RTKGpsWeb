@@ -238,7 +238,8 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
   `ICON_RULER`, `ICON_PLUS`, `ICON_MAXIMIZE`, `ICON_MINIMIZE`, `ICON_LOCK`, `ICON_UNLOCK`,
-  `ICON_COMPASS` — fichier chargé **avant** `projects/points/map/history/camera` : ne pas
+  `ICON_COMPASS`, `ICON_MORE_VERTICAL`, `ICON_FOLDER_OPEN` — fichier chargé **avant**
+  `projects/points/map/history/camera` : ne pas
   redéclarer ces constantes ailleurs (`SyntaxError` de redéclaration dans le scope global).
   Les icônes statiques (header, contrôles de carte, menus FAB, boutons de la section POINTS,
   tiroir, verrouillage) sont écrites dans `index.html`. Toujours
@@ -422,8 +423,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   permet aussi un traitement manuel (utile pour `navigator.share`, qui exige un geste
   utilisateur).
 - **Onglet HISTORIQUE en deux vues** : la vue **racine** `#historyListView` porte le titre
-  `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque ligne propose `Ouvrir`
-  (`openHistoryDetail(id)`) et `Suppr.` (`deleteProject()`). La vue **détail** `#historyDetailView`
+  `PARCELLES` et la liste `#historyList` (`loadHistory()`) ; chaque **carte**
+  (`.session-item`) est **cliquable** et ouvre le détail (`handleHistoryCardClick()` →
+  `openHistoryDetail(id)`), sauf sur la case à cocher (`.session-select-label`) et sur le
+  **menu ⋮** (`.session-menu-wrap`, `ICON_MORE_VERTICAL`). Il n'y a **plus de boutons
+  « Ouvrir » / « Suppr. »** dans la carte : le menu contextuel `.session-menu`
+  (`toggleHistoryCardMenu()`) propose « Ouvrir » et « Supprimer » (`deleteProject()`) et se
+  referme au clic extérieur, avec **Échap**, au défilement ou via `closeHistoryCardMenus()`.
+  La vue **détail** `#historyDetailView`
   (`hidden` par défaut) contient l'en-tête `.history-detail-header` — uniquement
   `#btnHistoryBack` (« ← Parcelles », `closeHistoryDetail()`) — puis `#pointsSection`.
   Le bouton « Transférer » a été retiré de cette vue (3.67) : le transfert est accessible par
@@ -432,13 +439,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `showTab('tab-history')` revient **toujours** sur la racine.
   `openHistoryDetail()` sélectionne la parcelle (`switchProject()`), affiche ses points
   (ZT, ZI, obstacles) et laisse la main au hub de transfert.
-  Chaque ligne porte une **case à cocher** (`.session-select` dans `.session-select-label`) :
+  Chaque carte porte une **case à cocher** (`.session-select` dans `.session-select-label`) :
   `toggleHistorySelection()` alimente `historySelection` (Set) et `syncHistorySelectionUI()`
-  affiche la barre contextuelle `#historySelectionBar` (`.history-selection-bar`, sticky,
-  `hidden` sans sélection) avec `#btnSelectionBack` (« annuler », `clearHistorySelection()`),
-  `#selectionCount` et les actions `transferSelectedProjects()` / `deleteSelectedProjects()`.
+  affiche la **barre d'action flottante** `#historySelectionBar` (`.history-action-bar`,
+  `position: fixed`, **hors de `.app-wrapper`** comme `#bottomNav`, 10 px au-dessus de la
+  navigation basse, `z-index: 950`, `hidden` sans sélection, glissement
+  `history-action-bar-in` désactivé en `prefers-reduced-motion`) avec `#btnSelectionBack`
+  (croix Lucide, `clearHistorySelection()`), `#selectionCount` et les actions
+  `transferSelectedProjects()` / `deleteSelectedProjects()` (icônes `share-2` / `trash-2`,
+  libellés masqués ≤ 420 px). La classe `body.history-selection-active` réserve la hauteur de
+  la barre (`#historyListView { padding-bottom: 82px }`) et remonte les toasts.
   La sélection est purgée à l'ouverture du détail (`syncHistoryView('detail')`), à l'entrée
-  dans l'onglet (`showTab`) et après suppression. **Transfert** : une seule parcelle → hub
+  **et à la sortie** de l'onglet (`showTab()` : aucune barre ne reste sur TRACÉS / CAMÉRA /
+  RELEVÉ) et après suppression. **Transfert** : une seule parcelle → hub
   existant sur cette parcelle ; plusieurs → `openTransferModal({ projectIds })`, le hub
   produit alors un **ZIP GeoJSON unique** (partage natif du ZIP, repli téléchargement).
   **Suppression** :
@@ -514,7 +527,20 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   Le bouton secondaire `#traceFabSecondary` (icône Lucide
   `check`) termine la zone : sous 3 points, `customConfirm()` demande « Zone incomplète
   (X points). Terminer quand même ? » ; il est **masqué en mode obstacle** (un obstacle se
-  valide avec le FAB). Un appui long sur le FAB ou sur « ✓ » rouvre le menu.
+  valide avec le FAB) et **grisé/désactivé** (`disabled` + `.is-disabled`,
+  `aria-disabled="true"`, `title` « Ajoutez au moins un point — … ») tant que la zone
+  courante ne contient aucun point ; `savePoint()` et `deletePoint()` rappellent
+  `syncTraceFabUI()` pour l'activer/désactiver. Un appui long sur le FAB ou sur « ✓ » rouvre
+  le menu. **Câblage des gestes** : `bindTraceFabPress(el, longAction, clickAction)`,
+  défini dans le **module partagé `js/fab-press.js`** (chargé avant `points.js` et
+  `camera.js` ; constantes `LONG_PRESS_MS = 700` et `LONG_PRESS_MOVE_TOLERANCE_PX = 12`),
+  déclenche l'action courte sur **`pointerup`** et non sur `click`, et réinitialise tout
+  drapeau en fin de geste (`pointerup`, `pointerleave`, `pointercancel`) : un `click` perdu
+  (doigt qui sort, `pointercancel`) ou neutralisé après un appui long ne bloque plus le tap
+  suivant. Tout geste de plus de 12 px est un panoramique (aucune action) ; le clavier passe
+  par `click` avec `detail === 0`. Le **FAB CAMÉRA** (`#cameraFab*`, `js/camera.js`) utilise
+  exactement la même fonction : ne pas recréer de `bindLongPress` local (il existait une copie
+  à 550 ms, supprimée en 3.84).
   Après un obstacle, le FAB redevient neutre et `currentTraceMode` / `pendingObstacle` sont
   remis à `null`. Le type actif est indiqué par la couleur/titre du FAB (« Valider l'obstacle
   « Arbre » » quand un type est en attente) et par la cible `#map-crosshair`.
@@ -593,7 +619,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
 - **Ordre des scripts** : `index.html` charge les JS dans un ordre précis ; une nouvelle
   dépendance doit être insérée après ses dépendances (ex. `simulation.js` après `points.js`
   et `map.js`, avant `export.js` ; `qrcode.js` **avant** `export.js`, qui appelle
-  `renderQrCodeSvg()`). Le bundle vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
+  `renderQrCodeSvg()`). **`js/fab-press.js`** (gestuelle partagée des FAB) est chargé
+  **après `js/ble.js` et avant `js/points.js`** : `points.js` et `camera.js` y trouvent
+  `bindTraceFabPress()`, `LONG_PRESS_MS` et `LONG_PRESS_MOVE_TOLERANCE_PX`. Le bundle
+  vendorisé `js/vendor/animated-data-qr/…umd.min.js` est
   chargé avec les bibliothèques (après JSZip), **avant** `js/parser.js`. `js/scan.js` n'est
   chargé que par `scan.html` (page réceptrice autonome), **après** JSZip 3.10.2 et le même
   bundle vendorisé : JSZip sert uniquement à compter et lister les GeoJSON de l'archive reçue
@@ -1517,6 +1546,80 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   (`rgb(27, 94, 32)`), empreinte 80 × 80 centrée à 26 px au-dessus du milieu, logo à 10 px
   du bas, `splashResidue = 0`, `#tab-points` actif, carte montée, zéro erreur JS.
   `splash-test.html` reste la référence du prototype animé (jamais chargé par l'app).
+- **3.82 — Refonte de l'onglet HISTORIQUE (cartes cliquables et barre flottante)** : les
+  boutons `Ouvrir` / `Suppr.` de chaque carte sont supprimés. La carte `.session-item` est
+  **cliquable** (`onclick="handleHistoryCardClick(event, id)"`, `tabindex="0"`,
+  `handleHistoryCardKeydown()` sur Entrée / Espace) et ouvre le détail
+  (`openHistoryDetail()`), sauf sur la **case à cocher** (`.session-select-label`) et sur le
+  **menu ⋮** (`.session-menu-wrap`) : `handleHistoryCardClick()` filtre via
+  `event.target.closest()`. Le bouton **⋮** (`ICON_MORE_VERTICAL`, 44 × 44 px, sans fond,
+  `aria-haspopup` / `aria-expanded`) ouvre le menu contextuel `.session-menu` (`.session-menu-item`
+  de 44 px, icônes `ICON_FOLDER_OPEN` / `ICON_TRASH`) avec « Ouvrir » et « Supprimer »
+  (`deleteProject()`) ; `toggleHistoryCardMenu()` garantit un seul menu ouvert et pose le
+  focus sur la première option, `closeHistoryCardMenus()` le referme au clic extérieur, avec
+  **Échap** (focus rendu au ⋮) et au défilement de `#tab-history` (`initHistoryCardMenus()`,
+  branchée au `DOMContentLoaded` de `js/history.js`). La barre verte **sticky** insérée dans
+  la liste (`#historySelectionBar`, ex-`.history-selection-bar`) est remplacée par une
+  **barre d'action flottante** `.history-action-bar` (`position: fixed`, hors de
+  `.app-wrapper`, juste au-dessus de `#bottomNav`, `z-index: 950`, largeur
+  `min(456px, 100vw − 24 px)`, rayon 999 px, fond `--color-primary-deep`, ombre
+  `--shadow-xl`) : `#btnSelectionBack` (croix Lucide), `#selectionCount`, puis
+  `#btnSelectionTransfer` (`share-2`) et `#btnSelectionDelete` (`trash-2`, rouge). Elle
+  glisse depuis le bas (`@keyframes history-action-bar-in`, 0,22 s, désactivée en
+  `prefers-reduced-motion`) et disparaît quand la sélection est vide (`hidden` +
+  `.history-action-bar[hidden] { display: none !important }`). `syncHistorySelectionUI()`
+  pose `body.history-selection-active` (réserve de 82 px sous `#historyListView`, toasts
+  remontés à 190 px) ; `showTab()` **purge la sélection en quittant** l'onglet pour que la
+  barre ne reste jamais sur TRACÉS / CAMÉRA / RELEVÉ et la masque aussi en plein écran
+  carte / caméra (`css/map.css`, `css/theme.css`). Libellés des actions masqués ≤ 420 px
+  (icônes seules, `title` / `aria-label` conservés). Vérifié : `node --check js/history.js`
+  et `js/app.js` ; banc Node 26/26 (cartes sans boutons, ⋮ + menu présents, clic carte →
+  ouverture, clic case / menu → aucune ouverture, barre affichée « 1 / 2 sélectionné(s) »,
+  masquée et classe `body` retirée après annulation, Entrée sur la carte → ouverture).
+
+
+
+- **3.83 — Fin de zone au premier clic (FAB de tracé)** : régression terrain « il faut appuyer
+  2 à 3 fois sur ✓ pour terminer une zone de tonte ou interdite ». **Cause** : dans
+  `initTraceFab()`, la fonction locale `bindLongPress()` déclenchait l'action courte sur `click`
+  et ne remettait le drapeau `longFired` à `false` que dans ce `click`. Tout appui de plus de
+  550 ms (gants, doigt qui traîne, terrain) ouvrait le menu FAB et laissait `longFired = true` :
+  le `click` correspondant était avalé, et si le navigateur n'en émettait pas (appui long
+  Android), le tap suivant l'était aussi → 2 à 3 appuis avant que la zone se termine.
+  **Correction** : `bindTraceFabPress(el, longAction, clickAction)` remplace la fonction
+  locale — action courte sur **`pointerup`**, seuil d'appui long porté à
+  `LONG_PRESS_MS = 700`, tolérance de mouvement `LONG_PRESS_MOVE_TOLERANCE_PX = 12` (un
+  glissement devient un panoramique, sans action), `endGesture()` remet `pressed` / `longFired`
+  à zéro sur `pointerup`, `pointerleave` et `pointercancel`, clavier géré par `click` avec
+  `detail === 0`. `syncTraceFabUI()` grise le ✓ (`disabled`, `.is-disabled`,
+  `aria-disabled="true"`, `title` « Ajoutez au moins un point — … ») tant que la zone courante
+  est vide ; `savePoint()` et `deletePoint()` resynchronisent le FAB. CSS :
+  `.trace-fab-secondary:disabled` / `.is-disabled` (opacité 0,45, `grayscale(0.5)`,
+  `cursor: not-allowed`) et `:active` corrigé (`translateY(-50%) scale(0.94)` : le bouton ne
+  saute plus à l'appui). Vérifié : `node --check js/points.js` ; banc Node 9/9 (ancien code :
+  tap appuyé 620 ms → **0** terminaison, 3 taps appuyés → **0** terminaison ; nouveau : tap
+  court et tap appuyé 620 ms → terminaison **au 1er appui**, appui long 800 ms → menu seul,
+  tap après appui long sans `click` → OK, glissement → aucune action, clavier → terminaison)
+  et 12/12 sur l'état du ✓ (zone vide = grisé, 1 point = actif, obstacle / sans parcelle =
+  masqué). `js/camera.js` gardait sa propre copie de `bindLongPress` (550 ms) : supprimée et
+  remplacée par le module partagé en 3.84.
+
+- **3.84 — Gestuelle des FAB mutualisée (`js/fab-press.js`)** : `bindTraceFabPress()` et les
+  constantes `LONG_PRESS_MS` / `LONG_PRESS_MOVE_TOLERANCE_PX` quittent `js/points.js` pour un
+  **module partagé** `js/fab-press.js` (script classique, sans dépendance, chargé après
+  `js/ble.js` et **avant** `js/points.js` dans `index.html`). `js/camera.js` perd sa copie
+  locale `bindLongPress` (550 ms, même défaut que le FAB de tracé) : `initCameraFab()` câble
+  désormais `bindTraceFabPress(main, openCameraFabMenu, onCameraFabMainClick)` et
+  `bindTraceFabPress(secondary, openCameraFabMenu, exitCameraMode)` — tap court sur « ✓ » =
+  quitter le mode caméra, appui long (700 ms) = menu, glissement de plus de 12 px ignoré,
+  clavier via `click` avec `detail === 0`. `syncCameraFabUI()` pose en plus `disabled` /
+  `.is-disabled` / `aria-disabled` sur `#cameraFabSecondary` quand `cameraMode` est nul (le
+  bouton reste masqué dans ce cas : le grisage est une sécurité). Vérifié :
+  `node --check js/fab-press.js js/points.js js/camera.js` ; banc Node **14/14** (gestuelle du
+  module 5/5 ; câblage caméra 4/4 — `initCameraFab` câble bien `exitCameraMode` sur le ✓, tap
+  court et tap appuyé 620 ms → `exitCameraMode`, appui long 800 ms → menu seul ; état du ✓
+  caméra 3/3 — masqué + désactivé sans mode, visible + actif en mode ; non-régression ✓
+  TRACÉS 2/2). Plus aucun `bindLongPress` dans `js/`.
 
 ## 9. Langue et communication
 

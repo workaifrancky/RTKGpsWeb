@@ -4,6 +4,49 @@ Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
 
+## [2026-11-05] — Gestuelle des FAB mutualisée (`js/fab-press.js`)
+
+### Modifié
+
+- Nouveau module partagé `js/fab-press.js` : `bindTraceFabPress()`, `LONG_PRESS_MS` (700 ms) et `LONG_PRESS_MOVE_TOLERANCE_PX` (12 px), chargé dans `index.html` après `js/ble.js` et avant `js/points.js`.
+- `js/points.js` : la fonction et les constantes de gestuelle sont retirées (elles viennent du module partagé) ; `initTraceFab()` appelle `bindTraceFabPress()`.
+- `js/camera.js` : suppression de la copie locale `bindLongPress` (550 ms) ; `initCameraFab()` câble `bindTraceFabPress()` sur `#cameraFabMain` et `#cameraFabSecondary` (tap court = action, appui long = menu).
+- `syncCameraFabUI()` : `#cameraFabSecondary` est aussi `disabled` + `.is-disabled` + `aria-disabled` quand `cameraMode` est nul (il reste masqué dans ce cas).
+
+### Notes
+
+- Tap court sur le « ✓ » caméra = `exitCameraMode()` au premier appui, comme le « ✓ » de TRACÉS.
+- Vérifications : `node --check` OK sur les trois fichiers ; banc Node 14/14 (gestuelle 5/5, câblage caméra 4/4, état du ✓ caméra 3/3, non-régression du ✓ TRACÉS 2/2) ; plus aucun `bindLongPress` dans `js/`.
+
+## [2026-11-05] — Fin de zone au premier clic (FAB de tracé)
+
+### Corrigé
+
+- Le bouton « ✓ » (`#traceFabSecondary`) terminait la zone après 2 à 3 appuis : un appui de plus de 550 ms ouvrait le menu FAB et le drapeau `longFired`, jamais réinitialisé, avalait le clic suivant.
+- Nouvelle fonction `bindTraceFabPress()` (`js/points.js`) : action courte déclenchée sur `pointerup` (plus de dépendance au `click`), seuil d'appui long porté à 700 ms, tolérance de mouvement de 12 px (un glissement est un panoramique), remise à zéro de l'état sur `pointerup` / `pointerleave` / `pointercancel`, clavier conservé (`click` avec `detail === 0`).
+- `syncTraceFabUI()` grise et désactive le « ✓ » (`.trace-fab-secondary:disabled` / `.is-disabled`, `aria-disabled`) tant que la zone courante ne contient aucun point ; `savePoint()` et `deletePoint()` resynchronisent le bouton.
+- CSS : `:active` du « ✓ » conserve son centrage vertical (`translateY(-50%) scale(0.94)`).
+
+### Notes
+
+- `js/camera.js` conserve sa propre copie de l'ancien `bindLongPress` (550 ms) : à aligner sur `bindTraceFabPress()` lors d'une intervention sur le FAB caméra.
+- Banc Node : 9/9 sur les gestes (l'ancien code ne terminait aucune zone après trois taps appuyés de 620 ms) et 12/12 sur l'état du bouton ; `node --check js/points.js` OK.
+
+## [2026-11-05] — Refonte de l'onglet HISTORIQUE
+
+### Modifié
+
+- Cartes de parcelles (`.session-item`) : suppression des boutons `Ouvrir` et `Suppr.` ; la carte entière est cliquable et ouvre le détail (hors case à cocher et menu ⋮).
+- Ajout d'un menu contextuel **⋮** (`.session-menu-btn`, icône Lucide `more-vertical`) par carte, avec « Ouvrir » et « Supprimer » ; fermeture au clic extérieur, avec Échap et au défilement.
+- Nouvelle **barre d'action flottante** `#historySelectionBar` (`.history-action-bar`) : fixée au-dessus de la navigation basse, hors de `.app-wrapper`, animation de glissement depuis le bas, bouton « Annuler » (croix), compteur, « Transférer » (`share-2`) et « Supprimer » (`trash-2`).
+- `js/app.js` : nouvelles constantes `ICON_MORE_VERTICAL` et `ICON_FOLDER_OPEN` ; `showTab()` purge la sélection en quittant l'onglet HISTORIQUE.
+- `js/history.js` : `handleHistoryCardClick()`, `handleHistoryCardKeydown()`, `toggleHistoryCardMenu()`, `closeHistoryCardMenus()`, `initHistoryCardMenus()` ; `syncHistorySelectionUI()` pilote la classe `body.history-selection-active`.
+
+### Notes
+
+- Les actions existantes sont conservées (`openHistoryDetail`, `deleteProject`, `transferSelectedProjects`, `deleteSelectedProjects`) et le contrat GeoJSON est inchangé.
+- La barre flottante est masquée en plein écran carte / caméra (`css/map.css`, `css/theme.css`).
+
 ## [2026-11-04] — Nettoyage des fichiers de test obsolètes
 
 ### Supprimé

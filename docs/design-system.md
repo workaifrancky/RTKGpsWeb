@@ -95,7 +95,8 @@ Overrides de lisibilité :
   conservée pour une réactivation (voir [simulation.md](simulation.md)).
 - `.action-button-simulation-gps` : variante teal (`--color-teal`), injecte une trame GPS
   fictive dans le pipeline (bandeau Fix). **Inutilisé** pour la même raison.
-- `.btn-action-bar` : conservé pour les boutons générés par `history.js` (style blanc bordé).
+- `.btn-action-bar` : plus aucun appelant depuis la refonte 3.82 (les cartes de PARCELLES
+  n'ont plus de boutons `Ouvrir` / `Suppr.`). Règle conservée, sans usage dans l'interface.
 
 ### Écran d'accueil (`#welcome-screen`, `.welcome-screen`)
 
@@ -372,6 +373,12 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   pour l'icône sur ambre), avec texte blanc sauf obstacle.
 - `.trace-fab-secondary` : cercle de **48 px** à gauche du FAB, « ✓ », fond
   `--color-white`, bordure `--border`, ombre `--shadow-md` ; masqué sans mode actif.
+  **Désactivé** (`disabled` + `.is-disabled`, opacité 0,45, `grayscale(0.5)`,
+  `cursor: not-allowed`) tant que la zone courante n'a aucun point — état posé par
+  `syncTraceFabUI()`. `:active` conserve le centrage vertical
+  (`translateY(-50%) scale(0.94)`). Gestes câblés par `bindTraceFabPress()` (module partagé
+  `js/fab-press.js`, utilisé aussi par le FAB caméra) : tap sur `pointerup`, appui long
+  700 ms, glissement > 12 px ignoré.
 - `.trace-fab-stakeout` : cercle de **48 px** à droite du FAB, visible dès qu'une zone
   `tonte` ou `interdit` contient au moins un point. Il ne remplace pas l'ajout de point :
   il lance `startStakeout()` vers le **premier sommet** de la zone courante et passe en
@@ -485,16 +492,29 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   `#historyListView` (vue racine) et `#historyDetailView` (vue détail, `hidden` par défaut),
   basculées par `syncHistoryView()`.
   1. **Racine** : titre `.section-title` « PARCELLES » puis `#historyList`
-     (`.session-item` : case à cocher, nom, compteur, méta, actions `Ouvrir` / `Suppr.`).
-     La sélection multiple affiche `#historySelectionBar` (`.history-selection-bar`,
-     `position: sticky; top: 0`, fond `--color-primary-deep`, texte blanc) : bouton retour
-     `.selection-back` (44 px, icône `arrow-left`), `#selectionCount`
-     (« N sélectionné(s) ») et deux actions `.selection-action` de 44 px (fond
-     `--color-white`, texte `--color-primary-deep` ; variante `.danger` en
-     `--color-danger`). En thème nuit, le texte passe en `--color-primary-accent` /
-     `--color-danger-strong`. Les cases `.session-select` (20 px, `accent-color:
-     --color-primary`) sont dans `.session-select-label` (zone cliquable) ; une carte cochée
-     reçoit `.session-item.selected` (`outline` vert de 2 px).
+     (`.session-item` : case à cocher, nom, compteur, méta). La carte est **cliquable**
+     (curseur main, ombre `--shadow-md` au survol et à l'appui, `outline` sur
+     `:focus-visible`) et ouvre le détail ;
+     seules la case et le menu ⋮ interceptent le clic. Un bouton **⋮** (`.session-menu-btn`,
+     44 × 44 px, icône Lucide `more-vertical` 18 px, sans fond, `aria-expanded`) ouvre le menu
+     contextuel `.session-menu` (position absolue à droite, `--color-white`, `--shadow-xl`,
+     `--radius-lg`) avec `.session-menu-item` (44 px, 13 px / 700) « Ouvrir »
+     (`folder-open`) et « Supprimer » (`trash-2`, `--color-danger`, `--color-danger-strong`
+     en thème nuit).
+     La sélection multiple affiche la **barre d'action flottante** `#historySelectionBar`
+     (`.history-action-bar`, `position: fixed` hors de `.app-wrapper`, 10 px au-dessus de
+     `#bottomNav`, `z-index: 950`, largeur `min(456px, 100vw − 24px)`, rayon 999 px, fond
+     `--color-primary-deep`, texte blanc, `--shadow-xl`, glissement
+     `history-action-bar-in` 0,22 s annulé en `prefers-reduced-motion`) : bouton retour
+     `.selection-back` (44 px, icône `x`), `#selectionCount` (« N sélectionné(s) ») et deux
+     actions `.selection-action` de 44 px (fond `--color-white`, texte
+     `--color-primary-deep` ; variante `.danger` en `--color-danger`, `--color-danger-strong`
+     en thème nuit) dont le libellé est masqué ≤ 420 px (icônes `share-2` / `trash-2`,
+     `title` et `aria-label` portés par les boutons). `body.history-selection-active`
+     réserve 82 px sous `#historyListView` et remonte `#toast` à 190 px. Les cases
+     `.session-select` (20 px, `accent-color: --color-primary`) sont dans
+     `.session-select-label` (zone cliquable) ; une carte cochée reçoit
+     `.session-item.selected` (`outline` vert de 2 px).
   2. **Détail** : en-tête `.history-detail-header` (`display: flex`, `gap: 10px`,
      `margin-bottom: 10px`) qui ne contient plus que `.history-back` (« ← Parcelles », 44 px,
      pilule, icône `arrow-left`) — le bouton « Transférer » a été retiré en 3.67. Puis

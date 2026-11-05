@@ -105,6 +105,7 @@ body.map-ui-fullscreen #headerGpsStatus,
 body.map-ui-fullscreen #headerMenu,
 body.map-ui-fullscreen #headerMenuOverlay,
 body.map-ui-fullscreen .tabs-wrapper,
+body.map-ui-fullscreen #historySelectionBar,
 body.map-ui-fullscreen #projectDrawer,
 body.map-ui-fullscreen #projectDrawerOverlay {
   display: none !important;

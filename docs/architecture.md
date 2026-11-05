@@ -27,6 +27,7 @@ Boutons terrain ──► js/points.js ──► js/projects.js (localStorage)
 | `js/app.js` | État global `APP`, navigation par onglets, thème, toasts, alertes, ouverture/fermeture des modales |
 | `js/projects.js` | CRUD des parcelles (`switchProject()`, `renameProject()`, `deleteProject()`), tiroir Parcelles, base globale des obstacles (`rtkGlobalObstacles`, import), persistance `localStorage`, `getPoints()`, `getCurrentProjectData()` |
 | `js/points.js` | Construction/enregistrement des points, compteurs, zones de tonte (`getZones()`, `startNewZone()`), zones interdites (`getInterditZones()`, `startNewInterditZone()`), FAB de tracé (`beginTraceMode()`, `finishCurrentTrace()`, `syncTraceFabUI()`), liste des points (`renderPointsList()`), renommage (`renamePoint()`) |
+| `js/fab-press.js` | **Gestuelle partagée des FAB** (TRACÉS et CAMÉRA) : `bindTraceFabPress()` (tap sur `pointerup`, appui long 700 ms, glissement > 12 px ignoré, clavier `detail === 0`) et constantes `LONG_PRESS_MS` / `LONG_PRESS_MOVE_TOLERANCE_PX` |
 | `js/ble.js` | Web Bluetooth, connexion/reconnexion, réception des notifications, badge GPS/manuel |
 | `js/parser.js` | Décodage des trames ESP32, normalisation du fix, validation de position |
 | `js/ntrip.js` | Catalogue de stations NTRIP et sélection persistée |

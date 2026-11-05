@@ -428,7 +428,26 @@
 
 .trace-fab-secondary[hidden] { display: none; }
 .trace-fab-secondary:hover { filter: brightness(0.96); }
-.trace-fab-secondary:active { transform: scale(0.94); }
+.trace-fab-secondary:active { transform: translateY(-50%) scale(0.94); }
+
+/* « ✓ » inactif : aucun point dans la zone courante (voir syncTraceFabUI()).
+   Grisé et non cliquable pour éviter les taps sans effet. Le `title` reste
+   disponible (bouton réellement `disabled`, aucun événement émis). */
+.trace-fab-secondary:disabled,
+.trace-fab-secondary.is-disabled {
+  opacity:        0.45;
+  filter:         grayscale(0.5);
+  cursor:         not-allowed;
+  box-shadow:     var(--shadow-sm);
+}
+
+.trace-fab-secondary:disabled:hover,
+.trace-fab-secondary.is-disabled:hover,
+.trace-fab-secondary:disabled:active,
+.trace-fab-secondary.is-disabled:active {
+  filter:    grayscale(0.5);
+  transform: translateY(-50%);
+}
 
 /* Bouton Stakeout : guidage vers le premier sommet de la zone en cours.
    Placé à droite du FAB principal (le ✓ reste à gauche). */
@@ -1828,12 +1847,30 @@
 }
 
 /* ─── HISTORIQUE SESSIONS ───────────────────────────────────── */
+/* La carte entière est cliquable : elle ouvre le détail de la parcelle
+   (openHistoryDetail). Seules la case à cocher (.session-select-label) et
+   le menu contextuel (.session-menu-wrap) interceptent le clic. */
 .session-item {
   background:    var(--color-white);
   border-radius: var(--radius-xl);
   padding:       14px;
   margin-bottom: 8px;
   box-shadow:    var(--shadow-sm);
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .session-item:hover { box-shadow: var(--shadow-md); }
+}
+
+/* Pas de `transform` sur `:active` : cela créerait un contexte d'empilement et
+   ferait passer le menu ⋮ sous la carte suivante pendant l'appui. */
+.session-item:active { box-shadow: var(--shadow-md); }
+
+.session-item:focus-visible {
+  outline:        2px solid var(--color-primary-accent);
+  outline-offset: 2px;
 }
 
 .session-header {
@@ -1864,34 +1901,163 @@
   margin-bottom: 10px;
 }
 
-.session-actions {
-  display:  flex;
-  gap:      6px;
-  flex-wrap:wrap;
+/* En-tête de carte : badge de points + menu contextuel (à droite). */
+.session-head-actions {
+  display:     flex;
+  align-items: center;
+  gap:         4px;
+  flex:        0 0 auto;
 }
 
-/* ─── SÉLECTION MULTIPLE DE L'HISTORIQUE ────────────────────── */
-/* Barre contextuelle collante, affichée par syncHistorySelectionUI() dès
-   qu'une case est cochée. `hidden` est prioritaire sur `display: flex`. */
-.history-selection-bar {
-  position:      sticky;
-  top:           0;
-  z-index:       20;
-  display:       flex;
-  align-items:   center;
-  gap:           8px;
-  margin-bottom: 8px;
-  padding:       8px 10px;
+.session-menu-wrap {
+  position:    relative;
+  display:     flex;
+  align-items: center;
+}
+
+/* Bouton « trois points » (Lucide more-vertical) : cible tactile 44 px,
+   sans fond ni bordure ; l'état ouvert est signalé par un fond discret. */
+.session-menu-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           44px;
+  height:          44px;
+  min-height:      44px;
+  padding:         0;
+  border:          none;
+  border-radius:   50%;
+  background:      transparent;
+  color:           var(--text3);
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.session-menu-btn:hover                       { background: var(--color-bg-muted); color: var(--text); }
+.session-menu-btn:active                      { transform: scale(0.94); }
+.session-menu-btn[aria-expanded="true"]       { background: var(--color-bg-muted); color: var(--color-primary-deep); }
+
+.session-menu-btn svg {
+  display:        block;
+  pointer-events: none;
+}
+
+.session-menu-btn:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+/* Menu contextuel déroulant, ancré à droite de la carte. */
+.session-menu {
+  position:      absolute;
+  top:           calc(100% + 2px);
+  right:         0;
+  z-index:       30;
+  min-width:     172px;
+  padding:       4px;
+  border:        1px solid var(--border);
   border-radius: var(--radius-lg);
-  background:    var(--color-primary-deep);
-  color:         white;   /* texte sur fond vert : exception documentée */
-  box-shadow:    var(--shadow-md);
+  background:    var(--color-white);
+  box-shadow:    var(--shadow-xl);
 }
 
-.history-selection-bar[hidden] {
+.session-menu[hidden] {
   display: none !important;
 }
 
+.session-menu-item {
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  width:         100%;
+  min-height:    44px;
+  padding:       0 10px;
+  border:        none;
+  border-radius: var(--radius-md);
+  background:    transparent;
+  color:         var(--text);
+  font-family:   var(--font);
+  font-size:     13px;
+  font-weight:   700;
+  text-align:    left;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.session-menu-item:hover  { background: var(--color-bg-muted); }
+.session-menu-item:active { transform: scale(0.98); }
+
+.session-menu-item.danger       { color: var(--color-danger); }
+.session-menu-item.danger:hover { background: var(--color-danger-pale); }
+
+.session-menu-item svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
+}
+
+/* Thème nuit : surfaces sombres, texte rouge lisible. */
+[data-theme="dark"] .session-menu-btn[aria-expanded="true"] {
+  color: var(--color-primary-accent);
+}
+
+[data-theme="dark"] .session-menu-item.danger {
+  color: var(--color-danger-strong);
+}
+
+[data-theme="dark"] .session-menu-item.danger:hover {
+  background: var(--color-bg-muted);
+}
+
+/* ─── BARRE D'ACTION FLOTTANTE DE LA SÉLECTION ──────────────── */
+/* Fixée au-dessus de la navigation basse (`#bottomNav`, 64 px + safe-area),
+   hors de `.app-wrapper` comme elle. Affichée par syncHistorySelectionUI()
+   dès qu'une case est cochée : elle glisse depuis le bas à chaque
+   apparition et disparaît quand la sélection est vide (`hidden`). */
+.history-action-bar {
+  position:      fixed;
+  left:          50%;
+  bottom:        calc(var(--bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px) + 10px);
+  z-index:       950;   /* au-dessus de la barre basse (900), sous les modales (1100) */
+  display:       flex;
+  align-items:   center;
+  gap:           6px;
+  width:         min(456px, calc(100vw - 24px));
+  padding:       7px 9px;
+  border-radius: 999px;
+  background:    var(--color-primary-deep);
+  color:         white;   /* texte sur fond vert : exception documentée */
+  box-shadow:    var(--shadow-xl);
+  transform:     translateX(-50%);
+  animation:     history-action-bar-in 0.22s ease-out both;
+}
+
+.history-action-bar[hidden] {
+  display: none !important;
+}
+
+@keyframes history-action-bar-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(18px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Réserve la hauteur de la barre : la dernière carte de la liste reste
+   entièrement visible (la barre est en position fixe). */
+body.history-selection-active #historyListView {
+  padding-bottom: 82px;
+}
+
+/* Les toasts remontent au-dessus de la barre pour rester lisibles. */
+body.history-selection-active #toast {
+  bottom: 190px;
+}
+
+/* Accessibilité : aucun glissement si l'utilisateur réduit les animations. */
+@media (prefers-reduced-motion: reduce) {
+  .history-action-bar { animation: none; }
+}
+
+/* Bouton « Annuler » : croix Lucide dans une pastille verte. */
 .selection-back {
   display:         inline-flex;
   align-items:     center;
@@ -1927,28 +2093,25 @@
   letter-spacing: 0.2px;
 }
 
-.selection-actions {
-  display:     flex;
-  align-items: center;
-  gap:         5px;
-  flex:        0 0 auto;
-}
-
+/* Actions de la barre : pastilles blanches, libellé + icône Lucide. */
 .selection-action {
-  display:       inline-flex;
-  align-items:   center;
-  gap:           5px;
-  min-height:    44px;
-  padding:       0 10px;
-  border:        1px solid transparent;
-  border-radius: 999px;
-  background:    var(--color-white);
-  color:         var(--color-primary-deep);
-  font-family:   var(--font);
-  font-size:     11px;
-  font-weight:   800;
-  cursor:        pointer;
-  transition:    var(--transition);
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             5px;
+  flex:            0 0 auto;
+  min-width:       44px;
+  min-height:      44px;
+  padding:         0 12px;
+  border:          1px solid transparent;
+  border-radius:   999px;
+  background:      var(--color-white);
+  color:           var(--color-primary-deep);
+  font-family:     var(--font);
+  font-size:       11px;
+  font-weight:     800;
+  cursor:          pointer;
+  transition:      var(--transition);
 }
 
 .selection-action:hover  { filter: brightness(0.95); }
@@ -1968,6 +2131,13 @@
 .selection-back:focus-visible {
   outline:        3px solid var(--color-primary-accent);
   outline-offset: 2px;
+}
+
+/* Écrans étroits : actions en icône seule (libellés conservés dans
+   `title` / `aria-label`), le compteur reste lisible. */
+@media (max-width: 420px) {
+  .selection-action      { padding: 0 12px; }
+  .selection-action span { display: none; }
 }
 
 /* Cases à cocher des parcelles : devant le nom, sur toute la zone du titre. */
@@ -2019,8 +2189,9 @@
 }
 
 @media (max-width: 360px) {
-  .selection-action { padding: 0 8px; font-size: 10px; }
-  .selection-count  { font-size: 11px; }
+  .history-action-bar { gap: 4px; padding: 6px 7px; }
+  .selection-action   { padding: 0 10px; font-size: 10px; }
+  .selection-count    { font-size: 11px; }
 }
 
 /* ─── BOUTONS D'OUTILS CARTE (caméra) ───────────────────────── */

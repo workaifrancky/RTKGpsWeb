@@ -39,6 +39,22 @@ const ICON_TRASH = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="1
   <line x1="14" x2="14" y1="11" y2="17"/>
 </svg>`;
 
+// Menu contextuel des cartes de parcelles (HISTORIQUE) : « trois points »
+// vertical (Lucide `more-vertical`) et dossier ouvert pour l'option « Ouvrir ».
+const ICON_MORE_VERTICAL = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="1"/>
+  <circle cx="12" cy="5" r="1"/>
+  <circle cx="12" cy="19" r="1"/>
+</svg>`;
+
+const ICON_FOLDER_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
+</svg>`;
+
 const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
   aria-hidden="true" focusable="false">
@@ -418,6 +434,11 @@ function showTab(tabId) {
     if (typeof renderPointsList === 'function') renderPointsList();
     if (typeof loadHistory === 'function') loadHistory();
     if (typeof syncHistoryView === 'function') syncHistoryView('list');
+  } else if (typeof clearHistorySelection === 'function') {
+    // La barre d'action flottante n'appartient qu'à l'onglet PARCELLES : la
+    // sélection est libérée en quittant l'onglet pour que la barre ne reste
+    // jamais affichée au-dessus de TRACÉS, CAMÉRA ou RELEVÉ.
+    clearHistorySelection({ silent: true });
   }
   if (tabId === 'tab-stats') {
     if (typeof updateStatsDisplay === 'function') updateStatsDisplay();

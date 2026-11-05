@@ -342,9 +342,25 @@ function syncTraceFabUI() {
     // Un obstacle est ponctuel : il se valide avec le FAB, le bouton « ✓ »
     // (terminer la zone) n'a pas de sens et reste masqué.
     secondary.hidden = !hasProject || !type || type === 'obstacle';
-    secondary.title = type
-      ? `Terminer ${TRACE_TYPE_LABELS[type]} (appui long : menu)`
-      : 'Terminer le tracé';
+
+    // Grisé tant que la zone courante n'a aucun point : on ne peut pas
+    // « terminer » un dessin qui n'a pas commencé. Réactivé par
+    // syncTraceFabUI() après chaque point (savePoint()).
+    const zoneCount = (type === 'tonte' || type === 'interdit')
+      ? zonePointsForStakeout.length
+      : 0;
+    const canFinish = hasProject && !!type && type !== 'obstacle' && zoneCount > 0;
+    secondary.disabled = !canFinish;
+    secondary.classList.toggle('is-disabled', !canFinish);
+    secondary.setAttribute('aria-disabled', canFinish ? 'false' : 'true');
+
+    if (!type) {
+      secondary.title = 'Terminer le tracé';
+    } else if (canFinish) {
+      secondary.title = `Terminer ${TRACE_TYPE_LABELS[type]} (appui long : menu)`;
+    } else {
+      secondary.title = `Ajoutez au moins un point — ${TRACE_TYPE_LABELS[type]}`;
+    }
   }
 }
 
@@ -518,52 +534,21 @@ function onTraceFabMainClick() {
   else if (type === 'interdit') recordInterdit();
 }
 
-// Appui long (550 ms) sur le FAB ou sur « ✓ » : menu de choix.
+// ─── APPUI COURT / APPUI LONG DES FAB ────────────────────────
+// Gestuelle partagée avec le FAB CAMÉRA : `bindTraceFabPress()` et les
+// constantes LONG_PRESS_MS / LONG_PRESS_MOVE_TOLERANCE_PX vivent dans
+// `js/fab-press.js` (chargé avant ce fichier, voir index.html). Ne pas
+// redéfinir ces symboles ici : `const` en double = SyntaxError global.
+
+// Appui long (700 ms) sur le FAB ou sur « ✓ » : menu de choix.
 // Clic court : action du bouton principal ou fin du tracé.
 function initTraceFab() {
   const main = document.getElementById('traceFabMain');
   const secondary = document.getElementById('traceFabSecondary');
   if (!main || !secondary) return;
 
-  const bindLongPress = (el, longAction, clickAction) => {
-    let timer = null;
-    let longFired = false;
-
-    const clear = () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-    };
-
-    el.addEventListener('pointerdown', event => {
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      longFired = false;
-      clear();
-      timer = setTimeout(() => {
-        timer = null;
-        longFired = true;
-        longAction();
-      }, 550);
-    });
-
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
-      el.addEventListener(evt, clear);
-    });
-
-    el.addEventListener('click', event => {
-      if (longFired) {
-        longFired = false;
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-      clickAction();
-    });
-  };
-
-  bindLongPress(main, openTraceFabMenu, onTraceFabMainClick);
-  bindLongPress(secondary, openTraceFabMenu, finishCurrentTrace);
+  bindTraceFabPress(main, openTraceFabMenu, onTraceFabMainClick);
+  bindTraceFabPress(secondary, openTraceFabMenu, finishCurrentTrace);
 
   document.addEventListener('click', event => {
     if (!(event.target instanceof Element)) return;
@@ -884,6 +869,8 @@ function deletePoint(id) {
   renderPointsList();
   if (typeof renderMap === 'function') renderMap();
   if (typeof updateStatsDisplay === 'function') updateStatsDisplay();
+  // Le ✓ doit se griser si la zone courante vient de perdre son dernier point.
+  syncTraceFabUI();
   showToast('Point supprimé', 'info');
 }
 

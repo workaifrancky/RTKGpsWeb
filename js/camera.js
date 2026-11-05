@@ -164,7 +164,13 @@ function syncCameraFabUI() {
   }
 
   if (secondary) {
+    // Masqué et désactivé sans mode actif : il n'y a rien à quitter. Le
+    // grisage explicite évite tout état ambigu si le bouton reste visible
+    // (même convention que le « ✓ » de TRACÉS, voir syncTraceFabUI()).
     secondary.hidden = !cameraMode;
+    secondary.disabled = !cameraMode;
+    secondary.classList.toggle('is-disabled', !cameraMode);
+    secondary.setAttribute('aria-disabled', cameraMode ? 'false' : 'true');
     secondary.title = 'Quitter le mode caméra (appui long : menu)';
     secondary.setAttribute('aria-label', 'Quitter le mode caméra');
   }
@@ -239,45 +245,10 @@ function initCameraFab() {
   if (!main || !secondary) return;
   cameraFabListenersBound = true;
 
-  const bindLongPress = (el, longAction, clickAction) => {
-    let timer = null;
-    let longFired = false;
-
-    const clear = () => {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-    };
-
-    el.addEventListener('pointerdown', event => {
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      longFired = false;
-      clear();
-      timer = setTimeout(() => {
-        timer = null;
-        longFired = true;
-        longAction();
-      }, 550);
-    });
-
-    ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
-      el.addEventListener(evt, clear);
-    });
-
-    el.addEventListener('click', event => {
-      if (longFired) {
-        longFired = false;
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-      clickAction();
-    });
-  };
-
-  bindLongPress(main, openCameraFabMenu, onCameraFabMainClick);
-  bindLongPress(secondary, openCameraFabMenu, exitCameraMode);
+  // Gestuelle partagée avec le FAB de TRACÉS (js/fab-press.js) : tap court =
+  // action du mode, appui long = menu. Ne pas recâbler `click` ici.
+  bindTraceFabPress(main, openCameraFabMenu, onCameraFabMainClick);
+  bindTraceFabPress(secondary, openCameraFabMenu, exitCameraMode);
 
   document.addEventListener('click', event => {
     if (!(event.target instanceof Element)) return;

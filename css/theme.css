@@ -411,6 +411,7 @@ body.camera-ui-fullscreen #headerMenuOverlay,
 body.camera-ui-fullscreen #projectDrawer,
 body.camera-ui-fullscreen #projectDrawerOverlay,
 body.camera-ui-fullscreen #alertBar,
+body.camera-ui-fullscreen #historySelectionBar,
 body.camera-ui-fullscreen .tabs-wrapper {
   display: none !important;
   visibility: hidden !important;
