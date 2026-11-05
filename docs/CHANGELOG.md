@@ -4,6 +4,23 @@ Historique des évolutions notables de l'application. Format inspiré de
 [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ; dates au format ISO
 (`AAAA-MM-JJ`), entrées les plus récentes en premier.
 
+## [2026-11-05] — Mode boucle des obstacles (type → point → type)
+
+### Ajouté
+
+- Boucle d'enregistrement des obstacles : choix du type → fermeture de la boîte → pointage sur la carte (ou FAB) → réouverture automatique de la boîte pour l'obstacle suivant.
+- État `APP.obstacleLoopMode` / `APP.obstacleLoopCount` (`js/app.js`) et fonctions `startObstacleLoop()`, `stopObstacleLoop()`, `updateObstacleLoopUI()`, `reopenObstacleLoopModal()`.
+- `initObstacleMapTap()` (`js/points.js`, branchée par `js/map.js`) : un tap sur la carte enregistre l'obstacle du type en attente à l'endroit pointé, uniquement en mode boucle ; `dragstart` / `zoomstart` neutralisent le tap fantôme pendant 350 ms.
+- `recordObstacle(subtype, icon, name, posOverride)` accepte une position explicite (`{ lat, lon, source: 'manual' }`).
+- Barre `#obstacleLoopBar` dans `#obstacleModal` : compteur « X obstacle(s) enregistré(s) » et bouton **« Terminer »** (Lucide `check`).
+- Animation de réouverture courte (`.is-loop-reopen`, 150 ms) désactivée en `prefers-reduced-motion`.
+
+### Notes
+
+- Sortie du mode : « Terminer », Échap, clic sur le voile ou changement d'onglet ; les obstacles déjà pointés sont conservés et le compteur est remis à 0.
+- Le dernier type reste pré-surligné (`.obstacle-option.pre-selected` via `rtkLastObstacleType`) pour enchaîner plusieurs obstacles identiques.
+- Vérifications : `node --check` OK (`app.js`, `points.js`, `map.js`) ; banc Node 33/33 ; contrat GeoJSON inchangé.
+
 ## [2026-11-05] — Gestuelle des FAB mutualisée (`js/fab-press.js`)
 
 ### Modifié

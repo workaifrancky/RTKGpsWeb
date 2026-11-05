@@ -686,6 +686,82 @@
   margin-bottom: 4px;
 }
 
+/* ─── MODE BOUCLE OBSTACLE (type → point → type) ────────────── */
+/* Barre sous la grille des types : compteur d'obstacles pointés et bouton
+   « Terminer ». Masquée hors du mode (updateObstacleLoopUI, js/app.js). */
+.obstacle-loop-bar {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  margin-top:  10px;
+  padding-top: 10px;
+  border-top:  1px solid var(--border);
+}
+
+.obstacle-loop-bar[hidden] {
+  display: none !important;
+}
+
+.obstacle-loop-count {
+  flex:        1 1 auto;
+  min-width:   0;
+  font-size:   12px;
+  font-weight: 700;
+  color:       var(--text3);
+}
+
+.obstacle-loop-stop {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  flex:          0 0 auto;
+  min-height:    44px;
+  padding:       0 14px;
+  border:        1px solid var(--color-primary-light);
+  border-radius: 999px;
+  background:    var(--color-primary-pale-bg);
+  color:         var(--color-primary-deep);
+  font-family:   var(--font);
+  font-size:     12px;
+  font-weight:   800;
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+.obstacle-loop-stop:hover  { filter: brightness(0.96); }
+.obstacle-loop-stop:active { transform: scale(0.98); }
+
+.obstacle-loop-stop svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
+}
+
+.obstacle-loop-stop:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+[data-theme="dark"] .obstacle-loop-stop {
+  border-color: var(--color-primary-accent);
+  background:   var(--color-bg-subtle);
+  color:        var(--color-primary-accent);
+}
+
+/* Réouverture automatique après chaque obstacle : fondu + glissement court
+   (150 ms max), neutralisé si l'utilisateur réduit les animations. */
+#obstacleModal.is-loop-reopen,
+#obstacleModal.is-loop-reopen .modal-box {
+  transition-duration: 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #obstacleModal.is-loop-reopen,
+  #obstacleModal.is-loop-reopen .modal-box {
+    transition-duration: 0.01s;
+  }
+}
+
 [data-theme="dark"] .obstacle-option.pre-selected {
   border-color: var(--color-primary-accent);
   background:   var(--color-bg-subtle);

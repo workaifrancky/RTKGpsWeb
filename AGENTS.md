@@ -173,15 +173,26 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (option « Nouvelle zone interdite » du menu FAB, garde-fou ≥ 3 points) incrémente la zone
   courante. `recordInterdit()` s'appuie sur `buildPoint()`, qui lit
   `getCurrentInterditZoneId()`. Carte et export produisent un polygone / une Feature
-  `zone_interdite` **par zone** (`zone_id`), sans fusion. Flux d'un obstacle (point ponctuel) :
+  `zone_interdite` **par zone** (`zone_id`), sans fusion. Flux d'un obstacle (point ponctuel),
+  en **mode boucle** (3.85) :
   1. option « Obstacle » du menu FAB → `chooseTraceMode('obstacle')` → `beginTraceMode()` puis
-     `openObstacleMenu()` ouvre la modale « Type d'obstacle » **sans enregistrer** ;
-  2. choix du type → `selectObstacleType()` mémorise `APP.pendingObstacle = { type, icon }`,
+     `openObstacleMenu()` active `APP.obstacleLoopMode` (`startObstacleLoop()`) et ouvre la
+     modale « Type d'obstacle » **sans enregistrer** ;
+  2. choix du type → `selectObstacleType()` mémorise `APP.pendingObstacle = { type, icon, name }`,
      **ferme la modale** et laisse le mode obstacle actif (croix de visée + FAB ambre) ;
-  3. l'utilisateur déplace la carte, puis le clic sur le FAB appelle `recordObstacle()` avec le
-     type en attente : c'est **la seule** validation. Annuler la modale — voile, **Échap**
-     (`initObstacleModal()`, inactif si `#customModal` ou `#transferModal` est ouvert) ou
-     `closeObstacleMenu()` — libère le mode ; le bouton « ✓ » est masqué en mode obstacle.
+  3. **pointage** : tap sur la carte (`initObstacleMapTap()`, branchée par `js/map.js`, position
+     `event.latlng`) **ou** clic sur le FAB (GPS / cible centrale). `recordObstacle(type, icon,
+     name, pos)` enregistre ; un `dragstart` / `zoomstart` de moins de 350 ms neutralise le tap
+     fantôme, et le handler ne fait rien hors du mode boucle ;
+  4. la modale **se rouvre automatiquement** (`reopenObstacleLoopModal()`, différée d'un tick,
+     animation `#obstacleModal.is-loop-reopen` 150 ms), le compteur `#obstacleLoopCount`
+     s'incrémente et le dernier type reste pré-surligné (`.pre-selected`, via
+     `rtkLastObstacleType`) → on enchaîne autant d'obstacles que nécessaire.
+  **Sortie** : bouton **« Terminer »** (`#btnObstacleLoopStop` → `stopObstacleLoop()`), **Échap**,
+  clic sur le voile (`closeObstacleMenu()` → `stopObstacleLoop()`), changement d'onglet ou
+  verrouillage. Les obstacles déjà pointés sont conservés, le mode repasse en lecture et le
+  compteur retombe à 0. Hors boucle (appel direct de `recordObstacle()`), l'ancien comportement
+  ponctuel subsiste. Le bouton « ✓ » reste masqué en mode obstacle.
 - **Zones vides en cours** : `currentZoneId` et `currentInterditZoneId` peuvent valoir
   `maxZone + 1` entre la création d'une zone et son premier point. `normalizeProject()` et
   les recalculs après suppression d'un point ou d'une zone conservent cette valeur ; sinon
@@ -1620,6 +1631,31 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   court et tap appuyé 620 ms → `exitCameraMode`, appui long 800 ms → menu seul ; état du ✓
   caméra 3/3 — masqué + désactivé sans mode, visible + actif en mode ; non-régression ✓
   TRACÉS 2/2). Plus aucun `bindLongPress` dans `js/`.
+
+- **3.85 — Mode boucle des obstacles (type → point → type)** : la modale « Type d'obstacle »
+  reste ouverte/fermée en boucle au lieu d'être rouverte manuellement à chaque obstacle.
+  `APP.obstacleLoopMode` + `APP.obstacleLoopCount` (`js/app.js`) : `openObstacleMenu()` appelle
+  `startObstacleLoop()` (compteur à 0) ; `selectObstacleType()` ferme la boîte comme avant ;
+  `recordObstacle(subtype, icon, name, posOverride)` (`js/points.js`) accepte une position
+  explicite et, en boucle, **conserve** `currentTraceMode = 'obstacle'`, incrémente le compteur,
+  remet `pendingObstacle` à `null` et rouvre la boîte via `reopenObstacleLoopModal()`
+  (`showObstacleModal(true)` différé d'un tick, classe `.is-loop-reopen` → transition 150 ms,
+  neutralisée en `prefers-reduced-motion`). **Pointage au tap** : `initObstacleMapTap(leafletMap)`
+  (`js/points.js`) est branchée par `js/map.js` dans `initMap()` ; elle n'agit qu'en mode boucle
+  avec un type en attente, ignore un `click` survenant dans les 350 ms après `dragstart` /
+  `zoomstart`, respecte le verrouillage d'écran et enregistre à `event.latlng`
+  (`source: 'manual'`). Le clic sur le FAB reste une validation possible (GPS / cible).
+  **Sortie** : `#btnObstacleLoopStop` (« Terminer », icône Lucide `check`) → `stopObstacleLoop()`
+  (mode false, compteur 0, `tracesMode = 'lecture'`, toast récapitulatif) ; `closeObstacleMenu()`
+  (Échap, voile, changement d'onglet) délègue à `stopObstacleLoop()` en mode boucle. UI :
+  `#obstacleLoopBar` / `#obstacleLoopCount` / `.obstacle-loop-stop` (`css/components.css`) avec
+  tokens `--color-primary-pale-bg` / `--color-primary-deep` (`--color-primary-accent` en nuit) ;
+  dernier type pré-surligné via `rtkLastObstacleType` (`.obstacle-option.pre-selected`).
+  Vérifié : `node --check js/app.js js/points.js js/map.js` ; accolades CSS équilibrées
+  (411/411) ; banc Node **33/33** (activation, fermeture au choix du type, enregistrement +
+  compteur + réouverture + animation, changement de type, tap carte (coordonnées exactes,
+  hors boucle ignoré, panoramique ignoré, binding unique), sortie « Terminer », sortie
+  Échap/voile, non-régression hors boucle).
 
 ## 9. Langue et communication
 

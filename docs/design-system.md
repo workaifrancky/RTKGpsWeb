@@ -398,14 +398,21 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   pour les types de tracé (couleur portée par `.tonte` / `.interdit` / `.obstacle`), et icônes
   en trait pour les actions (`map-pin` pour la parcelle, `crosshair` pour la cible,
   `ruler` pour la mesure), toujours en `stroke: currentColor`.
-- Appui long (550 ms) sur le FAB ou sur l'icône `check` : ouverture du menu. Le clic court du
+- Appui long (700 ms, `bindTraceFabPress()` du module partagé `js/fab-press.js`) sur le FAB ou
+  sur l'icône `check` : ouverture du menu. Le clic court du
   FAB ajoute un point ; en mode obstacle il **valide** l'obstacle du type choisi
   (`APP.pendingObstacle`, titre « Valider l'obstacle « Arbre » »), sinon il rouvre le choix du
   type. Le clic court de `check` termine la zone.
-- **Mode obstacle** : la modale « Type d'obstacle » se ferme dès le choix du type, le FAB est
-  ambre (`.trace-fab-main.obstacle`), la cible `#map-crosshair` est visible et le bouton
-  `check` est **masqué** (un obstacle est ponctuel : il se valide avec le FAB). La modale se
-  ferme par le voile ou **Échap** (`initObstacleModal()`), sauf si la modale confirm/prompt
+- **Mode obstacle (boucle type → point → type)** : la modale « Type d'obstacle » se ferme dès
+  le choix du type, le FAB est ambre (`.trace-fab-main.obstacle`), la cible `#map-crosshair`
+  est visible et le bouton `check` est **masqué** (un obstacle est ponctuel). Le pointage se
+  fait par **tap sur la carte** (`initObstacleMapTap()`, position `event.latlng`) ou par clic
+  sur le FAB (GPS / cible) ; la modale **se rouvre automatiquement** après chaque obstacle
+  (`.is-loop-reopen`, transition 150 ms) avec le compteur `#obstacleLoopCount` et le dernier
+  type pré-surligné. La barre `.obstacle-loop-bar` porte le bouton « Terminer »
+  (`.obstacle-loop-stop`, 44 px, fond `--color-primary-pale-bg`, texte
+  `--color-primary-deep`, `--color-primary-accent` en thème nuit) ; le mode se ferme aussi
+  par le voile ou **Échap** (`initObstacleModal()`), sauf si la modale confirm/prompt
   (`#customModal`) ou le hub de transfert (`#transferModal`) est ouvert au-dessus.
 - **1re option** « Parcelle : <nom> » (icône `map-pin`, `openProjectDrawer()`) : elle ouvre le
   tiroir des parcelles, avant les trois options de tracé. Le menu ne contient **que** les

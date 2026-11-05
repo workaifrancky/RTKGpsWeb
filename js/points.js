@@ -424,6 +424,12 @@ async function beginTraceMode(type) {
   }
 
   if (typeof APP !== 'undefined') {
+    // Un autre type de tracé met fin au mode boucle obstacle (compteur remis à
+    // zéro, sans toast : c'est un changement volontaire de tracé).
+    if (type !== 'obstacle' && APP.obstacleLoopMode
+        && typeof stopObstacleLoop === 'function') {
+      stopObstacleLoop(false);
+    }
     APP.tracesMode = 'creation';
     // Nouveau type : aucun obstacle en attente de positionnement.
     APP.pendingObstacle = null;
@@ -790,9 +796,11 @@ function recordInterdit() {
 }
 
 // ─── ENREGISTRER — OBSTACLE ISOLÉ ────────────────────────────
-function recordObstacle(subtype, icon, name) {
+// `posOverride` (optionnel) : position pointée sur la carte en mode boucle
+// ({ lat, lon, source: 'manual' }). Sans override : GPS ou cible centrale.
+function recordObstacle(subtype, icon, name, posOverride) {
   if (!canRecordPoints()) return;
-  const pos = getPointPosition();
+  const pos = posOverride || getPointPosition();
   if (!pos) {
     vibratePointFeedback(false);
     showToast('Position indisponible — placez la cible sur la carte', 'error');
@@ -811,14 +819,61 @@ function recordObstacle(subtype, icon, name) {
     // Stockage indisponible : valeurs par défaut conservées.
   }
   signalPointRecorded();
-  // Un obstacle est un tracé ponctuel : on revient à l'état sans type actif.
+
   if (typeof APP !== 'undefined') {
     APP.pendingObstacle = null;
+
+    // Mode boucle (type → point → type) : on garde le mode obstacle actif, on
+    // compte l'obstacle et on rouvre la boîte pour le suivant (étape D).
+    // Le type vient d'être mémorisé dans localStorage : la boîte le
+    // pré-surligne pour enchaîner plusieurs obstacles du même type.
+    if (APP.obstacleLoopMode) {
+      APP.obstacleLoopCount = (APP.obstacleLoopCount || 0) + 1;
+      APP.currentTraceMode = 'obstacle';
+      if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+      if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+      if (typeof reopenObstacleLoopModal === 'function') reopenObstacleLoopModal();
+      return;
+    }
+
+    // Hors boucle (ancien flux) : un obstacle est ponctuel.
     if (APP.currentTraceMode === 'obstacle') {
       APP.currentTraceMode = null;
       if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
     }
   }
+}
+
+// ─── MODE BOUCLE : TAP SUR LA CARTE ─────────────────────────
+// Un tap simple sur la carte enregistre l'obstacle du type en attente à
+// l'endroit pointé. Actif uniquement en mode boucle avec un type choisi :
+// le panoramique, le zoom et les popups ne sont pas modifiés.
+function initObstacleMapTap(leafletMap) {
+  if (!leafletMap || typeof leafletMap.on !== 'function') return;
+  if (leafletMap._obstacleTapBound) return;
+  leafletMap._obstacleTapBound = true;
+
+  // Un panoramique ou un zoom ne doit jamais enregistrer de point : on ignore
+  // un éventuel `click` émis juste après (tap fantôme en fin de geste).
+  let suppressUntil = 0;
+  const suppress = () => { suppressUntil = Date.now() + 350; };
+  leafletMap.on('dragstart', suppress);
+  leafletMap.on('zoomstart', suppress);
+
+  leafletMap.on('click', event => {
+    if (Date.now() < suppressUntil) return;
+    if (typeof APP === 'undefined' || !APP.obstacleLoopMode) return;
+    if (!APP.pendingObstacle) return;
+    if (document.body?.classList.contains('locked')) return;
+    if (!event || !event.latlng) return;
+
+    const pending = APP.pendingObstacle;
+    recordObstacle(pending.type, pending.icon, pending.name, {
+      lat: event.latlng.lat,
+      lon: event.latlng.lng,
+      source: 'manual',
+    });
+  });
 }
 
 // ─── CONSTRUCTION D'UN POINT ─────────────────────────────────

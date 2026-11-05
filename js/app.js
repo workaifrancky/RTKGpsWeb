@@ -9,6 +9,8 @@ const APP = {
   tracesMode:   'lecture',   // 'lecture' (consultation) | 'creation' (tracé)
   currentTraceMode: null,    // 'tonte' | 'interdit' | 'obstacle' | null
   pendingObstacle:  null,    // { type, icon, name } en attente de positionnement
+  obstacleLoopMode: false,   // boucle type → point → type (voir startObstacleLoop)
+  obstacleLoopCount: 0,      // obstacles enregistrés pendant la boucle en cours
   theme:        'light',
   glovesMode:   false,       // confort terrain (boutons agrandis, contraste renforcé)
   bleConnected: false,
@@ -550,19 +552,86 @@ function openObstacleMenu() {
     if (!activeType) APP.currentTraceMode = 'obstacle';
     if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   }
+  // Mode boucle : type → point → type. Le compteur repart de zéro pour cette
+  // session de pointage ; il est conservé jusqu'à « Terminer ».
+  startObstacleLoop();
   showObstacleModal();
 }
 
 // Affiche / masque uniquement la modale (aucun effet sur le mode de tracé).
-function showObstacleModal() {
+// `reopen` ajoute l'animation courte de réouverture automatique (150 ms).
+function showObstacleModal(reopen = false) {
   applyObstacleModalDefaults();
   const modal = document.getElementById('obstacleModal');
-  if (modal) modal.classList.add('show');
+  if (modal) {
+    modal.classList.toggle('is-loop-reopen', !!reopen);
+    modal.classList.add('show');
+  }
+  updateObstacleLoopUI();
 }
 
 function hideObstacleModal() {
   const modal = document.getElementById('obstacleModal');
-  if (modal) modal.classList.remove('show');
+  if (modal) {
+    modal.classList.remove('show');
+    modal.classList.remove('is-loop-reopen');
+  }
+}
+
+// ─── MODE BOUCLE OBSTACLE (type → point → type) ──────────────
+// Étape A : la boîte propose les types. Étape B : elle se ferme au choix du
+// type. Étape C : l'obstacle est pointé (tap sur la carte ou clic FAB).
+// Étape D : la boîte se rouvre pour le suivant, même type pré-surligné.
+// « Terminer » (ou Échap, ou le voile) sort du mode ; les obstacles déjà
+// pointés sont conservés.
+function startObstacleLoop() {
+  if (typeof APP === 'undefined') return;
+  if (!APP.obstacleLoopMode) APP.obstacleLoopCount = 0;
+  APP.obstacleLoopMode = true;
+  updateObstacleLoopUI();
+}
+
+function stopObstacleLoop(notify = true) {
+  if (typeof APP === 'undefined') return;
+  const total = APP.obstacleLoopCount || 0;
+  const wasLooping = !!APP.obstacleLoopMode;
+
+  APP.obstacleLoopMode = false;
+  APP.obstacleLoopCount = 0;
+  APP.pendingObstacle = null;
+  if (APP.currentTraceMode === 'obstacle') APP.currentTraceMode = null;
+  APP.tracesMode = 'lecture';
+
+  hideObstacleModal();
+  updateObstacleLoopUI();
+  if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
+  if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
+  if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+
+  if (notify && wasLooping && total > 0) {
+    showToast(`Mode obstacle terminé — ${total} obstacle(s) enregistré(s)`, 'info', 3000);
+  }
+}
+
+// Barre de sortie de la modale : compteur + bouton « Terminer ».
+function updateObstacleLoopUI() {
+  const bar = document.getElementById('obstacleLoopBar');
+  const count = document.getElementById('obstacleLoopCount');
+  const looping = typeof APP !== 'undefined' && !!APP.obstacleLoopMode;
+  const total = (typeof APP !== 'undefined' && APP.obstacleLoopCount) || 0;
+  if (bar) bar.hidden = !looping;
+  if (count) count.textContent = `${total} obstacle(s) enregistré(s)`;
+}
+
+// Étape D : rouverte automatique après un enregistrement. Différée d'un tick
+// pour laisser le geste en cours se terminer (le tap sur la carte ne doit pas
+// refermer la boîte via le voile).
+function reopenObstacleLoopModal() {
+  if (typeof APP === 'undefined' || !APP.obstacleLoopMode) return;
+  setTimeout(() => {
+    if (typeof APP === 'undefined' || !APP.obstacleLoopMode) return;
+    showObstacleModal(true);
+  }, 0);
 }
 
 // Échap ferme la modale « Type d'obstacle ». Les modales prioritaires
@@ -583,7 +652,13 @@ function initObstacleModal() {
 }
 
 // Fermeture « annulation » : masque la modale ET libère le type obstacle.
+// En mode boucle, fermer la boîte (Échap, voile, changement d'onglet) sort du
+// mode : les obstacles déjà pointés sont conservés.
 function closeObstacleMenu(preserveCreation = false) {
+  if (typeof APP !== 'undefined' && APP.obstacleLoopMode) {
+    stopObstacleLoop();
+    return;
+  }
   hideObstacleModal();
   if (typeof APP !== 'undefined'
       && (APP.currentTraceMode === 'obstacle' || APP.pendingObstacle)) {
@@ -597,7 +672,8 @@ function closeObstacleMenu(preserveCreation = false) {
 
 // Choix du type dans la modale : mémorise le type, ferme la modale et laisse le
 // mode obstacle actif (croix de visée + FAB jaune). L'obstacle n'est PAS
-// enregistré ici : la validation se fait au clic sur le FAB.
+// enregistré ici : le pointage (tap carte ou clic FAB) le valide, puis la
+// boîte se rouvre en mode boucle.
 function selectObstacleType(type, icon) {
   // Sécurité supplémentaire si le menu était ouvert hors du flux normal :
   // un obstacle ne peut pas être créé au milieu d'une zone.
@@ -619,8 +695,14 @@ function selectObstacleType(type, icon) {
   if (typeof updateTraceTypeUI === 'function') updateTraceTypeUI();
   if (typeof syncTracesModeUI === 'function') syncTracesModeUI();
   if (typeof syncTraceFabUI === 'function') syncTraceFabUI();
+
   // Libellé affiché (« Divers » pour le sous-type stocké « Perso »).
-  showToast(`Obstacle « ${getObstacleTypeLabel(type)} » — placez la cible puis touchez le FAB`, 'info', 3200);
+  const label = getObstacleTypeLabel(type);
+  if (typeof APP !== 'undefined' && APP.obstacleLoopMode) {
+    showToast(`Obstacle « ${label} » — touchez la carte (ou le FAB)`, 'info', 2400);
+  } else {
+    showToast(`Obstacle « ${label} » — placez la cible puis touchez le FAB`, 'info', 3200);
+  }
 }
 
 // ─── MODAL NOUVEAU PROJET ────────────────────────────────────

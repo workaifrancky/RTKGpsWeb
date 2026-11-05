@@ -99,6 +99,11 @@ function initMap() {
   map.on('dragstart', disableGpsFollow);
   map.on('zoomend', syncZoneLabelVisibility);
 
+  // Mode boucle obstacle : un tap simple sur la carte enregistre l'obstacle du
+  // type en attente, à l'endroit pointé (handler dans js/points.js). Ignoré
+  // hors du mode boucle : aucun autre geste de la carte n'est modifié.
+  if (typeof initObstacleMapTap === 'function') initObstacleMapTap(map);
+
   // Marqueur station NTRIP sélectionnée
   L.circleMarker([centerLat,centerLon],{
     radius:6, fillColor:'#fff', color:'#888', weight:2, fillOpacity:1
