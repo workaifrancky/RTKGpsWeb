@@ -269,8 +269,14 @@ header {
   line-height:    1;
   text-transform: uppercase;
   white-space:    nowrap;
-  color:          inherit;
-  opacity:        0.75;
+  /* Blanc sur le fond vert du header (même exception documentée que
+     `.logo-text` : `--color-white` devient une surface sombre en thème nuit). */
+  color:          #fff;
+  /* Opacité pleine + ombre : le sous-titre se détache du fond vert du header
+     (valeur littérale de repli, puis token). */
+  opacity:        1;
+  text-shadow:    0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow:    var(--text-shadow-subtitle, 0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 /* 3. Bandeau bas : pastille FIX (gauche) + boutons Thème / BLE (droite). */
@@ -1646,8 +1652,7 @@ body.gloves-mode .trace-fab-stakeout {
   min-height: 56px;
 }
 
-body.gloves-mode .map-float-btn,
-body.gloves-mode .map-lock-btn {
+body.gloves-mode .map-float-btn {
   width:      52px;
   height:     52px;
   min-height: 52px;

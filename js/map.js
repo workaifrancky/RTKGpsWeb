@@ -618,9 +618,11 @@ function refreshMapToolsPanel() {
     grabber.setAttribute('aria-expanded', mapToolsOpen ? 'true' : 'false');
     grabber.setAttribute('aria-label', label);
     grabber.setAttribute('title', label);
+    // Panneau à GAUCHE : fermé, le chevron pointe vers la droite (on ouvre vers
+    // la droite) ; ouvert, il pointe vers la gauche (on referme vers la gauche).
     const icon = mapToolsOpen
-      ? (typeof ICON_CHEVRON_RIGHT !== 'undefined' ? ICON_CHEVRON_RIGHT : '')
-      : (typeof ICON_CHEVRON_LEFT !== 'undefined' ? ICON_CHEVRON_LEFT : '');
+      ? (typeof ICON_CHEVRON_LEFT !== 'undefined' ? ICON_CHEVRON_LEFT : '')
+      : (typeof ICON_CHEVRON_RIGHT !== 'undefined' ? ICON_CHEVRON_RIGHT : '');
     if (icon) grabber.innerHTML = icon;
   }
 }

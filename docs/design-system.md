@@ -168,7 +168,10 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   `line-height: 1`) : **typographie harmonisée avec l'écran d'accueil** (3.99). `.logo-text`
   reprend `.welcome-title` (Arial Black, 900, `letter-spacing: 1px`, `line-height: 1`) et
   `.header-subtitle` reprend `.welcome-subtitle` (police héritée du body, 700, capitales,
-  interlettrage, `opacity: 0.75`). Centré entre le rover et la roue dentée
+  interlettrage) mais en **blanc** (`color: #fff`), `opacity: 1` et avec
+  `text-shadow: var(--text-shadow-subtitle, 0 1px 2px rgba(0,0,0,0.5))` (4.02) : il héritait
+  sinon de la couleur sombre du body et restait peu lisible sur le vert. Centré entre le rover
+  et la roue dentée
   (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`). **Replis systématiques (3.96)** :
   `font-size: 22px` puis `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
   `text-shadow: 0 2px 4px rgba(0,0,0,0.3)` puis
@@ -383,28 +386,31 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 
 ### Modes et plein écran carte
 
-- **Panneau latéral des outils de la carte (4.01)** : `#mapToolsPanel` (`.map-tools-panel`,
-  `position: absolute` dans `#map-points-slot`, `top: 164px` — sous le cadenas —, `right: 10px`,
+- **Panneau latéral des outils de la carte (4.01, à GAUCHE depuis 4.02)** : `#mapToolsPanel`
+  (`.map-tools-panel`, `position: absolute` dans `#map-points-slot`, `top: 164px`, **`left: 10px`**,
   largeur 60 px, `padding: 8px`, fond `--color-white`, `--shadow-lg`, rayon `--radius-lg`,
   `z-index: 1001`) regroupe **sept boutons** `.map-float-btn` de 44 px : `#btnMapZoomIn`,
   `#btnMapZoomOut` (icônes Lucide `zoom-in` / `zoom-out` ; le contrôle zoom de Leaflet a été
   retiré, `L.map(…, { zoomControl: false })`), `#btnBaseRelief` / `#btnBaseSatellite` (`map` /
   `satellite`), `#btnMapCenter` (`crosshair`), `#btnFollowGps` (`navigation`, état `.active` /
   `aria-pressed` tenu par `updateGpsFollowControl()`) et `#btnMapFullscreen`
-  (`maximize` / `minimize`). Replié, il est translaté hors écran
-  (`translateX(calc(100% + 20px))`, `opacity: 0`, `pointer-events: none`) ; `.is-open` le ramène
+  (`maximize` / `minimize`). Replié, il est translaté hors écran **à gauche**
+  (`translateX(calc(-100% - 20px))`, `opacity: 0`, `pointer-events: none`) ; `.is-open` le ramène
   (`transform: translateX(0)`), transition 0,18 s neutralisée en `prefers-reduced-motion`.
 - `.map-tools-grabber` (`#mapToolsGrabber`) : languette semi-transparente (`rgba(255,255,255,0.8)`,
-  filet `--border`, `--shadow-sm`, 16 × 46 px, rayon à gauche) collée au bord droit et centrée
-  verticalement (`top: 50%`, `translateY(-50%)`, `z-index: 1002`). Chevron `chevron-left` fermé /
-  `chevron-right` ouvert (`ICON_CHEVRON_LEFT` / `ICON_CHEVRON_RIGHT` de `js/app.js`) ; ouverte,
-  elle glisse sur le bord gauche du panneau (`body.map-tools-open .map-tools-grabber { right: 70px }`)
-  et reste cliquable pour refermer. Fermeture aussi au **clic sur la carte** (`map.on('click',
+  filet `--border`, `--shadow-sm`, 16 × 46 px, arrondie à droite) collée au **bord gauche** et
+  centrée verticalement (`top: 50%`, `translateY(-50%)`, `z-index: 1002`). Chevron
+  **`chevron-right` fermé** (on ouvre vers la droite) / **`chevron-left` ouvert** (on referme vers
+  la gauche) — `ICON_CHEVRON_RIGHT` / `ICON_CHEVRON_LEFT` de `js/app.js` ; ouverte, elle glisse sur
+  le bord droit du panneau (`body.map-tools-open .map-tools-grabber { left: 70px }`) et reste
+  cliquable pour refermer. Fermeture aussi au **clic sur la carte** (`map.on('click',
   closeMapToolsPanel)`) et par **Échap**. `openMapToolsPanel()` / `closeMapToolsPanel()` appellent
   `refreshMapSize()` (`map.invalidateSize()`).
-- `.map-lock-control` (`#btnLock`, 44 px, `top: 110px`, `right: 10px`, `z-index: 1000`) reste
-  **hors du panneau**, au-dessus de lui : le verrouillage est toujours accessible, panneau ouvert
-  ou fermé. Le FAB d'enregistrement reste centré en bas, indépendant du panneau.
+- **Verrouillage dans le header (4.02)** : `#btnLock` (`.header-icon-btn`, 44 × 44 px, icônes
+  Lucide `lock` / `unlock` injectées par `setScreenLock()`) est le **2e bouton** de
+  `.header-actions-group`, juste avant `#btnTheme`. `.map-lock-control` n'existe plus : la carte
+  n'affiche plus aucun bouton flottant. Le FAB d'enregistrement reste centré en bas.
+  **Limite** : en plein écran carte (header masqué) le verrouillage n'est plus accessible.
 - **Header non compressible** : `header { flex-shrink: 0 }` — sans cette règle, le header
   (flex item de `.app-wrapper`) était écrasé de 110 → 85 px sur HISTORIQUE et ses deux lignes
   débordaient sur le contenu.

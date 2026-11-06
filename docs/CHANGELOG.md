@@ -6,6 +6,21 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Panneau d'outils à gauche, sous-titre lisible, cadenas dans le header
+
+### Modifié
+
+- **Panneau latéral déplacé à GAUCHE** (`css/map.css`, `js/map.js`) : `.map-tools-panel` en `left: 10px` avec `transform: translateX(calc(-100% - 20px))` replié (il s'ouvre de gauche à droite), `.map-tools-grabber` collée au bord gauche (`left: 0`, arrondi à droite) qui glisse à `left: 70px` panneau ouvert. **Chevrons inversés** : `chevron-right` fermé (on ouvre vers la droite), `chevron-left` ouvert (on referme vers la gauche).
+- **Sous-titre du header plus lisible** (`css/main.css`, `css/design-tokens.css`) : `.header-subtitle` passe en `opacity: 1`, `color: #fff` (il héritait de la couleur sombre du body) avec `text-shadow: var(--text-shadow-subtitle, 0 1px 2px rgba(0,0,0,0.5))` — nouveau token `--text-shadow-subtitle`.
+- **Cadenas déplacé dans le header** (`index.html`, `css/map.css`, `css/main.css`) : `#btnLock` quitte la carte (`.map-lock-control` supprimé) et rejoint `.header-actions-group` **avant `#btnTheme`**, en `.header-icon-btn` (44 × 44, icônes Lucide `lock` / `unlock` toujours injectées par `setScreenLock()`). Le groupe d'actions fait 200 px : aucun débordement du header.
+- `index.html` : cache-busting passé à `?v=4.02` (CSS + JS locaux).
+
+### Notes
+
+- Mesures Chrome/CDP (390 × 844) : fermé → panneau `translateX(-80px)` / `opacity: 0`, languette 16 × 46 à `x = 0` (chevron droite) ; ouvert → panneau 60 × 360 à `x = 10`, languette à `x = 70` (chevron gauche) ; sous-titre `opacity: 1` + ombre `rgba(0, 0, 0, 0.5) 0px 1px 2px` ; cadenas 44 × 44 dans `.header-actions-group` (boutons : collapse, lock, theme, ble) ; verrouillage `body.locked` + icône `unlock` + `aria-pressed="true"`, déverrouillage inverse ; zoom `17 → 18`, satellite `.active` ; header rétractable toujours fonctionnel (52 px, cadenas visible) ; captures (panneau ouvert à gauche, header zoomé).
+- `node --check js/app.js js/map.js` OK ; accolades CSS 58/58 (map) · 238/238 (main) · 410/410 · 141/141 · 1/1 ; `div` 172/172, `button` 63/63 ; aucun commit ni push.
+- **Limite connue** : le cadenas étant désormais dans le header, il n'est plus accessible en **plein écran carte** (le header y est masqué).
+
 ## [2026-11-06] — Panneau latéral rétractable des outils de la carte
 
 ### Ajouté

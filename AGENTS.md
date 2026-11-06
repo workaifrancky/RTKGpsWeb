@@ -220,7 +220,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
      harmonisée avec l'écran d'accueil** (3.99) : `.logo-text` reprend `.welcome-title`
      (Arial Black, `font-weight: 900`, `letter-spacing: 1px`, `line-height: 1`) et
      `.header-subtitle` reprend `.welcome-subtitle` (police héritée du body, 700, capitales,
-     interlettrage, `opacity: 0.75`), avec des tailles adaptées à la largeur du header.
+     interlettrage), avec des tailles adaptées à la largeur du header. Depuis la 4.02 il est
+     **blanc** (`color: #fff`, même exception que `.logo-text`), `opacity: 1` et porte
+     `text-shadow: var(--text-shadow-subtitle, 0 1px 2px rgba(0,0,0,0.5))` : sans cela il héritait
+     de la couleur sombre du body et restait peu lisible sur le vert.
      `.header-title` est en `text-align: center`, `line-height: 1`, `top: 24px`, centré entre le
      rover et la roue dentée (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`, `z-index: 2`).
      **Replis obligatoires** (3.96) pour les navigateurs anciens et les feuilles en cache :
@@ -246,8 +249,10 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
      ouvre le panneau de connexion ;
   4. `.header-bottom-band` — bandeau bas (`bottom: 6px`, `left/right: 12px`, `z-index: 2`) :
      pastille `#headerGpsStatus` **compacte** à gauche (`flex: 0 0 auto`) puis
-     `.header-actions-group` à droite (`#btnTheme` puis `#btnBle`, tous deux `.header-icon-btn`,
-     `bluetooth` / `bluetooth-off` en `currentColor`).
+     `.header-actions-group` à droite : `#btnHeaderCollapse` (chevron), **`#btnLock`** (cadenas,
+     déplacé de la carte vers le header en 4.02, icônes `lock` / `unlock` injectées par
+     `setScreenLock()`), `#btnTheme` puis `#btnBle` — tous `.header-icon-btn`, en `currentColor`.
+     Conséquence : en **plein écran carte** (header masqué) le verrouillage n'est plus accessible.
 
   **Tout nouvel enfant direct de `<header>` doit être positionné en absolu** : sans cela il
   retombe dans le flux, en haut à gauche (c'était le bug de la roue dentée après l'intégration).
@@ -2097,33 +2102,61 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   accolades CSS 238/238 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173, `span` 78/78,
   `button` 58/58.
 
-- **Panneau latéral des outils de la carte (4.01)** : la carte n'a **plus aucun contrôle sur son
-  bord gauche**. `#mapToolsPanel` (`.map-tools-panel`, `top: 164px`, `right: 10px`, 60 px de large,
-  fond `--color-white`, `--shadow-lg`, rayon `--radius-lg`, `z-index: 1001`) contient sept boutons
-  `.map-float-btn` (44 px) : `#btnMapZoomIn` / `#btnMapZoomOut` (le **contrôle zoom de Leaflet est
-  retiré** : `L.map(…, { zoomControl: false })` + `mapZoomIn()` / `mapZoomOut()`), `#btnBaseRelief`
-  / `#btnBaseSatellite`, `#btnMapCenter` (`centerMapOnGps()`), `#btnFollowGps`
-  (`toggleGpsFollow()`, état tenu par `updateGpsFollowControl()` via l'id) et `#btnMapFullscreen`.
+- **Panneau latéral des outils de la carte (4.01, déplacé à GAUCHE en 4.02)** : la carte n'a
+  **aucun contrôle sur ses bords**. `#mapToolsPanel` (`.map-tools-panel`, `top: 164px`,
+  **`left: 10px`**, 60 px de large, fond `--color-white`, `--shadow-lg`, rayon `--radius-lg`,
+  `z-index: 1001`) contient sept boutons `.map-float-btn` (44 px) : `#btnMapZoomIn` /
+  `#btnMapZoomOut` (le **contrôle zoom de Leaflet est retiré** : `L.map(…, { zoomControl: false })`
+  + `mapZoomIn()` / `mapZoomOut()`), `#btnBaseRelief` / `#btnBaseSatellite`, `#btnMapCenter`
+  (`centerMapOnGps()`), `#btnFollowGps` (`toggleGpsFollow()`, état tenu par
+  `updateGpsFollowControl()` via l'id) et `#btnMapFullscreen`. Replié :
+  `transform: translateX(calc(-100% - 20px))` (hors écran à gauche), `opacity: 0`,
+  `pointer-events: none` ; `.is-open` le ramène (`translateX(0)`), transition 0,18 s neutralisée
+  en `prefers-reduced-motion`.
   Il est ouvert/fermé par la **languette** `#mapToolsGrabber` (`.map-tools-grabber`, 16 × 46 px,
-  `rgba(255,255,255,0.8)`, `--shadow-sm`, collée au bord droit et centrée verticalement,
-  `z-index: 1002`) : `toggleMapToolsPanel()` → `openMapToolsPanel()` / `closeMapToolsPanel()`
-  posent `.is-open` sur le panneau et `body.map-tools-open` (qui fait glisser la languette à
-  `right: 70px`, sur le bord gauche du panneau, avec un chevron inversé
-  `ICON_CHEVRON_RIGHT`) ; `refreshMapSize()` recale Leaflet. Fermeture aussi au **clic sur la
-  carte** (`map.on('click', closeMapToolsPanel)`) et par **Échap**. Le contrôle GPS Leaflet
-  (`bottomleft`/`bottomright`) et `ensureGpsControlPosition()` sont **supprimés**.
-  Le verrouillage (`#btnLock`, `top: 110px`, `right: 10px`, `z-index: 1000`) reste **au-dessus**
-  du panneau, et le FAB d'enregistrement centré en bas, hors du panneau.
-  Vérifié sous Chrome/CDP (390 × 844) : fermé → panneau `opacity: 0` / `pointer-events: none`,
-  languette 16 × 46 à `x = 374` (bord droit), chevron gauche, `aria-expanded="false"` ; ouvert →
-  panneau 60 × 360 à `x = 320` (dans l'écran), languette à `x = 304`, chevron droite,
-  `aria-expanded="true"` ; zoom `17 → 18 → 17` ; `#btnBaseSatellite` devient `.active` ;
-  « Centrage » affiche « Aucune position GPS disponible » (sans GPS) ; « Suivi » bascule
-  `.active` / `aria-pressed` ; clic sur la carte → panneau refermé et languette revenue à
-  `x = 374` ; **header rétractable toujours fonctionnel** (121 → 52 px) ; aucun
-  `.leaflet-control-zoom`, `.map-floating-controls` ni `.map-gps-control` dans le DOM ;
-  captures des deux états. `node --check js/app.js js/map.js` OK ; accolades CSS 60/60 (map) ·
-  238/238 (main) · 410/410 · 141/141 · 1/1 ; `div`, `span`, `button` équilibrés.
+  `rgba(255,255,255,0.8)`, `--shadow-sm`, collée au **bord gauche** et centrée verticalement,
+  `z-index: 1002`, arrondie à droite) : `toggleMapToolsPanel()` → `openMapToolsPanel()` /
+  `closeMapToolsPanel()` posent `.is-open` sur le panneau et `body.map-tools-open` (qui fait
+  glisser la languette à `left: 70px`, sur le bord droit du panneau). **Chevrons inversés** :
+  `ICON_CHEVRON_RIGHT` fermé (on ouvre vers la droite), `ICON_CHEVRON_LEFT` ouvert (on referme
+  vers la gauche). `refreshMapSize()` recale Leaflet. Fermeture aussi au **clic sur la carte**
+  (`map.on('click', closeMapToolsPanel)`) et par **Échap**. Le contrôle GPS Leaflet
+  (`bottomleft`/`bottomright`) et `ensureGpsControlPosition()` sont **supprimés** ; le
+  verrouillage est dans le header (voir couche 4) et le FAB d'enregistrement reste centré en bas.
+  Vérifié sous Chrome/CDP (390 × 844) : fermé → panneau `opacity: 0` / `pointer-events: none` /
+  `translateX(-80px)`, languette 16 × 46 à **`x = 0`** (bord gauche), chevron **droite**,
+  `aria-expanded="false"` ; ouvert → panneau 60 × 360 à **`x = 10`**, languette à **`x = 70`**,
+  chevron **gauche**, `aria-expanded="true"` ; zoom `17 → 18` ; `#btnBaseSatellite` devient
+  `.active` ; **cadenas dans le header** : `body.locked` + icône `unlock` + `aria-pressed="true"`
+  au clic, retour à `lock` au déverrouillage ; **header rétractable toujours fonctionnel**
+  (121 → 52 px, cadenas visible) ; aucun `.leaflet-control-zoom`, `.map-floating-controls`,
+  `.map-gps-control` ni `.map-lock-control` dans le DOM ; captures des deux états.
+  `node --check js/app.js js/map.js` OK ; accolades CSS 58/58 (map) · 238/238 (main) · 410/410 ·
+  141/141 · 1/1 ; `div` 172/172, `button` 63/63.
+
+- **4.02 — Panneau d'outils à gauche, sous-titre lisible, cadenas dans le header** : trois
+  ajustements d'ergonomie.
+  1. Le panneau latéral passe du bord **droit** au bord **gauche** : `.map-tools-panel` en
+     `left: 10px` avec `transform: translateX(calc(-100% - 20px))` replié (ouverture de gauche à
+     droite), `.map-tools-grabber` en `left: 0` (arrondi à droite, `border-left: none`) qui glisse
+     à `left: 70px` panneau ouvert, et **chevrons inversés** (`ICON_CHEVRON_RIGHT` fermé,
+     `ICON_CHEVRON_LEFT` ouvert).
+  2. `.header-subtitle` : `opacity: 1`, `color: #fff` (il héritait de la couleur sombre du body)
+     et `text-shadow: var(--text-shadow-subtitle, 0 1px 2px rgba(0,0,0,0.5))` (nouveau token dans
+     `css/design-tokens.css`) — lisible sur le vert du header.
+  3. `#btnLock` quitte la carte (`.map-lock-control` supprimé) et rejoint `.header-actions-group`
+     **avant `#btnTheme`**, en `.header-icon-btn` (44 × 44, icônes `lock` / `unlock` toujours
+     injectées par `setScreenLock()`). Le groupe fait 200 px, aucun débordement du header.
+  Vérifié sous Chrome/CDP (390 × 844) : fermé → panneau `translateX(-80px)` / `opacity: 0`,
+  languette à `x = 0` (chevron droite) ; ouvert → panneau à `x = 10`, languette à `x = 70`
+  (chevron gauche) ; sous-titre `opacity: 1` + ombre `rgba(0, 0, 0, 0.5) 0px 1px 2px` ; cadenas
+  44 × 44 dans `.header-actions-group` (boutons : collapse, lock, theme, ble) ; verrouillage
+  `body.locked` + icône `unlock` + `aria-pressed="true"`, déverrouillage inverse ; zoom
+  `17 → 18`, satellite `.active` ; header rétractable toujours OK (52 px, cadenas visible) ;
+  captures (panneau ouvert à gauche, header zoomé). `node --check js/app.js js/map.js` OK ;
+  accolades CSS 58/58 (map) · 238/238 (main) · 410/410 · 141/141 · 1/1 ; `div` 172/172,
+  `button` 63/63. **Limite connue** : le cadenas étant dans le header, il n'est plus accessible
+  en plein écran carte (header masqué).
 
 ## 9. Langue et communication
 

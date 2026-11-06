@@ -32,14 +32,14 @@
   min-height: 0;
 }
 
-/* ─── PANNEAU LATÉRAL DES OUTILS DE LA CARTE (bord droit) ──── */
+/* ─── PANNEAU LATÉRAL DES OUTILS DE LA CARTE (bord GAUCHE) ─── */
 /* Panneau rétractable ouvert par la languette `#mapToolsGrabber` : la carte est
-   entièrement dégagée (plus aucun rail à gauche). Le cadenas (#btnLock) reste
-   au-dessus du panneau et le FAB d'enregistrement en est indépendant. */
+   entièrement dégagée (aucun contrôle sur ses bords). Le cadenas est dans le
+   header et le FAB d'enregistrement reste centré en bas. */
 .map-tools-panel {
   position:       absolute;
-  top:            164px;   /* sous le cadenas (110 + 44 + 10) */
-  right:          10px;
+  top:            164px;
+  left:           10px;
   display:        flex;
   flex-direction: column;
   gap:            6px;
@@ -50,8 +50,8 @@
   background:     var(--color-white);
   box-shadow:     var(--shadow-lg);
   z-index:        1001;
-  /* Replié : hors de l'écran vers la droite, non interactif. */
-  transform:      translateX(calc(100% + 20px));
+  /* Replié : hors de l'écran vers la GAUCHE, non interactif. */
+  transform:      translateX(calc(-100% - 20px));
   opacity:        0;
   pointer-events: none;
   transition:     transform 0.18s ease, opacity 0.18s ease;
@@ -63,13 +63,13 @@
   pointer-events: auto;
 }
 
-/* Languette semi-transparente collée au bord droit, centrée verticalement.
+/* Languette semi-transparente collée au bord GAUCHE, centrée verticalement.
    Elle reste visible quand le panneau est ouvert (le chevron s'inverse) et
    glisse avec lui pour rester à portée de doigt. */
 .map-tools-grabber {
   position:      absolute;
   top:           50%;
-  right:         0;
+  left:          0;
   transform:     translateY(-50%);
   display:       flex;
   align-items:   center;
@@ -78,14 +78,14 @@
   min-height:    46px;
   padding:       0;
   border:        1px solid var(--border);
-  border-right:  none;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-left:   none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   background:    rgba(255, 255, 255, 0.8);
   color:         var(--color-primary-deep);
   box-shadow:    var(--shadow-sm);
   cursor:        pointer;
   z-index:       1002;
-  transition:    right 0.18s ease, background-color 0.15s ease;
+  transition:    left 0.18s ease, background-color 0.15s ease;
 }
 
 .map-tools-grabber svg {
@@ -102,24 +102,17 @@
   outline-offset: 2px;
 }
 
-/* Panneau ouvert : la languette se place sur son bord gauche (60 px de large
-   + 10 px de marge droite). */
-body.map-tools-open .map-tools-grabber { right: 70px; }
+/* Panneau ouvert : la languette se place sur son bord droit (60 px de large
+   + 10 px de marge gauche). */
+body.map-tools-open .map-tools-grabber { left: 70px; }
 
 @media (prefers-reduced-motion: reduce) {
   .map-tools-panel,
   .map-tools-grabber { transition: none; }
 }
 
-/* Verrouillage d'écran : bouton flottant à droite, hors du rail gauche. */
-.map-lock-control {
-  position: absolute;
-  top:      110px;
-  right:    10px;
-  z-index:  1000;
-}
-
-.map-lock-btn { font-size: 18px; }
+/* Le verrouillage d'écran (#btnLock) est désormais dans le header
+   (`.header-actions-group`) : plus aucun bouton flottant sur la carte. */
 
 .map-float-btn {
   display:         inline-flex;

@@ -40,6 +40,8 @@
   --shadow-lg: 0 4px 12px rgba(0,0,0,0.18);
   /* Ombre portée du texte blanc du header : détache « MOWER SURVEY » du logo. */
   --text-shadow-header: 0 2px 4px rgba(0,0,0,0.3);
+  /* Ombre du sous-titre du header : le rend lisible sur le fond vert. */
+  --text-shadow-subtitle: 0 1px 2px rgba(0,0,0,0.5);
 
   /* Espacements */
   --spacing-xs: 4px;
