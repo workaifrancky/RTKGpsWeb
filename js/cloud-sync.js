@@ -540,10 +540,16 @@ function renderCloudUi() {
 
   if (email) email.textContent = connected ? (cloudUser.email || cloudUser.uid) : 'Aucun compte';
   if (authBtn) {
-    authBtn.textContent = connected ? 'Se déconnecter' : 'Se connecter';
-    authBtn.setAttribute('aria-label', connected
+    // Action discrète : icône Lucide `log-out` + libellé quand un compte est
+    // actif, libellé seul sinon (l'icône vient de js/app.js, chargé avant).
+    const icon = connected && typeof ICON_LOG_OUT !== 'undefined' ? ICON_LOG_OUT : '';
+    authBtn.innerHTML = `${icon}<span class="cloud-sync-btn-label">`
+      + `${connected ? 'Se déconnecter' : 'Se connecter'}</span>`;
+    const label = connected
       ? 'Se déconnecter du compte cloud'
-      : 'Se connecter au compte cloud');
+      : 'Se connecter au compte cloud';
+    authBtn.setAttribute('aria-label', label);
+    authBtn.setAttribute('title', label);
   }
   if (status) {
     status.textContent = cloudStatusDetail || CLOUD_STATUS_LABELS[cloudStatus] || '';
@@ -606,14 +612,37 @@ function togglePasswordVisibility() {
 }
 
 // ─── AUTHENTIFICATION (e-mail / mot de passe) ────────────────
+// Ferme le panneau Connexion avant d'afficher la modale de compte. Trois filets :
+// 1) le helper officiel (retire `.show`, le voile, `aria-expanded`, rend le focus),
+// 2) un retrait direct des classes si l'état avait dérivé,
+// 3) une trace console pour vérifier à chaud que le panneau est bien fermé.
+// La modale est en plus portée à z-index 5000 (css/main.css) : elle reste au
+// premier plan même si la roue dentée est rouverte ensuite.
+function closeConnectionPanelForAuth() {
+  if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
+
+  const menu = document.getElementById('headerMenu');
+  const overlay = document.getElementById('headerMenuOverlay');
+  if (menu) {
+    menu.classList.remove('show');
+    menu.setAttribute('aria-hidden', 'true');
+  }
+  if (overlay) {
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+  const trigger = document.getElementById('btnConnectionSettings');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+
+  return !(menu && menu.classList.contains('show'));
+}
+
 function openAuthModal() {
   const modal = document.getElementById('authModal');
   if (!modal) return;
 
-  // Le panneau Connexion (#headerMenu, z-index 4000) est AU-DESSUS des modales
-  // (z-index 1100) : sans cette fermeture, la modale s'ouvrait derrière lui et
-  // ses champs restaient incliquables (« Se connecter » semblait sans effet).
-  if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
+  const panelClosed = closeConnectionPanelForAuth();
+  console.log('[auth] openAuthModal — closeHeaderMenu() appelé, panneau fermé :', panelClosed);
 
   const error = document.getElementById('cloudAuthError');
   if (error) { error.textContent = ''; error.hidden = true; }

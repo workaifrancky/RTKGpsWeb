@@ -212,14 +212,15 @@ header {
 }
 
 /* 2. Titre : centré dans l'espace libre entre le rover (à gauche) et la roue
-      dentée (à droite), posé au-dessus de la couche logo. Les marges se
-      resserrent sur petit écran : « MOWER SURVEY » (12 caractères) est plus
-      long que l'ancien libellé et doit rester sur une seule ligne. */
+      dentée (à droite), posé au-dessus de la couche logo. `min()` conserve les
+      valeurs de référence (150 px à gauche, 60 px à droite) sur les écrans
+      courants et les resserre sur les très petits écrans pour que
+      « MOWER SURVEY » reste sur une seule ligne. */
 .header-title {
   position:       absolute;
-  top:            20px;
-  left:           min(180px, 44vw);
-  right:          min(60px, 14vw);
+  top:            24px;
+  left:           min(150px, 38vw);
+  right:          min(60px, 16vw);
   z-index:        2;
   text-align:     center;
   pointer-events: none;
@@ -227,13 +228,15 @@ header {
 
 .header-title .logo-text {
   font-family:    'Arial Black', 'Impact', sans-serif;
-  /* Taille calée sur la largeur disponible (20 px au plus) : 12 caractères
-     doivent tenir entre 360 px et 480 px de large. */
-  font-size:      clamp(12px, 4.3vw, 20px);
+  /* Plus grand qu'auparavant (24 px au plus) : le titre gagne en présence
+     entre le rover et la roue dentée. */
+  font-size:      clamp(14px, 4.5vw, 24px);
   font-weight:    900;
   letter-spacing: normal;
   white-space:    nowrap;
   color:          #fff;
+  /* Détache le texte du logo (valeur portée par un token). */
+  text-shadow:    var(--text-shadow-header);
 }
 
 /* 3. Bandeau bas : pastille FIX (gauche) + boutons Thème / BLE (droite). */
@@ -448,7 +451,28 @@ header #btnConnectionSettings {
 .header-menu-content {
   display:        flex;
   flex-direction: column;
-  gap:            14px;   /* deux blocs distincts : NTRIP / Affichage */
+  gap:            10px;   /* espace entre les cartes Connexion / Affichage / Données */
+}
+
+/* Carte de paramètres : regroupe les réglages d'un même thème. Fond légèrement
+   contrasté + filet : les cartes se détachent du panneau blanc et se
+   distinguent entre elles (aucune couleur codée en dur). */
+.menu-card {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  padding:        10px 10px 12px;
+  border:         1px solid var(--border);
+  border-radius:  var(--radius-lg);
+  background:     var(--color-bg-subtle);
+}
+
+.menu-card-title {
+  font-size:      10px;
+  font-weight:    800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color:          var(--text3);
 }
 
 .menu-row {
@@ -540,28 +564,38 @@ header #btnConnectionSettings {
 /* ─── SYNCHRONISATION CLOUD (panneau Connexion) ─────────────── */
 /* Ligne « Synchronisation » : libellé + pastille d'état (couleur portée par
    `data-state`, aucune couleur codée en dur) + bouton se connecter/déconnecter
-   sur la première ligne, puis l'adresse du compte sur une ligne dédiée.
-   L'e-mail ne doit JAMAIS être tronqué : la ligne passe à la ligne et le texte
-   se replie au lieu d'afficher une ellipse (il ne restait que 8 px avant). */
+   sur la première ligne, puis l'adresse du compte dans un bloc dédié.
+   L'e-mail ne doit JAMAIS être tronqué : il est dans un bloc `width: 100%`
+   (donc toujours sur sa propre ligne) et son texte se replie au lieu d'afficher
+   une ellipse (l'ancienne règle le réduisait à « wor… »). */
 #cloudSyncRow {
   flex-wrap:   wrap;
   column-gap:  8px;
   row-gap:     2px;
 }
 
-.cloud-sync-email {
-  flex:          1 1 100%;
-  min-width:     0;
+#cloudSyncRow .cloud-account {
+  display:    block;
+  flex:       1 1 100%;
+  width:      100%;
+  max-width:  100%;
+  min-width:  0;
+  margin-top: 4px;
+}
+
+.cloud-account-email {
+  display:       block;
   max-width:     100%;
   white-space:   normal;
-  overflow-wrap: anywhere;
-  word-break:    break-word;
   overflow:      visible;
   text-overflow: clip;
-  font-size:     12px;
-  font-weight:   700;
+  overflow-wrap: anywhere;
+  word-break:    break-word;
+  /* Adresse discrète : petite et grise, sous le lien de connexion. */
+  font-size:     11px;
+  font-weight:   600;
   line-height:   1.35;
-  color:         var(--text);
+  color:         var(--text3);
 }
 
 .cloud-sync-status {
@@ -587,23 +621,31 @@ header #btnConnectionSettings {
 #cloudSyncRow[data-state="offline"] .cloud-sync-status::before    { background: var(--color-warning-strong); }
 #cloudSyncRow[data-state="error"] .cloud-sync-status::before      { background: var(--color-danger); }
 
+/* Action de compte : lien discret (icône éventuelle + libellé), et non un
+   bouton plein. La cible tactile reste confortable (min-height 44 px hérité de
+   la règle globale `button`), seule l'apparence change. */
 .cloud-sync-btn {
-  flex:          0 0 auto;
-  min-height:    44px;
-  padding:       0 12px;
-  border:        1px solid var(--color-primary-light);
-  border-radius: 999px;
-  background:    var(--color-primary-pale-bg);
-  color:         var(--color-primary-deep);
-  font-family:   var(--font);
-  font-size:     12px;
-  font-weight:   800;
-  white-space:   nowrap;
-  cursor:        pointer;
-  transition:    var(--transition);
+  flex:                  0 0 auto;
+  display:               inline-flex;
+  align-items:           center;
+  gap:                   5px;
+  margin-left:           auto;
+  padding:               0 2px;
+  border:                none;
+  border-radius:         var(--radius-sm);
+  background:            transparent;
+  color:                 var(--color-primary);
+  font-family:           var(--font);
+  font-size:             11px;
+  font-weight:           800;
+  white-space:           nowrap;
+  text-decoration:       underline;
+  text-underline-offset: 2px;
+  cursor:                pointer;
+  transition:            var(--transition);
 }
 
-.cloud-sync-btn:hover  { filter: brightness(0.96); }
+.cloud-sync-btn:hover  { color: var(--color-primary-deep); }
 .cloud-sync-btn:active { transform: scale(0.98); }
 
 .cloud-sync-btn:focus-visible {
@@ -611,11 +653,17 @@ header #btnConnectionSettings {
   outline-offset: 2px;
 }
 
-[data-theme="dark"] .cloud-sync-btn {
-  border-color: var(--color-primary-accent);
-  background:   var(--color-bg-subtle);
-  color:        var(--color-primary-accent);
+/* Icône Lucide `log-out` (état connecté) : décorative, jamais cliquable seule. */
+.cloud-sync-btn svg {
+  display:        block;
+  flex-shrink:    0;
+  pointer-events: none;
 }
+
+.cloud-sync-btn-label { line-height: 1; }
+
+[data-theme="dark"] .cloud-sync-btn       { color: var(--color-primary-accent); }
+[data-theme="dark"] .cloud-sync-btn:hover { color: var(--color-primary-light); }
 
 /* ─── MODALE COMPTE CLOUD ───────────────────────────────────── */
 .cloud-auth-intro {
@@ -742,19 +790,22 @@ header #btnConnectionSettings {
   white-space:   nowrap;
 }
 
-/* Switch d'affichage (numéros des points) : bouton + piste + pastille.
-   L'état est porté par aria-checked, jamais par une classe de couleur. */
+/* Switch d'affichage (numéros des points, mode Gants/Soleil) : ligne complète
+   dans sa carte (icône + libellé + piste), piste agrandie pour un usage avec
+   des gants. L'état est porté par aria-checked, jamais par une classe de
+   couleur. */
 .menu-switch {
-  flex:          1 1 auto;
+  flex:          0 0 auto;
+  width:         100%;
   min-width:     0;
-  min-height:    44px;
+  min-height:    48px;
   display:       inline-flex;
   align-items:   center;
   gap:           10px;
   padding:       0 12px;
   border:        1px solid var(--border);
   border-radius: var(--radius-md);
-  background:    var(--color-bg-subtle);
+  background:    var(--color-white);
   color:         var(--text);
   font-family:   var(--font);
   font-size:     12px;
@@ -766,11 +817,24 @@ header #btnConnectionSettings {
 
 .menu-switch:hover { border-color: var(--color-primary-light); }
 
+/* Icône Lucide de la ligne (hash, sun) : décorative, prise dans le clic. */
+.menu-switch-icon {
+  display:     inline-flex;
+  flex:        0 0 auto;
+  color:       var(--color-primary);
+}
+
+.menu-switch-icon svg {
+  display:        block;
+  pointer-events: none;
+}
+
 .menu-switch-track {
   position:      relative;
   flex:          0 0 auto;
-  width:         40px;
-  height:        22px;
+  margin-left:   auto;      /* la piste reste collée à droite de la ligne */
+  width:         48px;
+  height:        28px;
   border-radius: 999px;
   background:    var(--color-bg-muted);
   transition:    background-color 0.18s ease;
@@ -780,8 +844,8 @@ header #btnConnectionSettings {
   position:      absolute;
   top:           3px;
   left:          3px;
-  width:         16px;
-  height:        16px;
+  width:         22px;
+  height:        22px;
   border-radius: 50%;
   background:    var(--color-white);
   box-shadow:    var(--shadow-sm);
@@ -793,7 +857,7 @@ header #btnConnectionSettings {
 }
 
 .menu-switch[aria-checked="true"] .menu-switch-knob {
-  transform: translateX(18px);
+  transform: translateX(20px);
 }
 
 .menu-switch-label {
@@ -1089,6 +1153,14 @@ header #btnConnectionSettings {
   opacity:    0;
   pointer-events: none;
   transition: opacity 0.25s;
+}
+
+/* La modale de compte doit rester AU PREMIER PLAN même si le panneau Connexion
+   (#headerMenu, z-index 4000) ou son voile (3999) sont ouverts : elle est donc
+   volontairement au-dessus (5000). `openAuthModal()` ferme en plus le panneau
+   avant de l'afficher (ceinture et bretelles). */
+#authModal {
+  z-index: 5000;
 }
 
 .modal-overlay.show {
@@ -1475,4 +1547,20 @@ body.gloves-mode .tab-text {
 body.gloves-mode .menu-switch-label,
 body.gloves-mode .drawer-project-name {
   font-size: 15px;
+}
+
+/* Gants / soleil : la piste du switch grandit avec les libellés
+   (48 × 28 → 56 × 32, pastille 26 px, course 24 px). */
+body.gloves-mode .menu-switch-track {
+  width:  56px;
+  height: 32px;
+}
+
+body.gloves-mode .menu-switch-knob {
+  width:  26px;
+  height: 26px;
+}
+
+body.gloves-mode .menu-switch[aria-checked="true"] .menu-switch-knob {
+  transform: translateX(24px);
 }

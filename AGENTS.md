@@ -216,9 +216,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   1. `.header-logo-layer` — logo vectoriel `assets/logo-rtk-mower.svg` (un seul `<path>`), bande
      de 65 px de haut sur toute la largeur, `preserveAspectRatio="xMidYMid slice"` (≈ 3 px
      rognés), en `fill="currentColor"` blanc, `aria-hidden="true"` (décoratif) ;
-  2. `.header-title` — `MOWER SURVEY` (`clamp(12px, 4.3vw, 20px)`, Arial Black, `nowrap`)
-     centré entre le rover et la roue dentée
-     (bloc `left: min(180px, 44vw)` / `right: min(60px, 14vw)`, `z-index: 2`) ;
+  2. `.header-title` — `MOWER SURVEY` (`clamp(14px, 4.5vw, 24px)`, Arial Black, `nowrap`,
+     `text-shadow: var(--text-shadow-header)`, `top: 24px`, `text-align: center`)
+     centré entre le rover et la roue dentée (`left: min(150px, 38vw)` /
+     `right: min(60px, 16vw)`, `z-index: 2` : 150 px / 60 px sur les écrans courants, `min()`
+     resserrant les marges sur les très petits écrans) ;
   3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
      cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
      `header #btnConnectionSettings { position: absolute !important; top: 6px; right: 12px; z-index: 3 }`,
@@ -235,18 +237,23 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `var(--color-primary-deep)` (aucun override en dur en thème nuit). Maintenance du logo : §10.
 
   Il remplace l'ancienne `#fixBar`. Le panneau `#headerMenu` — ouvert par
-  `toggleConnectionPanel()` → `toggleHeaderMenu()` — contient la station NTRIP avec
-  `#saveIndicator` (ligne 1), le switch `#btnPointNumbers` « Numéros des points » (ligne 2,
-  `role="switch"` + `aria-checked`) et la liste `#exportFormatSelect` « Format d'export »
-  (ligne 3 : GeoJSON / CSV / GPX, `rtkExportFormat`) : le thème et le BLE sont **dans le
-  header**, la parcelle courante **dans le menu FAB de TRACÉS**, ne pas les remettre dans le
-  menu (doublons d'ID interdits). Le panneau est organisé en **blocs séparés** (`gap`
-  14 px, `.menu-row-context` avec filet supérieur) : (1) NTRIP + `#saveIndicator` ;
-  (2) « Affichage » + switch `#btnPointNumbers` ; (3) « Format d'export » +
-  `#exportFormatSelect` ; (4) **uniquement si la file n'est pas vide**, « Hors-ligne » +
-  `#offlineQueueIndicator` (« N demande(s) en attente », bouton qui appelle
-  `processOfflineQueue()`). **Aucune ligne Parcelle** dans ce panneau : la parcelle est
-  uniquement dans la 1re ligne du menu FAB de TRACÉS (visible même sans parcelle).
+  `toggleConnectionPanel()` → `toggleHeaderMenu()` — est organisé en **trois cartes**
+  `.menu-card` (`gap` 10 px, fond `--color-bg-subtle`, filet `--border`, titre
+  `.menu-card-title` en capitales 10 px / 800) :
+  1. **Connexion** : station NTRIP + `#saveIndicator`, puis la ligne `#cloudSyncRow`
+     (`#cloudSyncStatus`, lien discret `#btnCloudAuth`, `#cloudSyncEmail` en 11 px `--text3`
+     sous le lien) ;
+  2. **Affichage** : deux interrupteurs pleine largeur `#btnPointNumbers` « Numéros des points »
+     (icône Lucide `hash`) et `#btnGlovesMode` « Mode Gants/Soleil » (icône `sun`),
+     `role="switch"` + `aria-checked`, piste `.menu-switch-track` de **48 × 28 px** (56 × 32 en
+     mode Gants) ;
+  3. **Données** : `#exportFormatSelect` (GeoJSON / CSV / GPX, `rtkExportFormat`) et,
+     **uniquement si la file n'est pas vide**, `#offlineQueueIndicator`
+     (« N demande(s) en attente », bouton qui appelle `processOfflineQueue()`).
+  Le thème et le BLE sont **dans le header**, la parcelle courante **dans le menu FAB de
+  TRACÉS**, ne pas les remettre dans le menu (doublons d'ID interdits). **Aucune ligne
+  Parcelle** dans ce panneau : la parcelle est uniquement dans la 1re ligne du menu FAB de
+  TRACÉS (visible même sans parcelle).
   `positionHeaderMenu()` (`js/app.js`) aligne le menu sous le header mesuré
   (`getBoundingClientRect()`) : ne pas revenir à un `top` fixe, la hauteur dépend des
   breakpoints et du `safe-area`. Le bouton « Connexion » porte une **icône SVG Lucide inline**
@@ -501,17 +508,28 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   sauvegarde au survol). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
-- **Panneau Connexion — bloc « Synchronisation » (3.93)** : la ligne `#cloudSyncRow` est en
-  `flex-wrap: wrap` ; le libellé, la pastille d'état (`#cloudSyncStatus`) et `#btnCloudAuth`
-  occupent la 1re ligne, et l'adresse du compte (`#cloudSyncEmail`, placée **après** le bouton
-  dans le DOM) occupe une **ligne dédiée** (`flex: 1 1 100%`, `white-space: normal`,
-  `overflow-wrap: anywhere`) : elle n'est **jamais tronquée** (l'ellipse la réduisait à 8 px
-  sur un écran de 390 px). `openAuthModal()` appelle `closeHeaderMenu()` **avant** d'afficher la
-  modale : le panneau est en `z-index` 4000 et les modales en 1100, sans quoi `#authModal`
-  s'ouvrait **derrière** le panneau et ses champs restaient incliquables (« Se connecter »
-  semblait sans effet). Le bouton « Se connecter » reste branché sur `toggleCloudAuth()`
-  (déconnexion quand un compte est actif), qui appelle `openAuthModal()` quand personne n'est
-  connecté.
+- **Panneau Connexion — bloc « Synchronisation » (3.93 → 3.95)** : la ligne `#cloudSyncRow`
+  (dans la carte `.menu-card` « Connexion ») est en `flex-wrap: wrap` ; le libellé, la pastille
+  d'état (`#cloudSyncStatus`) et `#btnCloudAuth` occupent la 1re ligne, puis l'adresse du
+  compte est dans un **bloc dédié** `div.cloud-account` (`display: block`, `width: 100%`,
+  `flex: 1 1 100%`, `margin-top: 4px`) qui contient
+  `#cloudSyncEmail.cloud-account-email` (`white-space: normal`, `overflow-wrap: anywhere`,
+  11 px / 600 `--text3`, **aucune ellipse**) : l'adresse est **toujours lisible en entier**, sur
+  une ou deux lignes (l'ancienne règle la réduisait à « wor… »). Le bloc et la classe sont
+  volontairement **nouveaux** pour qu'un ancien CSS en cache ne puisse pas réintroduire l'ellipse.
+  `#btnCloudAuth` est depuis la 3.95 un **lien discret** (`text-decoration: underline`, fond
+  transparent, sans bordure, 11 px / 800, `--color-primary`) : `renderCloudUi()`
+  (`js/cloud-sync.js`) y injecte `ICON_LOG_OUT` (Lucide `log-out`, 16 px, `js/app.js`) quand un
+  compte est actif, avec le libellé « Se déconnecter » ; la hauteur de la cible tactile reste
+  44 px (règle globale `button`).
+  `openAuthModal()` ferme le panneau via `closeConnectionPanelForAuth()` (appel de
+  `closeHeaderMenu()` + retrait direct de `.show` / `aria-hidden` + `aria-expanded=false`, puis
+  trace console `[auth] openAuthModal — closeHeaderMenu() appelé, panneau fermé : true`), et
+  `#authModal` est porté à **`z-index: 5000`** (`css/main.css`) : même si l'utilisateur rouvre la
+  roue dentée (panneau 4000, voile 3999) pendant que la modale est ouverte, celle-ci reste **au
+  premier plan** et ses champs restent cliquables. Le bouton « Se connecter » reste branché sur
+  `toggleCloudAuth()` (déconnexion quand un compte est actif), qui appelle `openAuthModal()`
+  quand personne n'est connecté.
 - **Synchronisation cloud (Firestore)** : `localStorage` reste la **source locale** (terrain
   sans réseau) ; Firestore synchronise les parcelles entre appareils. `js/firebase-config.js`
   porte `FIREBASE_CONFIG` (valeurs publiques) et `CLOUD_SYNC_ENABLED` ; `js/cloud-sync.js`
@@ -1894,6 +1912,59 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   cliquable `false` → `true`, œil `oeilDansLeChamp: true`, `type` `text` ↔ `password` et
   `aria-label` « Masquer / Afficher le mot de passe », traces console présentes, 2 captures
   d'écran de contrôle (e-mail sur 2 lignes, œil à droite dans le champ).
+
+- **3.94 — Modale de compte au premier plan (z-index 5000) et e-mail sur son propre bloc** :
+  deux régressions terrain après la 3.93.
+  1. La modale `#authModal` restait **derrière** le panneau Connexion quand la roue dentée était
+     rouverte pendant sa consultation (panneau 4000 / voile 3999 > modale 1100).
+     `#authModal` passe à **`z-index: 5000`** (`css/main.css`, juste après `.modal-overlay`) et
+     `openAuthModal()` ferme le panneau via le nouveau `closeConnectionPanelForAuth()`
+     (`closeHeaderMenu()` + retrait direct de `.show` sur `#headerMenu` et son voile,
+     `aria-hidden="true"`, `aria-expanded="false"` sur `#btnConnectionSettings`) puis trace
+     `[auth] openAuthModal — closeHeaderMenu() appelé, panneau fermé : true`.
+  2. L'e-mail restait affiché « wor… » : il est désormais dans un **bloc dédié**
+     `div.cloud-account` (`display: block`, `width: 100%`, `flex: 1 1 100%`, `margin-top: 4px`)
+     et la classe du texte devient **`.cloud-account-email`** (`white-space: normal`,
+     `overflow-wrap: anywhere`, `text-overflow: clip`, 12 px / 700) : l'ancienne règle
+     `.cloud-sync-email` (ellipse) n'existe plus, et un CSS en cache ne peut plus s'appliquer
+     puisque le nom de classe a changé.
+  Vérifié : `node --check js/cloud-sync.js` OK ; accolades CSS 212/212 · 410/410 · 141/141 ·
+  58/58 · 1/1 ; `div` 172/172 ; **mesures CDP** (390 × 844) : `zIndexModale` 5000 >
+  `zIndexPanneau` 4000, panneau fermé après le clic (`true`), et dans le scénario « roue dentée
+  rouverte » `elementFromPoint` sur le bouton du panneau renvoie `authModalTitle` (modale
+  au-dessus), champs toujours cliquables ; e-mail `workai.francky@gmail.com` :
+  `clientWidth = scrollWidth = 314`, `tronque: false`, 1 ligne, `textOverflow: clip`, parent
+  `cloud-account` en `block` (314 px, `margin-top: 4px`), ni la ligne ni le panneau ne
+  débordent ; captures de contrôle (e-mail entier sous « Se déconnecter », modale devant le
+  panneau rouvert).
+
+- **3.95 — Panneau Paramètres en cartes, Synchronisation épurée, titre du header retravaillé** :
+  trois améliorations d'IHM, mesurées sous Chrome/CDP en viewport 390 × 844.
+  1. Le panneau `#headerMenu` est organisé en **trois cartes** `.menu-card` — **Connexion**
+     (NTRIP + compte cloud), **Affichage** (numéros des points + mode Gants/Soleil), **Données**
+     (format d'export + file hors-ligne) — séparées par `gap: 10px`, chacune avec filet
+     `--border`, fond `--color-bg-subtle` et un titre `.menu-card-title` (10 px / 800,
+     capitales) ; les anciens libellés « Affichage » / « Confort » disparaissent.
+  2. `#btnCloudAuth` devient un **lien discret** (souligné, fond transparent, sans bordure,
+     11 px / 800) avec l'icône Lucide `ICON_LOG_OUT` (`js/app.js`) injectée par `renderCloudUi()`
+     quand un compte est actif ; `#cloudSyncEmail` passe en 11 px / 600 `--text3` sous le lien.
+  3. Interrupteurs : `.menu-switch` occupe toute la largeur de la carte (icône
+     `.menu-switch-icon` `hash` / `sun`, piste poussée à droite par `margin-left: auto`), piste
+     **48 × 28 px** (56 × 32 en `body.gloves-mode`), pastille 22 px (26 px), course 20 px (24 px),
+     ligne de 48 px de haut.
+  4. Titre du header : `clamp(14px, 4.5vw, 24px)`, `top: 24px`, `left: min(150px, 38vw)`,
+     `right: min(60px, 16vw)`, `text-align: center` et
+     `text-shadow: var(--text-shadow-header)` (nouveau token `0 2px 4px rgba(0,0,0,0.3)` dans
+     `css/design-tokens.css`).
+  Vérifié : `node --check js/app.js js/cloud-sync.js` OK ; accolades CSS 222/222 · 410/410 ·
+  141/141 · 58/58 · 1/1 ; `div` 173/173 et `section` 4/4 ; **mesures CDP** : 3 cartes (178 / 154 /
+  92 px, `gap` 10 px), pistes 48 × 28, 2 icônes de switch, `#btnCloudAuth` (« Se déconnecter » +
+  icône, fond `rgba(0, 0, 0, 0)`, `underline`, 107 × 44 px), e-mail
+  `workai.francky@gmail.com` en 11 px / 600 / `rgb(107, 114, 128)` non tronqué ; titre
+  `top: 24px`, `left: 148,2px`, `right: 60px`, 17,55 px, `text-align: center`, ombre
+  `rgba(0, 0, 0, 0.3) 0px 2px 4px`, **aucun chevauchement** avec la roue dentée (texte 159 → 320,
+  roue à 334) ; panneau de 470 px sans défilement ni débordement ; 2 captures (mode normal et
+  mode Gants).
 
 ## 9. Langue et communication
 

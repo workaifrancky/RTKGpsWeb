@@ -164,21 +164,27 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
   de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
   `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- **Blocs distincts** `.menu-row` séparés par 14 px (`.header-menu-content` en colonne,
-  filet supérieur `.menu-row-context`) : (1) libellé `NTRIP` + station `.menu-ntrip-select` +
-  `#saveIndicator` (icône Lucide `save`) ; (2) libellé `Affichage` + switch
-  `#btnPointNumbers` (`.menu-switch[role="switch"]` : piste `.menu-switch-track` de 40 × 22 px,
-  pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
-  + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
-  44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) libellé « Synchronisation » +
-  `#cloudSyncEmail` (compte connecté, **ligne dédiée, jamais tronqué** :
-  `flex: 1 1 100%`, `white-space: normal`, `overflow-wrap: anywhere`) + `#cloudSyncStatus` (pastille d'état colorée
-  par `#cloudSyncRow[data-state]` : `synced` vert, `connecting` ambre, `offline` ambre foncé,
-  `error` rouge) + bouton `#btnCloudAuth` (« Se connecter » / « Se déconnecter »,
-  `.cloud-sync-btn` 44 px) qui ouvre `#authModal` (`openAuthModal()`), (5) **si la file
-  hors-ligne n'est pas vide**, libellé « Hors-ligne » + bouton `#offlineQueueIndicator`
-  (« N demande(s) en attente ») qui appelle `processOfflineQueue()`. La parcelle n'est pas dans
-  ce panneau : elle reste accessible par la 1re ligne du menu FAB de TRACÉS.
+- `.header-title` (couche absolue, `z-index: 2`, `top: 24px`, `text-align: center`) :
+  « MOWER SURVEY » en Arial Black `clamp(14px, 4.5vw, 24px)`, `nowrap`, `color: #fff` et
+  `text-shadow: var(--text-shadow-header)` (token `0 2px 4px rgba(0,0,0,0.3)` dans
+  `design-tokens.css`), centré entre le rover et la roue dentée
+  (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`).
+- **Cartes de paramètres** (`.menu-card`) : trois sections empilées dans
+  `.header-menu-content` (`gap` 10 px) — **Connexion**, **Affichage**, **Données** —, chacune
+  avec `padding: 10px 10px 12px`, filet `--border`, rayon `--radius-lg`, fond
+  `--color-bg-subtle` et un titre `.menu-card-title` (10 px / 800, capitales,
+  `letter-spacing: 0.6px`, `--text3`). À l'intérieur : `.menu-row` pour les lignes
+  libellé + contrôle (`.menu-row-context` = filet supérieur pour séparer deux lignes d'une même
+  carte) ; (1) libellé `NTRIP` + station `.menu-ntrip-select` + `#saveIndicator` (icône Lucide
+  `save`) puis la ligne `#cloudSyncRow` ; (2) deux `.menu-switch[role="switch"]` pleine largeur
+  (icône Lucide `.menu-switch-icon` — `hash` / `sun` —, `.menu-switch-label`, piste
+  `.menu-switch-track` de **48 × 28 px** avec `.menu-switch-knob` de 22 px et course de 20 px ;
+  56 × 32 / 26 px / course 24 px en `body.gloves-mode`), état porté par `aria-checked` ;
+  (3) libellé `Format d'export` + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que
+  `.menu-ntrip-select` : 44 px, 12 px / 600), options GeoJSON / CSV / GPX, puis
+  `#offlineQueueIndicator` (« N demande(s) en attente », `processOfflineQueue()`) si la file
+  hors-ligne n'est pas vide. La parcelle n'est pas dans ce panneau : elle reste accessible par
+  la 1re ligne du menu FAB de TRACÉS.
 - **Modale « Compte cloud »** `#authModal` (`.cloud-auth-*`, mêmes `.modal-overlay` /
   `.modal-box` que les autres modales) : intro (`.cloud-auth-intro`), formulaire
   `.cloud-auth-form` (e-mail + mot de passe, `.form-input`), message d'erreur
@@ -252,6 +258,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
 - `.modal-overlay` : fond `rgba(0,0,0,0.5)`, `opacity: 0` → `.show` pour l'ouverture.
 - `.modal-box` : fond `--color-white`, rayon 10 px, padding 16 px, `--shadow-xl`, max 480 px.
 - `.modal-title` : 18 px, 700, `--color-primary-deep`.
+- `#authModal` : **`z-index: 5000`** (règle dédiée après `.modal-overlay`) pour rester au-dessus
+  du panneau Connexion (`#headerMenu` 4000) et de son voile (3999) : sans cela, rouvrir la roue
+  dentée pendant la saisie masquait la modale et rendait ses champs incliquables.
 - `.modal-handle` : poignée grise centrée.
 - **Modale générique** `#customModal` (`app.js`) : remplace `confirm()` / `prompt()` natifs via
   `customConfirm(message, options)` et `customPrompt(message, valeur, options)`. Utilise

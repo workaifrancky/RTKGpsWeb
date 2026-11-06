@@ -6,6 +6,32 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Panneau Paramètres en cartes et titre du header retravaillé
+
+### Modifié
+
+- **Panneau Paramètres (roue dentée)** : les blocs sont regroupés en **trois cartes** `.menu-card` — **Connexion** (NTRIP + compte cloud), **Affichage** (numéros des points, mode Gants/Soleil), **Données** (format d'export, file hors-ligne) — avec titre `.menu-card-title` en capitales, filet, fond `--color-bg-subtle` et 10 px d'espacement entre les cartes.
+- **Ligne « Synchronisation »** : `#btnCloudAuth` devient un lien discret (souligné, sans fond ni bordure, 11 px / 800) avec l'icône Lucide `log-out` (`ICON_LOG_OUT`) quand un compte est actif ; l'adresse du compte s'affiche en 11 px / 600 `--text3` sous le lien, jamais tronquée.
+- **Interrupteurs** : piste agrandie à **48 × 28 px** (pastille 22 px, course 20 px ; 56 × 32 / 26 px / 24 px en mode Gants), ligne pleine largeur de 48 px avec icône Lucide (`hash` pour « Numéros des points », `sun` pour « Mode Gants/Soleil »).
+- **Titre « MOWER SURVEY »** : `clamp(14px, 4.5vw, 24px)` (au lieu de 12–20 px), `top: 24px` (au lieu de 20 px), `left: min(150px, 38vw)` (au lieu de 180 px), `right: min(60px, 16vw)`, `text-align: center` et `text-shadow` via le nouveau token `--text-shadow-header` (`css/design-tokens.css`).
+
+### Notes
+
+- Vérifications : `node --check js/app.js js/cloud-sync.js` OK ; accolades CSS 222/222 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173 et `section` 4/4 ; mesures Chrome/CDP en 390 × 844 (3 cartes de 178 / 154 / 92 px, pistes 48 × 28, lien 107 × 44 px souligné, e-mail 11 px non tronqué, titre 17,55 px centré sans chevauchement de la roue dentée) et 2 captures (mode normal, mode Gants).
+- Aucun autre écran modifié (carte, FAB, menu de partage, contrat GeoJSON). Aucun commit ni push effectué.
+
+## [2026-11-06] — Modale de compte au premier plan et e-mail sur son propre bloc
+
+### Corrigé
+
+- **Modale derrière le panneau Connexion** : `#authModal` passe à **`z-index: 5000`** (au-dessus du panneau `#headerMenu` à 4000 et de son voile à 3999), et `openAuthModal()` ferme le panneau via `closeConnectionPanelForAuth()` (`closeHeaderMenu()` + retrait direct de `.show` / `aria-hidden` / `aria-expanded`) avec une trace console `[auth] openAuthModal — closeHeaderMenu() appelé, panneau fermé : true`. La modale reste donc au premier plan même si la roue dentée est rouverte.
+- **E-mail réduit à « wor… »** : l'adresse est déplacée dans un bloc dédié `div.cloud-account` (`display: block`, `width: 100%`, `margin-top: 4px`) et la classe du texte devient `.cloud-account-email` (`white-space: normal`, `overflow-wrap: anywhere`, `text-overflow: clip`). L'ancienne règle `.cloud-sync-email` (ellipse) est supprimée ; le nom de classe change, donc un ancien CSS en cache ne peut plus tronquer l'adresse.
+
+### Notes
+
+- Vérifications : `node --check js/cloud-sync.js` OK ; accolades CSS 212/212 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 172/172 ; mesures Chrome/CDP en 390 × 844 (`zIndexModale` 5000 > `zIndexPanneau` 4000, panneau fermé après le clic, modale devant le panneau rouvert, e-mail `clientWidth = scrollWidth = 314`, `tronque: false`) et captures de contrôle.
+- Reste de l'application inchangé (header, carte, menu de partage, contrat GeoJSON). Aucun commit ni push effectué.
+
 ## [2026-11-06] — Panneau Connexion : modale accessible, œil dans le champ, e-mail entier
 
 ### Corrigé
