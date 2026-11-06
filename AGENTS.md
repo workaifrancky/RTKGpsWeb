@@ -216,11 +216,17 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   1. `.header-logo-layer` — logo vectoriel `assets/logo-rtk-mower.svg` (un seul `<path>`), bande
      de 65 px de haut sur toute la largeur, `preserveAspectRatio="xMidYMid slice"` (≈ 3 px
      rognés), en `fill="currentColor"` blanc, `aria-hidden="true"` (décoratif) ;
-  2. `.header-title` — `MOWER SURVEY` (`clamp(14px, 4.5vw, 24px)`, Arial Black, `nowrap`,
-     `text-shadow: var(--text-shadow-header)`, `top: 24px`, `text-align: center`)
-     centré entre le rover et la roue dentée (`left: min(150px, 38vw)` /
-     `right: min(60px, 16vw)`, `z-index: 2` : 150 px / 60 px sur les écrans courants, `min()`
-     resserrant les marges sur les très petits écrans) ;
+  2. `.header-title` — `MOWER SURVEY` (Arial Black, `nowrap`, `text-shadow`, `top: 24px`,
+     `text-align: center`), centré entre le rover et la roue dentée
+     (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`, `z-index: 2`). **Replis obligatoires**
+     (3.96) pour les navigateurs anciens et les feuilles en cache : `font-size: 22px` puis
+     `clamp(14px, 4.5vw, 24px)` ; `left`/`right` en pixels puis en `min()` ;
+     `text-shadow` littéral puis `var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))`
+     (un token absent rendrait `var()` invalide et supprimerait l'ombre).
+     Sur mobile (≤ 480 px) : `clamp(16px, 4.9vw, 22px)` (19,1 px à 390 px) ; sous 360 px :
+     `right: 56px` + `min(16px, 4.6vw)`, sinon le texte passe **sous** la roue dentée
+     (56 px depuis le bord droit = 12 + 44). Les cinq CSS locales sont référencées avec
+     `?v=3.96` dans `index.html` (cache-busting GitHub Pages, `serve-http.cjs` ignore la requête) ;
   3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
      cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
      `header #btnConnectionSettings { position: absolute !important; top: 6px; right: 12px; z-index: 3 }`,
@@ -1965,6 +1971,29 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `rgba(0, 0, 0, 0.3) 0px 2px 4px`, **aucun chevauchement** avec la roue dentée (texte 159 → 320,
   roue à 334) ; panneau de 470 px sans défilement ni débordement ; 2 captures (mode normal et
   mode Gants).
+
+- **3.96 — Titre du header invisible sur téléphone : replis CSS + cache-busting** : le panneau
+  Paramètres (dans `main.css`) était bien à jour sur le téléphone, mais le titre restait petit,
+  sans ombre et mal placé. **Diagnostic** : aucune media query ni règle concurrente ne ciblait
+  `.header-title` / `.logo-text` (vérifié dans `main.css`, `components.css`, `theme.css`, aucun JS
+  ni style inline) ; deux mécanismes restaient possibles — un `design-tokens.css` **en cache**
+  (token `--text-shadow-header` absent ⇒ `text-shadow: var(--…)` invalide ⇒ ombre supprimée) et un
+  navigateur sans `clamp()` / `min()` (⇒ `font-size` et `left/right` invalides ⇒ taille héritée et
+  position statique). L'application étant servie par **GitHub Pages** (cache par URL),
+  `index.html` référence désormais les cinq CSS locales avec `?v=3.96`.
+  **Correctifs** (`css/main.css`, `index.html`) : `font-size: 22px` puis
+  `clamp(14px, 4.5vw, 24px)` ; `left`/`right` en pixels puis en `min()` ; `text-shadow` littéral
+  puis `var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))` ; sur mobile (≤ 480 px)
+  `clamp(16px, 4.9vw, 22px)` (au lieu de 4.5vw → 17,5 px) et, sous 360 px, `right: 56px` +
+  `min(16px, 4.6vw)` pour ne pas passer sous la roue dentée.
+  Vérifié sous Chrome/CDP (mobile émulé) : à **1280 px** 24 px ; **480 px** 22 px ; **390 px**
+  19,11 px → texte 151→327, roue à 334 (**aucun chevauchement**) ; **360 px** 16 px → 147→294,
+  roue 304 ; **320 px** 14,72 px → 125→260, roue 264 ; ombre `rgba(0,0,0,0.3) 0px 2px 4px`
+  **présente à toutes les largeurs** et **toujours présente après désactivation de
+  `design-tokens.css`** (simulation du cache : `tokenApresDesactivation: (absent)`), 5 liens CSS
+  versionnés ; `node --check` inchangé (aucun JS modifié) ; accolades CSS 225/225 · 410/410 ·
+  141/141 · 58/58 · 1/1. Captures comparatives : 19 px = titre ombré et centré, 22 px = le « Y »
+  passe sous la roue dentée (d'où le plafond à 22 px seulement au-delà de 480 px).
 
 ## 9. Langue et communication
 

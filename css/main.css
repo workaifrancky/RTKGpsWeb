@@ -219,6 +219,11 @@ header {
 .header-title {
   position:       absolute;
   top:            24px;
+  /* Repli en pixels pour les navigateurs sans `min()` (vieilles WebView
+     Android / Samsung Internet) : sans lui, `left`/`right` seraient invalides,
+     la couche repasserait en position statique et le titre serait mal placé. */
+  left:           150px;
+  right:          60px;
   left:           min(150px, 38vw);
   right:          min(60px, 16vw);
   z-index:        2;
@@ -228,15 +233,19 @@ header {
 
 .header-title .logo-text {
   font-family:    'Arial Black', 'Impact', sans-serif;
-  /* Plus grand qu'auparavant (24 px au plus) : le titre gagne en présence
-     entre le rover et la roue dentée. */
+  /* Repli 22 px puis taille fluide (24 px au plus) : un navigateur qui ne
+     comprend pas `clamp()` garderait sinon la taille héritée (petit titre). */
+  font-size:      22px;
   font-size:      clamp(14px, 4.5vw, 24px);
   font-weight:    900;
   letter-spacing: normal;
   white-space:    nowrap;
   color:          #fff;
-  /* Détache le texte du logo (valeur portée par un token). */
-  text-shadow:    var(--text-shadow-header);
+  /* Ombre portée : valeur littérale de repli, puis token AVEC repli intégré.
+     Une feuille `design-tokens.css` restée en cache (token absent) rendrait
+     sinon `var(--…)` invalide et supprimerait l'ombre. */
+  text-shadow:    0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow:    var(--text-shadow-header, 0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 /* 3. Bandeau bas : pastille FIX (gauche) + boutons Thème / BLE (droite). */
@@ -1277,6 +1286,15 @@ header #btnConnectionSettings {
 
   .header-logo { font-size: 15px; }
 
+  /* Titre du header : taille proche du PC tout en restant DANS l'espace libre
+     entre le rover et la roue dentée (à 390 px, 22 px déborderaient sous la
+     roue). `4.9vw` plafonne à 22 px ; le repli en pixels couvre les navigateurs
+     sans `clamp()` (sinon ils garderaient les 22 px de la règle de base). */
+  .header-title .logo-text {
+    font-size: 19px;
+    font-size: clamp(16px, 4.9vw, 22px);
+  }
+
   .gps-status-pill {
     height:   30px;
     padding:  0 9px;
@@ -1327,6 +1345,14 @@ header #btnConnectionSettings {
 
 @media (max-width: 360px) {
   .header-logo { font-size: 13px; }
+  /* La roue dentée occupe 56 px depuis le bord droit (12 + 44) : la marge
+     droite du titre ne doit jamais descendre sous cette valeur, sinon le texte
+     passe sous l'icône. Taille réduite en conséquence. */
+  .header-title { right: 56px; }
+  .header-title .logo-text {
+    font-size: 14.5px;
+    font-size: min(16px, 4.6vw);
+  }
   .tabs-wrapper { gap: 4px; padding: 6px; }
   .tab-label { padding: 8px 12px; }
   .tab-icon { font-size: 17px; }

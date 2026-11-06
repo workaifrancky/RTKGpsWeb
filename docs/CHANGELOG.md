@@ -6,6 +6,21 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Titre du header corrigé sur téléphone (replis CSS + cache-busting)
+
+### Corrigé
+
+- **Titre « MOWER SURVEY » petit, sans ombre et mal placé sur téléphone** : aucune media query ni règle concurrente ne ciblait `.header-title` / `.logo-text` (vérifié dans les trois feuilles, aucun JS ni style inline). Deux causes possibles côté appareil : un `design-tokens.css` **en cache** (token `--text-shadow-header` absent → `text-shadow: var(--…)` invalide → ombre supprimée) et un navigateur sans `clamp()` / `min()` (→ `font-size` et `left`/`right` invalides, taille héritée et position statique).
+- `css/main.css` : **replis en cascade** — `font-size: 22px` puis `clamp(14px, 4.5vw, 24px)` ; `left`/`right` en pixels puis en `min()` ; `text-shadow` littéral puis `var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))`.
+- Sur mobile (≤ 480 px) le titre passe à `clamp(16px, 4.9vw, 22px)` (19,1 px à 390 px au lieu de 17,55 px) ; sous 360 px, `right: 56px` + `min(16px, 4.6vw)` pour ne jamais passer sous la roue dentée.
+- `index.html` : les cinq CSS locales sont appelées avec `?v=3.96` (cache-busting ; `serve-http.cjs` ignore la query, GitHub Pages la traite comme une nouvelle URL).
+
+### Notes
+
+- Mesures Chrome/CDP (mobile émulé) : 1280 px → 24 px ; 480 px → 22 px ; 390 px → 19,11 px (texte 151→327, roue 334 : aucun chevauchement) ; 360 px → 16 px ; 320 px → 14,72 px ; ombre `rgba(0,0,0,0.3) 0px 2px 4px` présente partout, **y compris après désactivation de `design-tokens.css`** (token absent).
+- Accolades CSS 225/225 · 410/410 · 141/141 · 58/58 · 1/1 ; aucun JS modifié (`node --check` OK) ; captures comparatives : 19 px = titre ombré et centré, 22 px = le « Y » passe sous la roue dentée.
+- Aucun autre élément du header touché (logo, pastille FIX, roue dentée). Aucun commit ni push effectué.
+
 ## [2026-11-06] — Panneau Paramètres en cartes et titre du header retravaillé
 
 ### Modifié
