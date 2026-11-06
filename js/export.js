@@ -512,19 +512,6 @@ async function shareGeoJSONPayload(payload) {
   }
 }
 
-async function shareGeoJSON() {
-  const payload = buildGeoJSON();
-  if (!payload) { showToast('Aucun point à partager','error'); return; }
-
-  if (isOfflineNow()) {
-    const project = typeof getCurrentProjectData === 'function' ? getCurrentProjectData() : null;
-    queueOfflineRequest('share', project?.id || null, 'geojson');
-    return;
-  }
-
-  return shareGeoJSONPayload(payload);
-}
-
 // Partage d'une parcelle précise (utilisé par la file d'attente hors-ligne :
 // ne dépend pas de la parcelle courante).
 async function shareProjectGeoJSON(projectId) {
@@ -544,63 +531,19 @@ async function shareProjectGeoJSON(projectId) {
 }
 
 // ─── HUB DE TRANSFERT (redondance des solutions d'export) ───
-// Une seule modale (#transferModal) propose quatre canaux : partage natif,
-// mode serveur local, cloud, téléchargement direct. Chaque canal réutilise
-// les fonctions d'export existantes (shareGeoJSON / exportGeoJSON / CSV / GPX)
-// afin de ne jamais dupliquer la construction du GeoJSON.
+// Une seule modale (#transferModal) propose trois canaux : téléchargement
+// direct, QR code animé (séquence lue par scan.html) et QR code statique
+// (adresse réseau du serveur local). Chaque canal réutilise les fonctions
+// d'export existantes (exportProjectDefaultFormat / CSV / GPX /
+// buildProjectsZip) afin de ne jamais dupliquer la construction du GeoJSON.
 let transferPreviousFocus = null;
 let transferLocalUrls = [];
 // Parcelles sélectionnées pour un transfert groupé (vide = parcelle courante).
 let transferSelectionIds = [];
 
-// ─── CAPACITÉS DU PARTAGE NATIF ─────────────────────────────
-// `navigator.share` peut exister sans accepter de fichiers (Web Share niveau 1),
-// ce qui faisait échouer « Partage rapide » et « Cloud » sur certains appareils.
-// On sonde une seule fois `navigator.canShare({ files })` et on masque les deux
-// options concernées quand la sonde échoue : l'utilisateur garde le mode serveur
-// local et le téléchargement (avec la note de transfert USB).
-let transferNativeShareSupported = null;
-
-function canShareTransferFiles() {
-  if (typeof navigator === 'undefined'
-      || typeof navigator.share !== 'function'
-      || typeof navigator.canShare !== 'function'
-      || typeof File !== 'function') {
-    return false;
-  }
-  try {
-    const probe = new File(['test'], 'test.geojson', { type: 'application/geo+json' });
-    return navigator.canShare({ files: [probe] }) === true;
-  } catch {
-    return false;
-  }
-}
-
-// Applique l'état des canaux au hub (masquage + note explicative).
-function syncTransferCapabilities() {
-  if (transferNativeShareSupported === null) {
-    transferNativeShareSupported = canShareTransferFiles();
-  }
-  const supported = transferNativeShareSupported;
-
-  ['transferOptionShare', 'transferOptionCloud'].forEach((id) => {
-    const button = document.getElementById(id);
-    if (!button) return;
-    button.hidden = !supported;
-    if (supported) {
-      button.removeAttribute('aria-hidden');
-    } else {
-      button.setAttribute('aria-hidden', 'true');
-    }
-  });
-
-  const note = document.getElementById('transferUnsupportedNote');
-  if (note) note.hidden = supported;
-  return supported;
-}
-
-// Premier canal réellement proposé : le partage natif peut être masqué, le focus
-// d'ouverture doit donc se poser sur une option visible.
+// Premier canal proposé : le focus d'ouverture se pose sur la première option
+// visible du hub (les trois options sont toujours affichées aujourd'hui, la
+// fonction reste défensive si une option devenait masquable).
 function getFirstTransferOption() {
   const options = document.getElementById('transferOptions');
   if (!options) return null;
@@ -638,7 +581,6 @@ function openTransferModal(options = {}) {
   }
 
   transferShowOptions();
-  syncTransferCapabilities();            // masque les canaux non supportés
 
   const nameEl = document.getElementById('transferProjectName');
   if (nameEl) {
@@ -680,32 +622,7 @@ function transferShowOptions() {
   if (local) local.hidden = true;
 }
 
-// Option 1 — partage natif (Quick Share, Gmail, Drive…).
-// Une parcelle : GeoJSON seul. Plusieurs parcelles : un ZIP unique (le partage
-// natif multi-fichiers échoue sur Android). Si l'appareil ne sait pas partager
-// de fichier, l'option est masquée et le repli est le téléchargement direct.
-async function transferViaNativeShare() {
-  const projects = getTransferProjects();
-  closeTransferModal();
-  if (!syncTransferCapabilities()) return downloadTransferProjects(projects);
-  if (projects.length > 1) return shareProjectsZip(projects);
-  await shareGeoJSON();
-}
-
-// Option 3 — cloud : c'est le menu de partage Android qui propose Drive.
-function transferViaCloud() {
-  const projects = getTransferProjects();
-  closeTransferModal();
-  if (!syncTransferCapabilities()) return downloadTransferProjects(projects);
-  if (isOfflineNow()) {
-    return projects.length > 1 ? shareProjectsZip(projects) : shareGeoJSON();
-  }
-  showToast('Choisissez Drive / Cloud dans le menu de partage', 'info', 3200);
-  if (projects.length > 1) return shareProjectsZip(projects);
-  return shareGeoJSON();
-}
-
-// Téléchargement direct des parcelles du hub (repli commun aux canaux de partage).
+// Téléchargement direct des parcelles du hub (canal « Télécharger le fichier »).
 // Une parcelle : format choisi dans le panneau Connexion (GeoJSON / CSV / GPX).
 // Plusieurs parcelles : ZIP GeoJSON unique.
 function downloadTransferProjects(projects) {
@@ -717,14 +634,14 @@ function downloadTransferProjects(projects) {
   return exportProjectDefaultFormat(projects[0].id);
 }
 
-// Option 4 — téléchargement direct.
+// Option 1 — téléchargement direct.
 async function transferOpenDownloads() {
   const projects = getTransferProjects();
   closeTransferModal();
   return downloadTransferProjects(projects);
 }
 
-// Option 5 — QR code animé : la séquence est lue par `scan.html` sur l'autre
+// Option 2 — QR code animé : la séquence est lue par `scan.html` sur l'autre
 // appareil. Aucune donnée ne transite par le réseau.
 function transferViaAnimatedQr() {
   void startAnimatedQrTransfer();
@@ -839,8 +756,8 @@ function renderTransferLocalQr(url) {
   target.hidden = !markup;
 }
 
-// Option 2 — mode serveur local. L'adresse LAN est fournie par
-// `serve-http.cjs` (/api/local-info) et affichée avec un QR code scannable
+// Option 3 — QR code statique (mode serveur local). L'adresse LAN est fournie
+// par `serve-http.cjs` (/api/local-info) et affichée avec un QR code scannable
 // depuis l'autre appareil du réseau.
 async function transferViaLocalServer() {
   const options = document.getElementById('transferOptions');
@@ -1268,8 +1185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initExportFormat();
   // Affiche l'indicateur de file d'attente et branche l'événement `online`.
   initOfflineQueue();
-  // Masque « Partage rapide » / « Cloud » si l'appareil ne partage pas de fichier.
-  syncTransferCapabilities();
 
   // Ferme le menu au clic extérieur et avec Échap.
   document.addEventListener('click', (event) => {

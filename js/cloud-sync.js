@@ -19,6 +19,9 @@ const CLOUD_MIGRATED_KEY = 'rtkCloudMigrated';
 // un snapshot Firestore retardataire ne doit pas réécrire la parcelle pendant
 // ce délai, même si sa signature paraît plus récente.
 const CLOUD_EDIT_GUARD_MS = 2000;
+// Dernière adresse e-mail utilisée sur cet appareil : pré-remplissage de la
+// modale de compte. Seul l'e-mail est mémorisé, JAMAIS le mot de passe.
+const AUTH_EMAIL_KEY = 'mowerSurveyLastEmail';
 
 // État de la synchronisation (aucune donnée métier ici).
 let cloudAuth        = null;
@@ -102,6 +105,9 @@ function initCloudSync() {
   cloudAuth.onAuthStateChanged(user => {
     cloudUser = user || null;
     renderCloudUi();
+    // Session restaurée au démarrage : l'adresse du compte alimente aussi le
+    // pré-remplissage de la modale.
+    if (cloudUser && cloudUser.email) rememberAuthEmail(cloudUser.email);
     if (cloudUser) {
       syncCloudStatus('connecting');
       attachCloudSnapshot();
@@ -544,15 +550,75 @@ function renderCloudUi() {
   }
 }
 
+// ─── MÉMORISATION DE L'E-MAIL (jamais le mot de passe) ───────
+// Évite de retaper l'adresse à chaque connexion sur le terrain. La clé
+// `mowerSurveyLastEmail` ne contient QUE l'e-mail.
+function getLastAuthEmail() {
+  try {
+    const value = localStorage.getItem(AUTH_EMAIL_KEY);
+    return typeof value === 'string' ? value.trim() : '';
+  } catch {
+    return '';        // navigation privée : simplement pas de pré-remplissage
+  }
+}
+
+function rememberAuthEmail(email) {
+  const value = typeof email === 'string' ? email.trim() : '';
+  if (!value) return;
+  try {
+    localStorage.setItem(AUTH_EMAIL_KEY, value);
+  } catch {
+    // Quota / navigation privée : le pré-remplissage est un confort, il ne doit
+    // jamais faire échouer une connexion pourtant réussie.
+  }
+}
+
+// ─── AFFICHAGE DU MOT DE PASSE (Lucide eye / eye-off) ────────
+// Le type du champ bascule entre `password` et `text` ; l'icône, le libellé
+// d'accessibilité et `aria-pressed` suivent l'état. Rien n'est jamais stocké.
+function setPasswordVisible(visible) {
+  const input  = document.getElementById('cloudAuthPassword');
+  const button = document.getElementById('btnPasswordToggle');
+  const show   = visible === true;
+
+  if (input) input.type = show ? 'text' : 'password';
+  if (!button) return;
+
+  if (typeof ICON_EYE_OFF !== 'undefined' && typeof ICON_EYE !== 'undefined') {
+    button.innerHTML = show ? ICON_EYE_OFF : ICON_EYE;
+  }
+
+  const label = show ? 'Masquer le mot de passe' : 'Afficher le mot de passe';
+  button.setAttribute('aria-label', label);
+  button.setAttribute('title', label);
+  button.setAttribute('aria-pressed', show ? 'true' : 'false');
+  button.classList.toggle('is-visible', show);
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById('cloudAuthPassword');
+  if (!input) return;
+  setPasswordVisible(input.type === 'password');
+}
+
 // ─── AUTHENTIFICATION (e-mail / mot de passe) ────────────────
 function openAuthModal() {
   const modal = document.getElementById('authModal');
   if (!modal) return;
   const error = document.getElementById('cloudAuthError');
   if (error) { error.textContent = ''; error.hidden = true; }
+
+  // Pré-remplissage : dernière adresse utilisée sur cet appareil. Un champ déjà
+  // rempli par l'utilisateur n'est jamais écrasé.
+  const email = document.getElementById('cloudAuthEmail');
+  const lastEmail = getLastAuthEmail();
+  if (email && lastEmail && !email.value.trim()) email.value = lastEmail;
+
+  // Le mot de passe est toujours masqué à l'ouverture de la modale.
+  setPasswordVisible(false);
+
   modal.classList.add('show');
   modal.setAttribute('aria-hidden', 'false');
-  const email = document.getElementById('cloudAuthEmail');
   if (email) setTimeout(() => email.focus({ preventScroll: true }), 60);
 }
 
@@ -561,6 +627,8 @@ function closeAuthModal() {
   if (!modal) return;
   modal.classList.remove('show');
   modal.setAttribute('aria-hidden', 'true');
+  // Ne jamais rouvrir la modale avec un mot de passe resté visible.
+  setPasswordVisible(false);
 }
 
 function toggleCloudAuth() {
@@ -570,6 +638,8 @@ function toggleCloudAuth() {
 
 async function signInCloud(email, password) {
   await cloudAuth.signInWithEmailAndPassword(email, password);
+  // Connexion réussie : mémorise l'adresse pour la prochaine ouverture.
+  rememberAuthEmail(email);
   if (typeof showToast === 'function') {
     showToast('Connecté — synchronisation active', 'info', 2600);
   }
@@ -577,6 +647,7 @@ async function signInCloud(email, password) {
 
 async function signUpCloud(email, password) {
   await cloudAuth.createUserWithEmailAndPassword(email, password);
+  rememberAuthEmail(email);
   if (typeof showToast === 'function') {
     showToast('Compte créé — synchronisation active', 'info', 2600);
   }
@@ -678,6 +749,11 @@ function bindCloudUi() {
   if (closeBtn) closeBtn.addEventListener('click', closeAuthModal);
   const authBtn = document.getElementById('btnCloudAuth');
   if (authBtn) authBtn.addEventListener('click', toggleCloudAuth);
+
+  // Bascule d'affichage du mot de passe (état initial : masqué).
+  const passwordToggle = document.getElementById('btnPasswordToggle');
+  if (passwordToggle) passwordToggle.addEventListener('click', togglePasswordVisibility);
+  setPasswordVisible(false);
 
   const modal = document.getElementById('authModal');
   if (modal) {

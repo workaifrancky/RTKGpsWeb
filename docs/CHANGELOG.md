@@ -6,6 +6,24 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Hub de partage simplifié et modale de connexion améliorée
+
+### Modifié
+
+- **Hub de transfert ramené à trois options** (`index.html`, `js/export.js`), dans cet ordre : « Télécharger le fichier » (icône Lucide `download`), « QR Code animé » (icône `scan-line`) et « QR Code statique » (renommée depuis « Recevoir sur cet appareil », icône `qr-code` ; le panneau de destination s'appelle désormais « QR Code statique »).
+- **Modale « Compte cloud »** (`index.html`, `js/cloud-sync.js`, `css/main.css`) : le champ mot de passe est enveloppé dans `.password-wrapper` avec le bouton `.password-toggle` en absolu à droite (44 × 44 px, icône Lucide `eye` / `eye-off`, `aria-label` « Afficher / Masquer le mot de passe », `aria-pressed`). Le mot de passe repart masqué à chaque ouverture et fermeture.
+- La dernière adresse utilisée est mémorisée après une connexion réussie dans `localStorage` (`mowerSurveyLastEmail`) et pré-remplie à l'ouverture (sans écraser une saisie en cours). **Le mot de passe n'est jamais stocké.**
+
+### Supprimé
+
+- Options « Partage rapide » et « Enregistrer sur Drive / Cloud », fonctions `transferViaNativeShare()`, `transferViaCloud()`, `shareGeoJSON()`, `canShareTransferFiles()`, `syncTransferCapabilities()`, note `#transferUnsupportedNote`, styles `.transfer-note-warn` et `.transfer-option.cloud`.
+- `shareProjectsZip()` / `shareProjectGeoJSON()` sont conservés : la file d'attente hors-ligne s'en sert pour rejouer un partage. Contrat GeoJSON inchangé.
+
+### Notes
+
+- Vérifications : `node --check js/app.js js/cloud-sync.js js/export.js` OK ; banc Node 44/44 (ordre des options, libellés supprimés absents, e-mail normalisé/pré-rempli, bascule `password` ↔ `text`, `aria-label` + icône, une seule clé `localStorage`) ; accolades CSS équilibrées (209/410/141/1/58) ; `div` équilibrés (171/171).
+- Aucun commit ni push effectué.
+
 ## [2026-11-05] — Journal de synchronisation visible et protection de la zone en cours de tracé
 
 ### Corrigé

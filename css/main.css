@@ -620,6 +620,55 @@ header #btnConnectionSettings {
 
 .cloud-auth-primary { width: 100%; }
 
+/* Champ mot de passe + bascule d'affichage (« œil »).
+   Le bouton est posé en absolu à droite du champ : le champ réserve la place
+   correspondante pour que le texte saisi ne passe pas dessous. */
+.password-wrapper {
+  position: relative;
+  display:  flex;
+  width:    100%;
+}
+
+.password-wrapper .form-input { padding-right: 52px; }
+
+.password-toggle {
+  position:        absolute;
+  top:             50%;
+  right:           2px;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           44px;
+  min-height:      44px;
+  padding:         0;
+  border:          none;
+  border-radius:   var(--radius-md);
+  background:      transparent;
+  color:           var(--text3);
+  cursor:          pointer;
+  transform:       translateY(-50%);
+  transition:      var(--transition);
+}
+
+.password-toggle:hover  { color: var(--color-primary); }
+.password-toggle:active { transform: translateY(-50%) scale(0.94); }
+
+.password-toggle:focus-visible {
+  outline:        3px solid var(--color-primary-accent);
+  outline-offset: 2px;
+}
+
+/* État « mot de passe affiché » : même couleur d'accent que le survol. */
+.password-toggle.is-visible { color: var(--color-primary); }
+
+.password-toggle svg {
+  display:        block;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .password-toggle:hover,
+[data-theme="dark"] .password-toggle.is-visible { color: var(--color-primary-accent); }
+
 .cloud-auth-error {
   margin:      0;
   font-size:   12px;

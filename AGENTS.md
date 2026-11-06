@@ -338,44 +338,36 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   `buildGeoJSON()` centralise la construction et les métadonnées `date_creation` /
   `version_app` / `source` ajoutées à **toutes** les features (contrat GeoJSON inchangé).
 - **Hub de transfert** : `#btnSelectionTransfer` (barre de sélection de PARCELLES : icône
-  `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose jusqu'à
-  **cinq canaux redondants** :
-  1. `transferViaNativeShare()` → `shareGeoJSON()` pour une parcelle, `shareProjectsZip()` pour
-     plusieurs (un seul fichier ZIP) ;
-  2. `transferViaLocalServer()` → panneau `#transferLocalPanel` avec l'adresse réseau fournie
-     par **`GET /api/local-info`** (`serve-http.cjs`, `os.networkInterfaces()`, IPv4 non
-     internes), un **QR code** de cette adresse et un bouton « Copier »
-     (`copyTransferLocalUrl()`) ;
-  3. `transferViaCloud()` → `shareGeoJSON()` / `shareProjectsZip()` (le menu Android propose
-     Drive) ;
-  4. `transferOpenDownloads()` → téléchargement direct : format choisi pour une parcelle, ZIP
-     GeoJSON pour plusieurs ;
-  5. `transferViaAnimatedQr()` → `startAnimatedQrTransfer()` : **QR code animé** (sans
-     réseau), lu par `scan.html` sur l'autre appareil (voir le bullet dédié).
+  `share-2` + « Transférer ») ouvre `#transferModal` (`js/export.js`), qui propose **trois
+  canaux**, dans cet ordre (3.92) :
+  1. « Télécharger le fichier » (`transferOpenDownloads()`) → téléchargement direct : format
+     choisi dans le panneau Connexion pour une parcelle, ZIP GeoJSON pour plusieurs ;
+  2. « QR Code animé » (`transferViaAnimatedQr()` → `startAnimatedQrTransfer()`, icône Lucide
+     `scan-line`) : **sans réseau**, séquence lue par `scan.html` sur l'autre appareil (voir le
+     bullet dédié) ;
+  3. « QR Code statique » (`transferViaLocalServer()`, ex-« Recevoir sur cet appareil ») →
+     panneau `#transferLocalPanel` avec l'adresse réseau fournie par
+     **`GET /api/local-info`** (`serve-http.cjs`, `os.networkInterfaces()`, IPv4 non internes),
+     un **QR code** de cette adresse et un bouton « Copier » (`copyTransferLocalUrl()`).
   `openTransferModal({ projectIds })` ouvre le hub en mode sélection multiple (sous-titre
   « Sélection : N parcelles »). La modale se ferme au voile, avec Échap (prioritaire sur le menu
   d'export) et au changement d'onglet (`showTab()` appelle `closeTransferModal()`), avec piège
   de focus et retour du focus sur le bouton déclencheur de la barre de sélection. Sans point,
-  `openTransferModal()` affiche « Aucun point à transférer ».
-- **Capacités du hub** : `canShareTransferFiles()` (`js/export.js`) sonde
-  `navigator.share` + `navigator.canShare({ files: [new File(...)] })`. Si le partage de
-  fichiers n'est pas supporté, `syncTransferCapabilities()` **masque** les options
-  `#transferOptionShare` et `#transferOptionCloud` (attribut `hidden`, `aria-hidden="true"`),
-  affiche `#transferUnsupportedNote` (`.transfer-note-warn`) et le focus d'ouverture se pose
-  sur le premier canal visible (`getFirstTransferOption()`). `transferViaNativeShare()` /
-  `transferViaCloud()` retombent sur `downloadTransferProjects()` si elles sont appelées
-  malgré tout. La sonde est exécutée une fois (cache `transferNativeShareSupported`), au
-  `DOMContentLoaded` et à chaque `openTransferModal()`.
+  `openTransferModal()` affiche « Aucun point à transférer ». Le focus d'ouverture se pose sur
+  `getFirstTransferOption()` (première option visible). Les canaux « Partage rapide » et
+  « Enregistrer sur Drive / Cloud » (ainsi que la sonde `canShareTransferFiles()` /
+  `syncTransferCapabilities()` et la note `#transferUnsupportedNote`) ont été **supprimés** :
+  le téléchargement couvre le besoin et Firebase synchronise déjà les parcelles entre appareils.
+  `shareProjectsZip()` / `shareProjectGeoJSON()` subsistent pour la file d'attente hors-ligne.
 - **QR code du mode local** : `js/qrcode.js` est un générateur **autonome** (mode octet,
   niveau M, versions 1 à 10, SVG) chargé **avant** `export.js` : aucun CDN, le mode local doit
   fonctionner sans Internet. `renderTransferLocalQr(url)` remplit `#transferLocalQr` via
   `renderQrCodeSvg(url)` (zone de silence de 4 modules, `shape-rendering="crispEdges"`) ; le
   conteneur est masqué sans adresse. Couleurs imposées par les tokens `--color-qr-surface` /
   `--color-qr-module` (fond clair même en thème nuit, sinon le QR devient illisible).
-- **Note USB** : `.transfer-note` en bas de `#transferModal` (classe `.transfer-note-warn`
-  pour l'avertissement) rappelle le transfert par câble : télécharger sur le téléphone, puis
-  copier le fichier sur la tablette via le gestionnaire de fichiers. Elle reste visible dans
-  les deux vues (options et serveur local).
+- **Note USB** : `.transfer-note` en bas de `#transferModal` rappelle le transfert par câble :
+  télécharger sur le téléphone, puis copier le fichier sur la tablette via le gestionnaire de
+  fichiers. Elle reste visible dans les deux vues (options et QR statique).
 - **QR animé (bibliothèque vendorisée)** : `js/vendor/animated-data-qr/` contient
   `animated-data-qr-js` **v0.1.0** (MIT) — bundle UMD, worker décodeur, `zxing_reader.wasm`,
   `LICENSE` et un `README.md` de provenance. **Le paquet npm `animated-data-qr-js` n'est pas
@@ -1844,6 +1836,29 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   4 points conservés, aucun rendu ; tracé terminé : snapshot appliqué ; garde 2 s : snapshot
   retardataire ignoré ; garde expirée : appliqué ; nouvelle parcelle distante reçue) avec la
   trace `fusion : p1 (4 pt) conservée (édition locale en cours)`.
+
+- **3.92 — Hub de partage à 3 canaux et modale de connexion (e-mail mémorisé, « œil »)** : le hub
+  `#transferModal` ne propose plus que **trois options**, dans cet ordre : « Télécharger le
+  fichier » (`transferOpenDownloads()`, icône `download`), « QR Code animé »
+  (`transferViaAnimatedQr()`, icône Lucide `scan-line` pour le distinguer du statique) et
+  « QR Code statique » (`transferViaLocalServer()`, icône `qr-code`, ex-« Recevoir sur cet
+  appareil ») ; le panneau local prend le titre « QR Code statique ». « Partage rapide » et
+  « Enregistrer sur Drive / Cloud » sont supprimés, avec la sonde `canShareTransferFiles()`,
+  `syncTransferCapabilities()`, `transferNativeShareSupported`, `shareGeoJSON()` et la note
+  `#transferUnsupportedNote` (plus le CSS `.transfer-note-warn` et `.transfer-option.cloud`) ;
+  `shareProjectsZip()` / `shareProjectGeoJSON()` restent utilisés par la file d'attente
+  hors-ligne. Modale `#authModal` : la dernière adresse est mémorisée après une connexion
+  réussie (`localStorage.mowerSurveyLastEmail`, **jamais** le mot de passe ; également
+  alimentée par `onAuthStateChanged` à la restauration de session) et pré-remplie à l'ouverture,
+  sans écraser une saisie en cours ; le champ mot de passe est enveloppé dans
+  `.password-wrapper` avec le bouton `.password-toggle` (44 px, sans fond, icônes `ICON_EYE` /
+  `ICON_EYE_OFF` de `js/app.js`, `aria-label` / `aria-pressed` mis à jour, `type` basculé entre
+  `password` et `text`, retour au masquage à la fermeture). Vérifié :
+  `node --check js/app.js js/cloud-sync.js js/export.js` ; banc Node **44/44** (3 options dans
+  l'ordre demandé, libellés supprimés absents du HTML, `.password-wrapper` / `.password-toggle`
+  présents, accolades CSS 209/209 · 410/410 · 141/141 · 1/1 · 58/58, e-mail normalisé et
+  pré-rempli, saisie préservée, bascule `password` ↔ `text` avec la bonne icône et le bon
+  `aria-label`, une seule clé `localStorage`, code mort absent de `export.js`).
 
 ## 9. Langue et communication
 

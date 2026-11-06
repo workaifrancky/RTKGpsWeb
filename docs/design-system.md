@@ -186,6 +186,14 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   « Mot de passe oublié »), note `.cloud-auth-note` (fonctionnement hors-ligne) et
   `.cloud-auth-close`. Fermeture : voile, bouton « Fermer », Échap (priorité aux modales
   confirm/prompt).
+- **Mot de passe et e-mail mémorisé (3.92)** : le champ `#cloudAuthPassword` est enveloppé dans
+  `.password-wrapper` (`position: relative`), avec le bouton `.password-toggle` en absolu à
+  droite (44 × 44 px, sans fond, `--text3` → `--color-primary` au survol et à l'état
+  `.is-visible`, `--color-primary-accent` en thème nuit) qui bascule le `type` du champ et
+  l'icône Lucide (`eye` / `eye-off`, constantes `ICON_EYE` / `ICON_EYE_OFF` de `js/app.js`).
+  Le champ réserve `padding-right: 52px` (`--radius-md`, `:focus-visible` en
+  `--color-primary-accent`). La dernière adresse utilisée est pré-remplie à l'ouverture
+  (clé `mowerSurveyLastEmail`, **jamais** le mot de passe).
 - `.offline-queue-indicator` : bouton d'alerte de la ligne « Hors-ligne » (44 px, fond
   `--color-warning-pale`, texte `--color-warning-text`, bordure `--color-warning-strong`,
   11 px / 800). En thème nuit, fond `--color-bg-muted` et texte `--color-warning-strong`.
@@ -251,9 +259,9 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   `.transfer-box` en colonne. En-tête `.transfer-head` : titre + `.transfer-subtitle`
   (`Parcelle : …` pour une parcelle, `Sélection : N parcelles` en transfert groupé) et
   `.transfer-close` (38 px, rond, icône Lucide `x`).
-- `.transfer-options` : quatre `.transfer-option` (min-height 66 px) composées de
-  `.transfer-option-icon` (42 px, `--color-white`, couleur par canal : `share` vert,
-  `local` teal, `cloud` bleu info, `download` vert foncé), `.transfer-option-text`
+- `.transfer-options` : trois `.transfer-option` (min-height 66 px) composées de
+  `.transfer-option-icon` (42 px, `--color-white`, couleur par canal : `download` vert foncé,
+  `qr` vert clair, `local` teal), `.transfer-option-text`
   (titre 13 px / 800 + description 11 px `--text3`) et `.transfer-option-chevron`
   (Lucide `chevron-right`).
 - Survol « pro » : `translateY(-1px)`, bordure `--color-primary-light`, fond
@@ -265,13 +273,11 @@ HISTORIQUE — CARTE a été supprimé en 3.22). L'état actif est porté par `.
   `.qr-code-svg` / `.qr-code-modules` de 180 px max), `.transfer-local-hint` et deux
   `.btn-secondary` de largeur égale (« Copier », « Retour »).
 - `.transfer-note` : note d'information en bas de la modale (bordure pointillée `--border2`,
-  fond `--color-bg-subtle`, texte 11 px / 600 `--text2`, libellé en 800). Variante
-  `.transfer-note-warn` (ambre `--color-warning-pale` / `--color-warning-text`) affichée quand
-  `navigator.canShare({ files })` est faux, avec masquage des options `.transfer-option.share`
-  et `.transfer-option.cloud` (`[hidden]` → `display: none`).
-- **Partage / téléchargement multiple** : pour plusieurs parcelles, le hub produit un **ZIP**
-  unique (JSZip 3.10.2, un GeoJSON par parcelle) partagé via `navigator.share({ files: [zip] })`
-  ou téléchargé. Le partage natif multi-fichiers n'est plus utilisé (bug Android).
+  fond `--color-bg-subtle`, texte 11 px / 600 `--text2`, libellé en 800).
+- **Téléchargement multiple** : pour plusieurs parcelles, le hub produit un **ZIP** unique
+  (JSZip 3.10.2, un GeoJSON par parcelle) téléchargé par « Télécharger le fichier ». La file
+  d'attente hors-ligne peut rejouer un partage natif de ce ZIP (`shareProjectsZip()`), mais le
+  hub ne propose plus de canal de partage natif depuis la 3.92.
 
 ### QR code animé (`components.css` + `scan.css`)
 

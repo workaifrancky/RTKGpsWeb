@@ -1032,7 +1032,6 @@
 }
 
 .transfer-option.local    .transfer-option-icon { color: var(--color-teal); }
-.transfer-option.cloud    .transfer-option-icon { color: var(--color-info); }
 .transfer-option.download .transfer-option-icon { color: var(--color-primary-deep); }
 
 .transfer-option-icon svg {
@@ -1185,7 +1184,7 @@
 
 .qr-code-modules { fill: var(--color-qr-module); }
 
-/* Notes du hub : transfert par câble USB et éventuel partage non supporté. */
+/* Notes du hub : transfert par câble USB. */
 .transfer-note {
   padding:       10px 12px;
   border:        1px dashed var(--border2);
@@ -1205,14 +1204,6 @@
   color:       var(--text);
   font-weight: 800;
 }
-
-/* Variante « avertissement » : canaux de partage natif masqués. */
-.transfer-note-warn {
-  border-color: var(--color-warning);
-  background:   var(--color-warning-pale);
-}
-
-.transfer-note-warn strong { color: var(--color-warning-text); }
 
 /* ─── QR CODE ANIMÉ (#animatedQrModal) ─────────────────────── */
 /* Émetteur : la bibliothèque dessine la séquence dans un <canvas> monté dans

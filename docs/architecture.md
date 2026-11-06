@@ -185,10 +185,13 @@ Il n'existe plus de point de référence « base du rover » : les trois types e
   compte et liste ses GeoJSON avec `JSZip.loadAsync()` (bouton « Télécharger le ZIP »), et
   garde le libellé « Télécharger le GeoJSON » pour un fichier unique. La caméra exige un
   contexte sécurisé (HTTPS ou localhost).
-- **Capacités du hub** : `canShareTransferFiles()` sonde `navigator.canShare({ files })` ;
-  quand le partage de fichiers n'est pas supporté (Web Share niveau 1, WebView), les options
-  « Partage rapide » et « Enregistrer sur Drive / Cloud » sont **masquées** et une note de repli
-  s'affiche. Le hub garde le mode serveur local et le téléchargement, et une **note USB**
+- **Hub de transfert à trois canaux** (3.92) : « Télécharger le fichier »
+  (`transferOpenDownloads()` : format du panneau Connexion pour une parcelle, ZIP pour
+  plusieurs), « QR Code animé » (`transferViaAnimatedQr()`, icône Lucide `scan-line`) et
+  « QR Code statique » (`transferViaLocalServer()` : adresse réseau + QR code de cette adresse,
+  ex-« Recevoir sur cet appareil »). Les canaux « Partage rapide » et « Enregistrer sur
+  Drive / Cloud » ont été retirés (doublons du téléchargement), avec la sonde
+  `canShareTransferFiles()` et la note de repli `#transferUnsupportedNote`. Une **note USB**
   (`.transfer-note`) explique la copie par câble : télécharger sur le téléphone puis copier le
   fichier sur la tablette via le gestionnaire de fichiers.
 - Voir [format-geojson.md](format-geojson.md).
