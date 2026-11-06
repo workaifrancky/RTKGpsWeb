@@ -216,23 +216,29 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   1. `.header-logo-layer` — logo vectoriel `assets/logo-rtk-mower.svg` (un seul `<path>`), bande
      de 65 px de haut sur toute la largeur, `preserveAspectRatio="xMidYMid slice"` (≈ 3 px
      rognés), en `fill="currentColor"` blanc, `aria-hidden="true"` (décoratif) ;
-  2. `.header-title` — `MOWER SURVEY` (Arial Black, `nowrap`, `text-shadow`, `top: 24px`,
-     `text-align: center`), centré entre le rover et la roue dentée
-     (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`, `z-index: 2`). **Replis obligatoires**
-     (3.96) pour les navigateurs anciens et les feuilles en cache : `font-size: 22px` puis
-     `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
+  2. `.header-title` — `MOWER SURVEY` + sous-titre `RTK - ACQUISITION TERRAIN`, **typographie
+     harmonisée avec l'écran d'accueil** (3.99) : `.logo-text` reprend `.welcome-title`
+     (Arial Black, `font-weight: 900`, `letter-spacing: 1px`, `line-height: 1`) et
+     `.header-subtitle` reprend `.welcome-subtitle` (police héritée du body, 700, capitales,
+     interlettrage, `opacity: 0.75`), avec des tailles adaptées à la largeur du header.
+     `.header-title` est en `text-align: center`, `line-height: 1`, `top: 24px`, centré entre le
+     rover et la roue dentée (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`, `z-index: 2`).
+     **Replis obligatoires** (3.96) pour les navigateurs anciens et les feuilles en cache :
+     `font-size: 22px` puis `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
      `text-shadow` littéral puis `var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))`
      (un token absent rendrait `var()` invalide et supprimerait l'ombre). **Plafond 26 px** et non
      40 px : le header est une colonne limitée à 480 px (`max-width` de l'app) même sur un écran
      1280 px, le titre n'y dispose donc que de ~270 px.
      **Priorité mobile (3.98)** : sous 480 px, `left: 36vw` / `right: 16.4vw` (≈ 140 / 64 px à
-     390 px), `display: flex` + `justify-content: center` sur `.header-title` et, sur le texte,
-     `display: block`, `font-size: clamp(18px, 6.5vw, 26px)` (≈ 25 px à 390 px) et
-     `transform: scaleX(0.8)` + `transform-origin: center` : l'espace libre entre le rover
-     (≈ 138 px) et la roue (334 px) fait ≈ 196 px alors qu'un « MOWER SURVEY » de 25 px mesure
-     ≈ 233 px — la condensation de 20 % conserve la **hauteur** d'un 25 px centré sans passer
-     sous la roue. Sous 360 px : `left: 36vw` / `right: 58px` + `clamp(16px, 6.2vw, 22px)`.
-     Les cinq CSS locales sont référencées avec `?v=3.98` dans `index.html` (cache-busting
+     390 px), `.header-title` en `display: flex` + `flex-direction: column` +
+     `justify-content: center` + `align-items: center`, titre en `display: block` +
+     `font-size: clamp(18px, 6.2vw, 25px)` (≈ 24 px à 390 px) et `transform: scaleX(0.8)` +
+     `transform-origin: center` : l'espace libre entre le rover (≈ 138 px) et la roue (334 px)
+     fait ≈ 196 px alors qu'un « MOWER SURVEY » de 25 px mesure ≈ 233 px — la condensation de
+     20 % conserve la **hauteur** d'un 25 px centré sans passer sous la roue. Sous-titre mobile :
+     `clamp(8px, 2.3vw, 11px)` + `letter-spacing: 1.2px`. Sous 360 px : `left: 36vw` /
+     `right: 58px`, titre `clamp(16px, 5.8vw, 21px)`, sous-titre `clamp(7px, 2.1vw, 10px)`.
+     Les cinq CSS locales sont référencées avec `?v=3.99` dans `index.html` (cache-busting
      GitHub Pages, `serve-http.cjs` ignore la requête) ;
   3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
      cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
@@ -278,6 +284,19 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (`body.map-ui-fullscreen` dans `map.css`, `body.camera-ui-fullscreen` dans `theme.css`).
   `js/projects.js` rend le focus au déclencheur du tiroir (`#btnProjectDrawer` s'il est visible,
   sinon `#btnConnectionSettings`).
+- **Header rétractable (4.00)** : `#btnHeaderCollapse` (`.header-icon-btn`, 44 × 44 px, chevron
+  Lucide `chevron-up` / `chevron-down` via `ICON_CHEVRON_UP` / `ICON_CHEVRON_DOWN` de `js/app.js`)
+  est le **1er bouton** de `.header-actions-group`. `toggleHeaderCollapse()` →
+  `applyHeaderCollapsed()` pose `body.header-collapsed` (persisté dans `rtkHeaderCollapsed`,
+  **déployé par défaut : aucune régression**) qui réduit `header` de **121 px à 52 px**
+  (`.header-logo-layer` et `.header-title` en `opacity: 0`), fait passer la roue dentée dans le
+  bandeau (`top: 4px`) et lui réserve la place (`.header-actions-group { margin-right: 52px }`).
+  La carte gagne **~69 px** (mesuré à 390 px : `#map-points-slot` 659 → 728 px). `aria-expanded`
+  et le libellé (« Replier / Déplier l'en-tête ») suivent l'état ; `refreshMapSize()` (`js/map.js`)
+  appelle `map.invalidateSize({ animate: false })` immédiatement puis après 260 ms (transition de
+  hauteur de 0,22 s, neutralisée en `prefers-reduced-motion`). `initHeaderCollapse()` restaure
+  l'état au démarrage (appelée dans le `DOMContentLoaded` de `js/app.js`). Ne pas mettre le
+  bouton ailleurs dans le header : le bandeau est la seule zone qui survit au repli.
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
@@ -2034,6 +2053,48 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   19,84 px (13/2) ; ombre `rgba(0, 0, 0, 0.3) 0px 2px 4px` à toutes les largeurs. Captures :
   390 px = titre grand, ombré, centré ; 1280 px = titre entier et dégagé de la roue.
   `node --check js/app.js` OK ; accolades CSS 226/226 · 410/410 · 141/141 · 58/58 · 1/1.
+
+- **3.99 — Titre et sous-titre du header harmonisés avec l'écran d'accueil** : `.logo-text`
+  reprend la typographie de `.welcome-title` (`components.css` : Arial Black,
+  `font-weight: 900`, `letter-spacing: 1px`, `line-height: 1`) et le nouveau
+  `.header-subtitle` (« RTK - ACQUISITION TERRAIN », `index.html`) reprend celle de
+  `.welcome-subtitle` (police héritée du body, 700, capitales, interlettrage, `opacity: 0.75`),
+  avec des tailles adaptées à la largeur du header : titre `clamp(16px, 5vw, 26px)` (24,2 px à
+  390 px contre 27,3 px sur l'accueil), sous-titre `clamp(9px, 2.5vw, 12px)` +
+  `letter-spacing: 1.5px` ; en mobile titre `clamp(18px, 6.2vw, 25px)` (avec `scaleX(0.8)`) et
+  sous-titre `clamp(8px, 2.3vw, 11px)` + `1.2px` ; ≤ 360 px : `clamp(16px, 5.8vw, 21px)` /
+  `clamp(7px, 2.1vw, 10px)`. `.header-title` passe en `line-height: 1` et, sous 480 px, en
+  `display: flex` + `flex-direction: column` + `align-items: center` (titre au-dessus du
+  sous-titre, tous deux centrés). Les cinq CSS passent à `?v=3.99`.
+  Vérifié sous Chrome/CDP : **police, graisse, interlettrage et interligne identiques** entre
+  accueil et header (`"Arial Black", Impact, sans-serif` / 900 / 1px / 1) et sous-titre identique
+  (police, 700, uppercase, 0.75) ; à 390 px le titre mesure 187 px (marges 2 / 7) et le
+  sous-titre 153 px (19 / 24), **centres confondus avec le centre du bloc (233)**, aucun
+  chevauchement de la roue (334) et bas du sous-titre à 59 px pour un bandeau bas à 71 px ; à
+  1280 px titre 251 px / sous-titre 270 px, centrés (685), aucun chevauchement. Accolades CSS
+  229/229 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173 et `span` 78/78 ; aucun JS modifié.
+  Captures de contrôle aux deux largeurs.
+
+- **4.00 — Header rétractable pour dégager la carte** : `#btnHeaderCollapse` (chevron Lucide
+  `chevron-up` / `chevron-down`, 44 × 44 px) est ajouté en **1re position** de
+  `.header-actions-group` (`index.html`, `header` reçoit aussi `id="appHeader"` et
+  `aria-label`). `applyHeaderCollapsed()` / `toggleHeaderCollapse()` / `initHeaderCollapse()`
+  (`js/app.js`) posent `body.header-collapsed`, persisté dans `rtkHeaderCollapsed` et **déployé
+  par défaut** ; `js/map.js` expose `refreshMapSize()` (`map.invalidateSize()`). CSS
+  (`css/main.css`) : `header` passe de **121 px à 52 px** (transition 0,22 s), logo et titre en
+  `opacity: 0`, `.header-bottom-band` à `bottom: 4px`, roue dentée ramenée dans le bandeau
+  (`top: 4px`) avec `margin-right: 52px` pour le groupe d'actions. `aria-expanded` + libellé
+  (« Replier / Déplier l'en-tête ») suivent l'état. **Cache-busting étendu aux JS locaux** :
+  les `<script src="js/…">` sont appelés avec `?v=4.00` (le bundle vendorisé et les CDN restent
+  intacts), en plus des cinq CSS.
+  Vérifié sous Chrome/CDP (390 × 844, DPR 2) : état déployé 121 px / carte 659 px / titre
+  `opacity: 1` / chevron haut / `aria-expanded="true"` ; après clic **52 px / carte 728 px
+  (+69 px)** / titre `opacity: 0` / chevron bas / `aria-expanded="false"` / `rtkHeaderCollapsed
+  = "1"` ; retour à 121 / 659 / chevron haut ; **persistance après rechargement** (démarre
+  replié, 52 / 728) ; aucun chevauchement roue / groupe d'actions dans le bandeau (groupe
+  178→326, roue à 334) ; captures des deux états. `node --check js/app.js js/map.js` OK ;
+  accolades CSS 238/238 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173, `span` 78/78,
+  `button` 58/58.
 
 ## 9. Langue et communication
 

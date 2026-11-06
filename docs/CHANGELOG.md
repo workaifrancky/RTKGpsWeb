@@ -6,6 +6,36 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Header rétractable pour dégager la carte
+
+### Ajouté
+
+- **Header rétractable** (`index.html`, `css/main.css`, `js/app.js`, `js/map.js`) : un bouton chevron (`#btnHeaderCollapse`, 44 × 44 px, icônes Lucide `chevron-up` / `chevron-down`) en 1re position du bandeau d'actions replie le header de **121 px à 52 px** : le logo et le titre s'effacent, la pastille FIX, le chevron, le thème, le BLE et la roue dentée restent accessibles. La carte gagne **~69 px** (`#map-points-slot` 659 → 728 px à 390 px) et Leaflet est recalé (`refreshMapSize()` → `map.invalidateSize()`).
+- État mémorisé dans `localStorage` (`rtkHeaderCollapsed`), **déployé par défaut** (aucune régression) et restauré au démarrage (`initHeaderCollapse()`). `aria-expanded` + libellé suivent l'état ; transition de hauteur de 0,22 s annulée en `prefers-reduced-motion`.
+- `<header>` reçoit `id="appHeader"` et un `aria-label` (cible de `aria-controls`).
+
+### Modifié
+
+- **Cache-busting étendu** : en plus des cinq CSS (`?v=4.00`), les `<script src="js/…">` locaux sont appelés avec `?v=4.00` (le bundle vendorisé et les scripts CDN restent inchangés) — les téléphones reçoivent immédiatement le nouveau JavaScript.
+
+### Notes
+
+- Mesures Chrome/CDP (390 × 844) : déployé 121 px / carte 659 px / titre `opacity: 1` / chevron haut ; replié **52 px / carte 728 px** / titre `opacity: 0` / chevron bas / `rtkHeaderCollapsed = "1"` ; retour à 121 / 659 ; **persistance après rechargement** ; pas de chevauchement roue / boutons dans le bandeau (groupe 178→326, roue à 334).
+- `node --check js/app.js js/map.js` OK ; accolades CSS 238/238 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173, `span` 78/78, `button` 58/58 ; captures des deux états ; aucun commit ni push.
+
+## [2026-11-06] — Titre et sous-titre du header harmonisés avec l'écran d'accueil
+
+### Modifié
+
+- **Header** (`css/main.css`, `index.html`) : `.logo-text` reprend la typographie de `.welcome-title` (Arial Black, `font-weight: 900`, `letter-spacing: 1px`, `line-height: 1`) et un **sous-titre** « RTK - ACQUISITION TERRAIN » (`.header-subtitle`) reprend celle de `.welcome-subtitle` (police héritée du body, 700, capitales, interlettrage, `opacity: 0.75`). Tailles adaptées à la largeur du header : titre 24,2 px à 390 px (contre 27,3 px sur l'accueil), sous-titre ≈ 9 px ; en mobile `clamp(18px, 6.2vw, 25px)` + `clamp(8px, 2.3vw, 11px)`, sous 360 px `clamp(16px, 5.8vw, 21px)` + `clamp(7px, 2.1vw, 10px)`.
+- `.header-title` : `line-height: 1` ; sous 480 px, `display: flex` + `flex-direction: column` + `align-items: center` (titre au-dessus du sous-titre, les deux centrés).
+- `index.html` : les cinq CSS passent à `?v=3.99`.
+
+### Notes
+
+- Mesures Chrome/CDP : styles **identiques** entre l'accueil et le header (police, graisse, interlettrage, interligne, casse, opacité) ; à 390 px titre 187 px (marges 2/7) et sous-titre 153 px (19/24), **centres confondus (233)**, aucun chevauchement de la roue dentée (334) et bas du sous-titre à 59 px pour un bandeau bas à 71 px ; à 1280 px titre 251 px / sous-titre 270 px, centrés (685), sans chevauchement.
+- Accolades CSS 229/229 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173 et `span` 78/78 ; aucun JS modifié ; aucun commit ni push.
+
 ## [2026-11-06] — Titre du header : grand et centré sur mobile, diagnostic retiré
 
 ### Modifié

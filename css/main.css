@@ -212,10 +212,12 @@ header {
 }
 
 /* 2. Titre : centré dans l'espace libre entre le rover (à gauche) et la roue
-      dentée (à droite), posé au-dessus de la couche logo. `min()` conserve les
-      valeurs de référence (150 px à gauche, 60 px à droite) sur les écrans
-      courants et les resserre sur les très petits écrans pour que
-      « MOWER SURVEY » reste sur une seule ligne. */
+      dentée (à droite), posé au-dessus de la couche logo. Typographie
+      harmonisée avec l'écran d'accueil (`.welcome-title` / `.welcome-subtitle`,
+      components.css) : Arial Black 900, `letter-spacing: 1px`, `line-height: 1`
+      pour le titre, et un sous-titre en capitales espacées. `min()` conserve les
+      valeurs de référence (150 px / 60 px) sur les écrans courants et les
+      resserre sur les très petits écrans. */
 .header-title {
   position:       absolute;
   top:            24px;
@@ -228,19 +230,24 @@ header {
   right:          min(60px, 16vw);
   z-index:        2;
   text-align:     center;
+  /* Interligne serré (comme `.welcome-title`) : le titre et son sous-titre
+     occupent exactement leur hauteur de texte, sans leading parasite. */
+  line-height:    1;
   pointer-events: none;
 }
 
 .header-title .logo-text {
+  /* Mêmes réglages que `.welcome-title` (components.css). */
   font-family:    'Arial Black', 'Impact', sans-serif;
+  font-weight:    900;
+  letter-spacing: 1px;
+  line-height:    1;
   /* Repli 22 px puis taille fluide. Le PC ne sert qu'aux tests, mais attention :
      le header est une colonne limitée à 480 px (`max-width` de l'app) même sur
      un écran 1280 px — le titre n'y dispose donc que de ~270 px. Plafond 26 px
-     (≈ 240 px de texte) pour ne jamais passer sous la roue dentée. */
+     pour ne jamais passer sous la roue dentée. */
   font-size:      22px;
   font-size:      clamp(16px, 5vw, 26px);
-  font-weight:    900;
-  letter-spacing: normal;
   white-space:    nowrap;
   color:          #fff;
   /* Ombre portée : valeur littérale de repli, puis token AVEC repli intégré.
@@ -248,6 +255,22 @@ header {
      sinon `var(--…)` invalide et supprimerait l'ombre. */
   text-shadow:    0 2px 4px rgba(0, 0, 0, 0.3);
   text-shadow:    var(--text-shadow-header, 0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Sous-titre du header : mêmes propriétés que `.welcome-subtitle` (même police
+   héritée, 700, capitales, interlettrage, opacité) avec une taille et un
+   interlettrage réduits pour tenir dans la largeur du header. */
+.header-title .header-subtitle {
+  display:        block;
+  margin:         2px 0 0;
+  font-size:      clamp(9px, 2.5vw, 12px);
+  font-weight:    700;
+  letter-spacing: 1.5px;
+  line-height:    1;
+  text-transform: uppercase;
+  white-space:    nowrap;
+  color:          inherit;
+  opacity:        0.75;
 }
 
 /* 3. Bandeau bas : pastille FIX (gauche) + boutons Thème / BLE (droite). */
@@ -420,6 +443,52 @@ header #btnConnectionSettings {
 }
 
 .header-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── HEADER RÉTRACTABLE (dégager la carte) ─────────────────── */
+/* État piloté par `body.header-collapsed` (js/app.js, `toggleHeaderCollapse()`,
+   mémorisé dans `rtkHeaderCollapsed`). **Déployé par défaut : aucune régression.**
+   Replié, le header ne garde qu'un bandeau de 52 px — pastille FIX, chevron,
+   thème, BLE et roue dentée — et la carte récupère ~69 px de hauteur. */
+header {
+  transition: height 0.22s ease;
+}
+
+/* Le logo et le titre s'effacent pendant la réduction (le header rogne le
+   reste : `overflow: hidden`). */
+.header-logo-layer,
+.header-title {
+  transition: opacity 0.16s ease;
+}
+
+body.header-collapsed header {
+  height: 52px;
+}
+
+body.header-collapsed .header-logo-layer,
+body.header-collapsed .header-title {
+  opacity: 0;
+}
+
+body.header-collapsed .header-bottom-band {
+  bottom: 4px;
+}
+
+/* La roue dentée vient dans le bandeau : on lui réserve la place à droite. */
+body.header-collapsed #btnConnectionSettings {
+  top: 4px;
+}
+
+body.header-collapsed .header-actions-group {
+  margin-right: 52px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header,
+  .header-logo-layer,
+  .header-title {
+    transition: none;
+  }
+}
 
 .header-icon-btn .ble-icon-container { width: 24px; height: 24px; }
 .header-icon-btn .ble-svg             { width: 18px; height: 18px; }
@@ -1294,18 +1363,28 @@ header #btnConnectionSettings {
      25 px et on condense légèrement la largeur (`scaleX`) pour tenir dans
      l'espace libre, parfaitement centré (flex + `transform-origin: center`). */
   .header-title {
-    left:             36vw;    /* ≈ 140 px à 390 px */
-    right:            16.4vw;  /* ≈ 64 px : dégage la roue dentée (56 px) */
-    display:          flex;
-    justify-content:  center;
+    left:              36vw;    /* ≈ 140 px à 390 px */
+    right:             16.4vw;  /* ≈ 64 px : dégage la roue dentée (56 px) */
+    display:           flex;
+    flex-direction:    column;  /* titre au-dessus du sous-titre */
+    justify-content:   center;
+    align-items:       center;
   }
 
   .header-title .logo-text {
     display:          block;
-    font-size:        20px;                     /* repli sans `clamp()` */
-    font-size:        clamp(18px, 6.5vw, 26px); /* ≈ 25 px à 390 px */
+    font-size:        20px;                      /* repli sans `clamp()` */
+    font-size:        clamp(18px, 6.2vw, 25px);  /* ≈ 24 px à 390 px */
     transform:        scaleX(0.8);
     transform-origin: center center;
+  }
+
+  /* Sous-titre : même style que l'écran d'accueil, resserré pour tenir dans la
+     même largeur que le titre. */
+  .header-title .header-subtitle {
+    font-size:      8.5px;
+    font-size:      clamp(8px, 2.3vw, 11px);
+    letter-spacing: 1.2px;
   }
 
   .gps-status-pill {
@@ -1367,7 +1446,12 @@ header #btnConnectionSettings {
   }
   .header-title .logo-text {
     font-size: 16px;
-    font-size: clamp(16px, 6.2vw, 22px);
+    font-size: clamp(16px, 5.8vw, 21px);
+  }
+  .header-title .header-subtitle {
+    font-size: 8px;
+    font-size: clamp(7px, 2.1vw, 10px);
+    letter-spacing: 1px;
   }
   .tabs-wrapper { gap: 4px; padding: 6px; }
   .tab-label { padding: 8px 12px; }

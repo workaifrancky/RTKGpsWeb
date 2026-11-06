@@ -164,20 +164,35 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   par `positionHeaderMenu()` (`getBoundingClientRect()`, recalculé au `resize`) ; le `top` CSS
   de 108 px n'est qu'un secours. Largeur `min(340px, 100vw - 20px)`, fond `--color-white`,
   `--shadow-xl`, `max-height` calculée sur `100dvh` avec scroll interne.
-- `.header-title` (couche absolue, `z-index: 2`, `top: 24px`, `text-align: center`) :
-  « MOWER SURVEY » en Arial Black, `nowrap`, `color: #fff`, centré entre le rover et la roue
-  dentée (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`). **Replis systématiques (3.96)** :
+- `.header-title` (couche absolue, `z-index: 2`, `top: 24px`, `text-align: center`,
+  `line-height: 1`) : **typographie harmonisée avec l'écran d'accueil** (3.99). `.logo-text`
+  reprend `.welcome-title` (Arial Black, 900, `letter-spacing: 1px`, `line-height: 1`) et
+  `.header-subtitle` reprend `.welcome-subtitle` (police héritée du body, 700, capitales,
+  interlettrage, `opacity: 0.75`). Centré entre le rover et la roue dentée
+  (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`). **Replis systématiques (3.96)** :
   `font-size: 22px` puis `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
   `text-shadow: 0 2px 4px rgba(0,0,0,0.3)` puis
   `text-shadow: var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))` — sans ce repli, un
   `design-tokens.css` en cache (token absent) supprime l'ombre. Plafond **26 px** (le header est
-  une colonne de 480 px, ~270 px pour le titre).
+  une colonne de 480 px, ~270 px pour le titre) ; sous-titre de base
+  `clamp(9px, 2.5vw, 12px)` + `letter-spacing: 1.5px`.
   **Priorité mobile (3.98)** : sous 480 px, `left: 36vw` / `right: 16.4vw`, `.header-title` en
-  `display: flex` + `justify-content: center`, texte `display: block` +
-  `clamp(18px, 6.5vw, 26px)` (≈ 25 px à 390 px) avec `transform: scaleX(0.8)` /
-  `transform-origin: center center` (hauteur d'un 25 px, largeur condensée pour tenir dans les
-  ~196 px libres entre rover et roue) ; sous 360 px, `right: 58px` +
-  `clamp(16px, 6.2vw, 22px)`. Les cinq CSS locales sont chargées avec `?v=3.98` (cache-busting).
+  `display: flex` + `flex-direction: column` + `justify-content: center` +
+  `align-items: center`, titre `display: block` + `clamp(18px, 6.2vw, 25px)` (≈ 24 px à 390 px)
+  avec `transform: scaleX(0.8)` / `transform-origin: center center` (hauteur d'un 25 px, largeur
+  condensée pour tenir dans les ~196 px libres entre rover et roue) ; sous-titre
+  `clamp(8px, 2.3vw, 11px)` + `1.2px`. Sous 360 px : `right: 58px`,
+  `clamp(16px, 5.8vw, 21px)` / `clamp(7px, 2.1vw, 10px)`. Les cinq CSS locales sont chargées
+  avec `?v=3.99` (cache-busting).
+- **Header rétractable (4.00)** : `#btnHeaderCollapse` (`.header-icon-btn`, 44 × 44 px, icônes
+  Lucide `chevron-up` / `chevron-down` injectées par `applyHeaderCollapsed()`) ouvre
+  `.header-actions-group`. L'état `body.header-collapsed` (persisté, **déployé par défaut**)
+  réduit `header` de 121 px à **52 px** (`transition: height 0.22s`, neutralisée en
+  `prefers-reduced-motion`), efface `.header-logo-layer` et `.header-title` (`opacity: 0`),
+  ramène `.header-bottom-band` à `bottom: 4px` et la roue dentée à `top: 4px`, avec
+  `margin-right: 52px` sur le groupe d'actions pour éviter tout chevauchement. La carte gagne
+  ~69 px (`#map-points-slot` 659 → 728 px à 390 px) ; `refreshMapSize()` (`js/map.js`) recale
+  Leaflet. `aria-expanded` et le libellé (« Replier / Déplier l'en-tête ») suivent l'état.
 - **Cartes de paramètres** (`.menu-card`) : trois sections empilées dans
   `.header-menu-content` (`gap` 10 px) — **Connexion**, **Affichage**, **Données** —, chacune
   avec `padding: 10px 10px 12px`, filet `--border`, rayon `--radius-lg`, fond

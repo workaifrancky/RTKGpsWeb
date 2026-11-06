@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Mower Survey</title>
-  <link rel="stylesheet" href="css/design-tokens.css?v=3.98">
-  <link rel="stylesheet" href="css/main.css?v=3.98">
-  <link rel="stylesheet" href="css/components.css?v=3.98">
-  <link rel="stylesheet" href="css/map.css?v=3.98">
-  <link rel="stylesheet" href="css/theme.css?v=3.98">
+  <link rel="stylesheet" href="css/design-tokens.css?v=4.00">
+  <link rel="stylesheet" href="css/main.css?v=4.00">
+  <link rel="stylesheet" href="css/components.css?v=4.00">
+  <link rel="stylesheet" href="css/map.css?v=4.00">
+  <link rel="stylesheet" href="css/theme.css?v=4.00">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@luomus/leaflet-measure-path@1.5.0/leaflet-measure-path.css"/>
 </head>
@@ -53,7 +53,7 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- HEADER                                                  -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <header>
+  <header id="appHeader" aria-label="En-tête Mower Survey">
     <!-- Couche logo vectoriel (SVG unique, en arrière-plan, rogné 480x65). -->
     <div class="header-logo-layer" aria-hidden="true">
       <svg viewBox="0 0 3524 500" preserveAspectRatio="xMidYMid slice"
@@ -62,9 +62,11 @@
       </svg>
     </div>
 
-    <!-- Titre de l'application, centré entre le rover et la roue dentée. -->
+    <!-- Titre de l'application + sous-titre, harmonisés avec ceux de l'écran
+         d'accueil (`.welcome-title` / `.welcome-subtitle`). -->
     <div class="header-title">
       <span class="logo-text">MOWER SURVEY</span>
+      <span class="header-subtitle">RTK - ACQUISITION TERRAIN</span>
     </div>
 
     <!-- Roue dentée : ouvre le panneau de connexion. -->
@@ -86,6 +88,16 @@
         <span id="headerGpsText">FIX</span>
       </div>
       <div class="header-actions-group">
+        <!-- Replie le header pour dégager la carte (déployé par défaut). -->
+        <button type="button" id="btnHeaderCollapse" class="header-icon-btn"
+          onclick="toggleHeaderCollapse()" title="Replier l'en-tête"
+          aria-label="Replier l'en-tête" aria-expanded="true" aria-controls="appHeader">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </button>
         <button type="button" id="btnTheme" class="header-icon-btn" onclick="toggleTheme()"
           title="Thème sombre" aria-label="Thème sombre">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -1231,28 +1243,28 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="js/firebase-config.js"></script>
+<script src="js/firebase-config.js?v=4.00"></script>
 
-<script src="js/parser.js"></script>
-<script src="js/ntrip.js"></script>
-<script src="js/app.js"></script>
-<script src="js/welcome.js"></script>
-<script src="js/projects.js"></script>
+<script src="js/parser.js?v=4.00"></script>
+<script src="js/ntrip.js?v=4.00"></script>
+<script src="js/app.js?v=4.00"></script>
+<script src="js/welcome.js?v=4.00"></script>
+<script src="js/projects.js?v=4.00"></script>
 <!-- Synchronisation Firestore : après projects.js (dépend de loadProjects,
      persistProjectStorage, normalizeProject). -->
-<script src="js/cloud-sync.js"></script>
-<script src="js/ble.js"></script>
-<script src="js/fab-press.js"></script>
-<script src="js/points.js"></script>
-<script src="js/map.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/simulation.js"></script>
+<script src="js/cloud-sync.js?v=4.00"></script>
+<script src="js/ble.js?v=4.00"></script>
+<script src="js/fab-press.js?v=4.00"></script>
+<script src="js/points.js?v=4.00"></script>
+<script src="js/map.js?v=4.00"></script>
+<script src="js/stats.js?v=4.00"></script>
+<script src="js/simulation.js?v=4.00"></script>
 <!-- QR code local (mode serveur) : générateur autonome, sans CDN. -->
-<script src="js/qrcode.js"></script>
-<script src="js/export.js"></script>
-<script src="js/camera.js"></script>
-<script src="js/history.js"></script>
-<script src="js/ui.js"></script>
+<script src="js/qrcode.js?v=4.00"></script>
+<script src="js/export.js?v=4.00"></script>
+<script src="js/camera.js?v=4.00"></script>
+<script src="js/history.js?v=4.00"></script>
+<script src="js/ui.js?v=4.00"></script>
 
 </body>
 </html>

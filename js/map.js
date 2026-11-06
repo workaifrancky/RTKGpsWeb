@@ -644,6 +644,17 @@ function initGpsControl() {
   map.on('resize', ensureGpsControlPosition);
 }
 
+// Recalcule la taille de la carte après un changement de hauteur du header
+// (header rétractable, `applyHeaderCollapsed()` dans js/app.js).
+function refreshMapSize() {
+  if (!map) return;
+  try {
+    map.invalidateSize({ animate: false });
+  } catch {
+    // Carte non montée : rien à recalculer.
+  }
+}
+
 // Une seule instance de carte, dans l'onglet TRACÉS.
 function mountMapForTab(tabId) {
   const slot = document.getElementById('map-points-slot');

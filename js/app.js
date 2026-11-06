@@ -191,6 +191,20 @@ const ICON_LOG_OUT = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
   <line x1="21" x2="9" y1="12" y2="12"/>
 </svg>`;
 
+// Header rétractable : chevron « vers le haut » quand le header est déployé
+// (l'action proposée est de le replier) et « vers le bas » quand il est replié.
+const ICON_CHEVRON_UP = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m18 15-6-6-6 6"/>
+</svg>`;
+
+const ICON_CHEVRON_DOWN = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m6 9 6 6 6-6"/>
+</svg>`;
+
 // ─── TYPES D'OBSTACLES (SVG Lucide) ──────────────────────────
 // Les emoji ne sont plus affichés dans l'interface : `point.icon` reste une
 // donnée interne (rétrocompatibilité des parcelles existantes) mais l'icône
@@ -229,6 +243,55 @@ function getObstacleIconMarkup(subtype) {
   return OBSTACLE_ICON_SVG[key] || OBSTACLE_ICON_SVG.Perso;
 }
 
+// ─── HEADER RÉTRACTABLE (dégager la carte) ───────────────────
+// Le header est déployé par défaut (aucune régression). Replié, il ne garde
+// qu'un bandeau de 52 px (pastille FIX, chevron, thème, BLE, roue dentée) : la
+// carte récupère ~69 px de hauteur. L'état est mémorisé dans
+// `rtkHeaderCollapsed` et rendu par `body.header-collapsed` (css/main.css).
+const HEADER_COLLAPSED_KEY = 'rtkHeaderCollapsed';
+
+function applyHeaderCollapsed(collapsed, persist = true) {
+  const active = collapsed === true;
+  document.body.classList.toggle('header-collapsed', active);
+
+  const btn = document.getElementById('btnHeaderCollapse');
+  if (btn) {
+    const label = active ? "Déplier l'en-tête" : "Replier l'en-tête";
+    btn.setAttribute('aria-expanded', active ? 'false' : 'true');
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+    const icon = active
+      ? (typeof ICON_CHEVRON_DOWN !== 'undefined' ? ICON_CHEVRON_DOWN : '')
+      : (typeof ICON_CHEVRON_UP !== 'undefined' ? ICON_CHEVRON_UP : '');
+    if (icon) btn.innerHTML = icon;
+  }
+
+  if (persist) {
+    try {
+      localStorage.setItem(HEADER_COLLAPSED_KEY, active ? '1' : '0');
+    } catch {
+      // Stockage indisponible : l'état reste valable pour la session.
+    }
+  }
+
+  // Leaflet doit recalculer sa taille : pendant la transition puis à la fin.
+  const relayout = () => {
+    if (typeof refreshMapSize === 'function') refreshMapSize();
+  };
+  relayout();
+  setTimeout(relayout, 260);
+}
+
+function toggleHeaderCollapse() {
+  applyHeaderCollapsed(!document.body.classList.contains('header-collapsed'));
+}
+
+function initHeaderCollapse() {
+  let stored = '0';
+  try { stored = localStorage.getItem(HEADER_COLLAPSED_KEY) || '0'; } catch { /* défaut : déployé */ }
+  applyHeaderCollapsed(stored === '1', false);
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
@@ -239,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initScreenLock();
   initNavigation();
   initHeaderMenu();
+  initHeaderCollapse();
   checkBleSupport();
   initProjectUI();
   initAutosave();
