@@ -233,10 +233,12 @@ header {
 
 .header-title .logo-text {
   font-family:    'Arial Black', 'Impact', sans-serif;
-  /* Repli 22 px puis taille fluide (24 px au plus) : un navigateur qui ne
-     comprend pas `clamp()` garderait sinon la taille héritée (petit titre). */
+  /* Repli 22 px puis taille fluide. Le PC ne sert qu'aux tests, mais attention :
+     le header est une colonne limitée à 480 px (`max-width` de l'app) même sur
+     un écran 1280 px — le titre n'y dispose donc que de ~270 px. Plafond 26 px
+     (≈ 240 px de texte) pour ne jamais passer sous la roue dentée. */
   font-size:      22px;
-  font-size:      clamp(14px, 4.5vw, 24px);
+  font-size:      clamp(16px, 5vw, 26px);
   font-weight:    900;
   letter-spacing: normal;
   white-space:    nowrap;
@@ -1286,13 +1288,24 @@ header #btnConnectionSettings {
 
   .header-logo { font-size: 15px; }
 
-  /* Titre du header : taille proche du PC tout en restant DANS l'espace libre
-     entre le rover et la roue dentée (à 390 px, 22 px déborderaient sous la
-     roue). `4.9vw` plafonne à 22 px ; le repli en pixels couvre les navigateurs
-     sans `clamp()` (sinon ils garderaient les 22 px de la règle de base). */
+  /* Titre du header : PRIORITÉ AU MOBILE. L'espace libre entre le rover
+     (≈ 138 px à 390 px) et la roue dentée (334 px) fait ≈ 196 px, alors qu'un
+     « MOWER SURVEY » de 25 px mesure ≈ 233 px. On garde donc la HAUTEUR d'un
+     25 px et on condense légèrement la largeur (`scaleX`) pour tenir dans
+     l'espace libre, parfaitement centré (flex + `transform-origin: center`). */
+  .header-title {
+    left:             36vw;    /* ≈ 140 px à 390 px */
+    right:            16.4vw;  /* ≈ 64 px : dégage la roue dentée (56 px) */
+    display:          flex;
+    justify-content:  center;
+  }
+
   .header-title .logo-text {
-    font-size: 19px;
-    font-size: clamp(16px, 4.9vw, 22px);
+    display:          block;
+    font-size:        20px;                     /* repli sans `clamp()` */
+    font-size:        clamp(18px, 6.5vw, 26px); /* ≈ 25 px à 390 px */
+    transform:        scaleX(0.8);
+    transform-origin: center center;
   }
 
   .gps-status-pill {
@@ -1348,10 +1361,13 @@ header #btnConnectionSettings {
   /* La roue dentée occupe 56 px depuis le bord droit (12 + 44) : la marge
      droite du titre ne doit jamais descendre sous cette valeur, sinon le texte
      passe sous l'icône. Taille réduite en conséquence. */
-  .header-title { right: 56px; }
+  .header-title {
+    left:  36vw;
+    right: 58px;
+  }
   .header-title .logo-text {
-    font-size: 14.5px;
-    font-size: min(16px, 4.6vw);
+    font-size: 16px;
+    font-size: clamp(16px, 6.2vw, 22px);
   }
   .tabs-wrapper { gap: 4px; padding: 6px; }
   .tab-label { padding: 8px 12px; }

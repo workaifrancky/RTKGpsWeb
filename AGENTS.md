@@ -220,13 +220,20 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
      `text-align: center`), centré entre le rover et la roue dentée
      (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`, `z-index: 2`). **Replis obligatoires**
      (3.96) pour les navigateurs anciens et les feuilles en cache : `font-size: 22px` puis
-     `clamp(14px, 4.5vw, 24px)` ; `left`/`right` en pixels puis en `min()` ;
+     `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
      `text-shadow` littéral puis `var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))`
-     (un token absent rendrait `var()` invalide et supprimerait l'ombre).
-     Sur mobile (≤ 480 px) : `clamp(16px, 4.9vw, 22px)` (19,1 px à 390 px) ; sous 360 px :
-     `right: 56px` + `min(16px, 4.6vw)`, sinon le texte passe **sous** la roue dentée
-     (56 px depuis le bord droit = 12 + 44). Les cinq CSS locales sont référencées avec
-     `?v=3.96` dans `index.html` (cache-busting GitHub Pages, `serve-http.cjs` ignore la requête) ;
+     (un token absent rendrait `var()` invalide et supprimerait l'ombre). **Plafond 26 px** et non
+     40 px : le header est une colonne limitée à 480 px (`max-width` de l'app) même sur un écran
+     1280 px, le titre n'y dispose donc que de ~270 px.
+     **Priorité mobile (3.98)** : sous 480 px, `left: 36vw` / `right: 16.4vw` (≈ 140 / 64 px à
+     390 px), `display: flex` + `justify-content: center` sur `.header-title` et, sur le texte,
+     `display: block`, `font-size: clamp(18px, 6.5vw, 26px)` (≈ 25 px à 390 px) et
+     `transform: scaleX(0.8)` + `transform-origin: center` : l'espace libre entre le rover
+     (≈ 138 px) et la roue (334 px) fait ≈ 196 px alors qu'un « MOWER SURVEY » de 25 px mesure
+     ≈ 233 px — la condensation de 20 % conserve la **hauteur** d'un 25 px centré sans passer
+     sous la roue. Sous 360 px : `left: 36vw` / `right: 58px` + `clamp(16px, 6.2vw, 22px)`.
+     Les cinq CSS locales sont référencées avec `?v=3.98` dans `index.html` (cache-busting
+     GitHub Pages, `serve-http.cjs` ignore la requête) ;
   3. `#btnConnectionSettings` — roue dentée (SVG Lucide `settings` 18 px, **icône seule** sans
      cercle ni fond, zone tactile 44 × 44 px), **en haut à droite** via
      `header #btnConnectionSettings { position: absolute !important; top: 6px; right: 12px; z-index: 3 }`,
@@ -271,14 +278,6 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (`body.map-ui-fullscreen` dans `map.css`, `body.camera-ui-fullscreen` dans `theme.css`).
   `js/projects.js` rend le focus au déclencheur du tiroir (`#btnProjectDrawer` s'il est visible,
   sinon `#btnConnectionSettings`).
-- **Diagnostic temporaire `?debug-title` (3.97)** : `debugHeaderTitle()` (`js/app.js`) s'exécute au
-  `DOMContentLoaded` **uniquement** si l'URL contient `?debug-title`, et affiche (alerte + console)
-  les styles calculés de `.header-title .logo-text` (`font-size`, `text-shadow`, `font-family`),
-  la taille d'écran et l'état des media queries 480/360 px, la position du bloc (`top`/`left`/
-  `right`/largeur du texte), la valeur du token `--text-shadow-header`, le support de `clamp()` /
-  `min()` (`CSS.supports`) et les **règles réellement chargées** pour le sélecteur
-  (`document.styleSheets`, media queries incluses). Aucun effet sans le paramètre. Bloc
-  clairement délimité dans `js/app.js` : **à retirer** une fois le sujet clos.
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
@@ -2016,6 +2015,25 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   `19.11px` / `rgba(0, 0, 0, 0.3) 0px 2px 4px` / 3 règles (base + 480 + 360) / `clamp oui | min oui` ;
   à **1280 px** `24px` ; **sans le paramètre, aucune alerte** (`window.__alerts` vide).
   `node --check js/app.js` OK.
+
+- **3.98 — Titre du header : priorité mobile, grand et centré (+ retrait du diagnostic)** : le bloc
+  temporaire `debugHeaderTitle()` et son appel `?debug-title` sont **supprimés** de `js/app.js`
+  (aucune référence restante : `git grep 'debug-title|debugHeaderTitle'` → 0). Mesures de
+  référence du header (analyse pixel du logo, Canvas) : à 390 px le rover s'arrête à **138 px** et
+  la roue dentée commence à **334 px** → **196 px** d'espace libre, alors qu'un « MOWER SURVEY »
+  de 25 px mesure ≈ 233 px. **Règle de base** : `clamp(16px, 5vw, 26px)` — plafond 26 px et non
+  40 px, car le header reste une **colonne de 480 px** même sur un écran 1280 px (~270 px pour le
+  titre). **Mobile ≤ 480 px** : `left: 36vw` / `right: 16.4vw`, `.header-title` en `display: flex`
+  + `justify-content: center`, texte en `display: block` + `clamp(18px, 6.5vw, 26px)` (≈ 25 px à
+  390 px) + `transform: scaleX(0.8)` / `transform-origin: center center` : la **hauteur** d'un
+  25 px est conservée, la largeur condensée de 20 % tient dans les 196 px libres. **≤ 360 px** :
+  `left: 36vw` / `right: 58px` + `clamp(16px, 6.2vw, 22px)`. Les cinq CSS passent à `?v=3.98`.
+  Vérifié sous Chrome/CDP : 1280 px → 26 px (marges 174/20) ; 900 px → 26 px ; 480 px → 26 px
+  (10/41) ; 420 px → 26 px (3/17) ; **390 px → 25,35 px** (texte 140→326, centre 233 = centre du
+  bloc, marges 2/8, **aucun chevauchement** rover/roue) ; 360 px → 22 px (12/7) ; 320 px →
+  19,84 px (13/2) ; ombre `rgba(0, 0, 0, 0.3) 0px 2px 4px` à toutes les largeurs. Captures :
+  390 px = titre grand, ombré, centré ; 1280 px = titre entier et dégagé de la roue.
+  `node --check js/app.js` OK ; accolades CSS 226/226 · 410/410 · 141/141 · 58/58 · 1/1.
 
 ## 9. Langue et communication
 

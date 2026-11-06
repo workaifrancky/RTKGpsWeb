@@ -6,6 +6,23 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Titre du header : grand et centré sur mobile, diagnostic retiré
+
+### Modifié
+
+- **Titre « MOWER SURVEY »** (`css/main.css`) : priorité au mobile. Règle de base `clamp(16px, 5vw, 26px)` ; sous 480 px, `left: 36vw` / `right: 16.4vw`, `.header-title` en `display: flex` + `justify-content: center` et texte en `clamp(18px, 6.5vw, 26px)` (≈ **25 px à 390 px**, contre 19 px avant) avec `transform: scaleX(0.8)` : la hauteur d'un 25 px est conservée, la largeur condensée pour rester dans les ~196 px libres entre le rover et la roue dentée. Sous 360 px : `left: 36vw` / `right: 58px` + `clamp(16px, 6.2vw, 22px)`.
+- `index.html` : les cinq CSS passent à `?v=3.98` (cache-busting).
+
+### Supprimé
+
+- `js/app.js` : fonction `debugHeaderTitle()` et son appel `?debug-title` (code de diagnostic temporaire), ainsi que toute référence restante.
+
+### Notes
+
+- Mesures Chrome/CDP : 1280 px → 26 px (marges 174/20) ; 480 px → 26 px (10/41) ; 420 px → 26 px (3/17) ; **390 px → 25,35 px** (centre du texte = centre du bloc, marges 2/8, **aucun chevauchement**) ; 360 px → 22 px (12/7) ; 320 px → 19,84 px (13/2). Ombre `rgba(0,0,0,0.3) 0px 2px 4px` partout.
+- Plafond de base 26 px et non 40 px : le header est une colonne limitée à 480 px même sur un écran 1280 px (40 px débordaient sous la roue dentée).
+- `node --check js/app.js` OK ; accolades CSS 226/226 · 410/410 · 141/141 · 58/58 · 1/1 ; aucun autre écran modifié ; aucun commit ni push.
+
 ## [2026-11-06] — Diagnostic temporaire du titre du header (`?debug-title`)
 
 ### Ajouté

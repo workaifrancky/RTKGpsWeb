@@ -167,12 +167,17 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
 - `.header-title` (couche absolue, `z-index: 2`, `top: 24px`, `text-align: center`) :
   « MOWER SURVEY » en Arial Black, `nowrap`, `color: #fff`, centré entre le rover et la roue
   dentée (`left: min(150px, 38vw)` / `right: min(60px, 16vw)`). **Replis systématiques (3.96)** :
-  `font-size: 22px` puis `clamp(14px, 4.5vw, 24px)` ; `left`/`right` en pixels puis en `min()` ;
+  `font-size: 22px` puis `clamp(16px, 5vw, 26px)` ; `left`/`right` en pixels puis en `min()` ;
   `text-shadow: 0 2px 4px rgba(0,0,0,0.3)` puis
   `text-shadow: var(--text-shadow-header, 0 2px 4px rgba(0,0,0,0.3))` — sans ce repli, un
-  `design-tokens.css` en cache (token absent) supprime l'ombre. Mobile : `clamp(16px, 4.9vw, 22px)`
-  (≤ 480 px) et `right: 56px` + `min(16px, 4.6vw)` sous 360 px (sinon le titre passe sous la roue
-  dentée). Les cinq CSS locales sont chargées avec `?v=3.96` (cache-busting).
+  `design-tokens.css` en cache (token absent) supprime l'ombre. Plafond **26 px** (le header est
+  une colonne de 480 px, ~270 px pour le titre).
+  **Priorité mobile (3.98)** : sous 480 px, `left: 36vw` / `right: 16.4vw`, `.header-title` en
+  `display: flex` + `justify-content: center`, texte `display: block` +
+  `clamp(18px, 6.5vw, 26px)` (≈ 25 px à 390 px) avec `transform: scaleX(0.8)` /
+  `transform-origin: center center` (hauteur d'un 25 px, largeur condensée pour tenir dans les
+  ~196 px libres entre rover et roue) ; sous 360 px, `right: 58px` +
+  `clamp(16px, 6.2vw, 22px)`. Les cinq CSS locales sont chargées avec `?v=3.98` (cache-busting).
 - **Cartes de paramètres** (`.menu-card`) : trois sections empilées dans
   `.header-menu-content` (`gap` 10 px) — **Connexion**, **Affichage**, **Données** —, chacune
   avec `padding: 10px 10px 12px`, filet `--border`, rayon `--radius-lg`, fond
