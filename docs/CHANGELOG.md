@@ -6,6 +6,25 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Panneau latéral rétractable des outils de la carte
+
+### Ajouté
+
+- **Panneau latéral (Edge Panel)** `#mapToolsPanel` sur le bord droit de la carte (`index.html`, `css/map.css`, `js/map.js`) : sept boutons `.map-float-btn` de 44 px — **Zoom +**, **Zoom −**, Relief, **Satellite**, **Centrage**, Suivi GPS et Plein écran. Il glisse depuis la droite (`transform` + `opacity`, 0,18 s) et regroupe tous les outils qui étaient éparpillés sur la carte.
+- **Languette** `#mapToolsGrabber` : 16 × 46 px, semi-transparente (`rgba(255,255,255,0.8)`), ombre légère, collée au bord droit et centrée verticalement, chevron Lucide `chevron-left` (fermé) / `chevron-right` (ouvert). Elle **reste visible panneau ouvert** (elle glisse sur son bord gauche, `right: 70px`) pour pouvoir le refermer.
+- Fermeture aussi au **clic sur la carte** (`map.on('click', closeMapToolsPanel)`) et par **Échap** ; `openMapToolsPanel()` / `closeMapToolsPanel()` appellent `refreshMapSize()`.
+
+### Modifié
+
+- **Carte dégagée** : le rail gauche `.map-floating-controls`, le **contrôle zoom de Leaflet** (`zoomControl: false`) et le **contrôle GPS Leaflet** (`bottomleft` / `bottomright`, `ensureGpsControlPosition()`) sont **supprimés** ; leurs fonctions sont reprises par `mapZoomIn()`, `mapZoomOut()`, `#btnMapCenter` (`centerMapOnGps()`) et `#btnFollowGps` (`toggleGpsFollow()`).
+- Le **verrouillage** (`#btnLock`) reste en haut à droite, au-dessus du panneau (toujours accessible) et le **FAB d'enregistrement** reste centré en bas. Le **header rétractable** (4.00) est inchangé et continue de fonctionner.
+- `index.html` : cache-busting passé à `?v=4.01` (CSS + JS locaux).
+
+### Notes
+
+- Mesures Chrome/CDP (390 × 844) : fermé → panneau `opacity: 0` / `pointer-events: none`, languette 16 × 46 à `x = 374` ; ouvert → panneau 60 × 360 à `x = 320`, languette à `x = 304` ; zoom `17 → 18 → 17` ; `#btnBaseSatellite` actif après le clic ; « Centrage » → toast « Aucune position GPS disponible » (sans GPS) ; « Suivi » bascule `.active` / `aria-pressed` ; clic sur la carte → fermeture ; aucun `.leaflet-control-zoom`, `.map-floating-controls` ni `.map-gps-control` dans le DOM ; captures des deux états.
+- `node --check js/app.js js/map.js` OK ; accolades CSS 60/60 (map) · 238/238 (main) · 410/410 · 141/141 · 1/1 ; aucun commit ni push.
+
 ## [2026-11-06] — Header rétractable pour dégager la carte
 
 ### Ajouté

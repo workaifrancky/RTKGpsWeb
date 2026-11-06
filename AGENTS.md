@@ -626,10 +626,11 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   l'option `rtkShowPointNumbers` vaut `'1'` (`showPointNumbers`, `js/map.js`, **désactivée par
   défaut**), pilotée par le switch `#btnPointNumbers` du panneau Connexion
   (`togglePointNumbers()` → persistance + `renderMap()`).
-- **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les contrôles Relief /
-  Satellite / Plein écran sont flottants sur la carte (`.map-floating-controls`) ; l'export
-  reste accessible par le bouton « Exporter » de chaque ligne de PARCELLES (HISTORIQUE), la
-  vue détail ne contient plus ni export ni « Effacer » (3.65).
+- **Onglet CARTE supprimé** : un seul écran cartographique (TRACÉS). Les outils de la carte
+  (zoom ±, Relief / Satellite, centrage, suivi GPS, plein écran) vivent dans le **panneau latéral
+  rétractable** `#mapToolsPanel` (bord droit, 4.01) — plus aucun rail à gauche de la carte ;
+  l'export reste accessible par le bouton « Exporter » de chaque ligne de PARCELLES (HISTORIQUE),
+  la vue détail ne contient plus ni export ni « Effacer » (3.65).
 - **Démarrage sans parcelle** : à chaque chargement, `currentProject` est forcé à `null` et
   la clé `rtkCurrentProject` est purgée, **même si une parcelle était mémorisée** : aucun
   projet « Mon jardin » n'est créé et aucune parcelle n'est restaurée automatiquement.
@@ -2095,6 +2096,34 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   178→326, roue à 334) ; captures des deux états. `node --check js/app.js js/map.js` OK ;
   accolades CSS 238/238 · 410/410 · 141/141 · 58/58 · 1/1 ; `div` 173/173, `span` 78/78,
   `button` 58/58.
+
+- **Panneau latéral des outils de la carte (4.01)** : la carte n'a **plus aucun contrôle sur son
+  bord gauche**. `#mapToolsPanel` (`.map-tools-panel`, `top: 164px`, `right: 10px`, 60 px de large,
+  fond `--color-white`, `--shadow-lg`, rayon `--radius-lg`, `z-index: 1001`) contient sept boutons
+  `.map-float-btn` (44 px) : `#btnMapZoomIn` / `#btnMapZoomOut` (le **contrôle zoom de Leaflet est
+  retiré** : `L.map(…, { zoomControl: false })` + `mapZoomIn()` / `mapZoomOut()`), `#btnBaseRelief`
+  / `#btnBaseSatellite`, `#btnMapCenter` (`centerMapOnGps()`), `#btnFollowGps`
+  (`toggleGpsFollow()`, état tenu par `updateGpsFollowControl()` via l'id) et `#btnMapFullscreen`.
+  Il est ouvert/fermé par la **languette** `#mapToolsGrabber` (`.map-tools-grabber`, 16 × 46 px,
+  `rgba(255,255,255,0.8)`, `--shadow-sm`, collée au bord droit et centrée verticalement,
+  `z-index: 1002`) : `toggleMapToolsPanel()` → `openMapToolsPanel()` / `closeMapToolsPanel()`
+  posent `.is-open` sur le panneau et `body.map-tools-open` (qui fait glisser la languette à
+  `right: 70px`, sur le bord gauche du panneau, avec un chevron inversé
+  `ICON_CHEVRON_RIGHT`) ; `refreshMapSize()` recale Leaflet. Fermeture aussi au **clic sur la
+  carte** (`map.on('click', closeMapToolsPanel)`) et par **Échap**. Le contrôle GPS Leaflet
+  (`bottomleft`/`bottomright`) et `ensureGpsControlPosition()` sont **supprimés**.
+  Le verrouillage (`#btnLock`, `top: 110px`, `right: 10px`, `z-index: 1000`) reste **au-dessus**
+  du panneau, et le FAB d'enregistrement centré en bas, hors du panneau.
+  Vérifié sous Chrome/CDP (390 × 844) : fermé → panneau `opacity: 0` / `pointer-events: none`,
+  languette 16 × 46 à `x = 374` (bord droit), chevron gauche, `aria-expanded="false"` ; ouvert →
+  panneau 60 × 360 à `x = 320` (dans l'écran), languette à `x = 304`, chevron droite,
+  `aria-expanded="true"` ; zoom `17 → 18 → 17` ; `#btnBaseSatellite` devient `.active` ;
+  « Centrage » affiche « Aucune position GPS disponible » (sans GPS) ; « Suivi » bascule
+  `.active` / `aria-pressed` ; clic sur la carte → panneau refermé et languette revenue à
+  `x = 374` ; **header rétractable toujours fonctionnel** (121 → 52 px) ; aucun
+  `.leaflet-control-zoom`, `.map-floating-controls` ni `.map-gps-control` dans le DOM ;
+  captures des deux états. `node --check js/app.js js/map.js` OK ; accolades CSS 60/60 (map) ·
+  238/238 (main) · 410/410 · 141/141 · 1/1 ; `div`, `span`, `button` équilibrés.
 
 ## 9. Langue et communication
 

@@ -31,8 +31,8 @@ try {
 // Mode de tracé : suivi GPS, position connue et état de la vue TRACÉS.
 let followGps = true;
 let lastMapPosition = null;
-let gpsControl = null;
 let gpsFollowBtn = null;
+let mapToolsBound = false;
 let pointsViewProjectId = null;
 let pointsViewNeedsFit = true;
 
@@ -61,7 +61,7 @@ function initMap() {
     : { id:'bod1', name:'BOD1', lat:BOD1_LAT, lon:BOD1_LON, mountpoint:'Référence NTRIP' };
   const centerLat = station?.lat ?? BOD1_LAT;
   const centerLon = station?.lon ?? BOD1_LON;
-  map = L.map('map', { center:[centerLat,centerLon], zoom:17, zoomControl:true });
+  map = L.map('map', { center:[centerLat,centerLon], zoom:17, zoomControl:false });
   // ── Fond « Relief » ─────────────────────────────────────────
   // CARTO Voyager exige maintenant une clé API : sans clé, CARTO renvoie des
   // tuiles « API KEY REQUIRED » (filigrane). On garde donc Voyager activable
@@ -93,7 +93,7 @@ function initMap() {
   layerObstacle = L.layerGroup().addTo(map);
   zoneLabelLayer = L.layerGroup().addTo(map);
 
-  initGpsControl();
+  initMapToolsPanel();
 
   // Un déplacement manuel désactive le suivi GPS (le bouton permet de le réactiver).
   map.on('dragstart', disableGpsFollow);
@@ -593,56 +593,80 @@ function updateGpsFollowControl() {
     : 'Suivi GPS désactivé — toucher pour activer';
 }
 
-// Position adaptative des contrôles GPS : à gauche quand la carte est assez
-// haute (les 3 contrôles restent au-dessus), à droite sur une carte courte
-// (paysage) pour ne jamais croiser la colonne zoom + Relief/Satellite/⛶.
-let gpsControlPosition = 'bottomleft';
+// ─── PANNEAU LATÉRAL DES OUTILS DE LA CARTE (bord droit) ─────
+// Les outils (zoom +/−, centrage, suivi GPS, fonds Relief/Satellite, plein
+// écran) vivent dans un panneau rétractable ouvert par la languette
+// `#mapToolsGrabber` : la carte est dégagée (plus aucun rail à gauche) tout en
+// gardant tous les contrôles à portée de pouce. Le verrouillage (#btnLock) et le
+// FAB d'enregistrement restent hors du panneau, à leur place.
+let mapToolsOpen = false;
 
-function ensureGpsControlPosition() {
-  if (!map || !gpsControl) return;
-  const wanted = map.getSize().y < 430 ? 'bottomright' : 'bottomleft';
-  if (wanted === gpsControlPosition) return;
+function refreshMapToolsPanel() {
+  const panel = document.getElementById('mapToolsPanel');
+  const grabber = document.getElementById('mapToolsGrabber');
+  document.body.classList.toggle('map-tools-open', mapToolsOpen);
 
-  map.removeControl(gpsControl);
-  gpsControl.options.position = wanted;
-  gpsControlPosition = wanted;
-  gpsControl.addTo(map);
-  updateGpsFollowControl();
+  if (panel) {
+    panel.classList.toggle('is-open', mapToolsOpen);
+    panel.setAttribute('aria-hidden', mapToolsOpen ? 'false' : 'true');
+  }
+
+  if (grabber) {
+    const label = mapToolsOpen
+      ? 'Fermer les outils de la carte'
+      : 'Ouvrir les outils de la carte';
+    grabber.setAttribute('aria-expanded', mapToolsOpen ? 'true' : 'false');
+    grabber.setAttribute('aria-label', label);
+    grabber.setAttribute('title', label);
+    const icon = mapToolsOpen
+      ? (typeof ICON_CHEVRON_RIGHT !== 'undefined' ? ICON_CHEVRON_RIGHT : '')
+      : (typeof ICON_CHEVRON_LEFT !== 'undefined' ? ICON_CHEVRON_LEFT : '');
+    if (icon) grabber.innerHTML = icon;
+  }
 }
 
-function initGpsControl() {
-  if (!map || gpsControl) return;
-
-  gpsControl = L.control({ position: 'bottomleft' });
-  gpsControl.onAdd = () => {
-    const container = L.DomUtil.create('div', 'map-gps-control');
-
-    const recenterBtn = L.DomUtil.create('button', 'map-gps-btn', container);
-    recenterBtn.type      = 'button';
-    recenterBtn.textContent = '⌖';
-    recenterBtn.title     = 'Recentrer sur la position GPS';
-
-    const followBtn = L.DomUtil.create('button', 'map-gps-btn', container);
-    followBtn.type        = 'button';
-    followBtn.id          = 'btnFollowGps';
-    followBtn.textContent = '➤';
-    gpsFollowBtn = followBtn;
-
-    L.DomEvent.disableClickPropagation(container);
-    L.DomEvent.disableScrollPropagation(container);
-    L.DomEvent.on(recenterBtn, 'click', L.DomEvent.stop)
-      .on(recenterBtn, 'click', centerMapOnGps);
-    L.DomEvent.on(followBtn, 'click', L.DomEvent.stop)
-      .on(followBtn, 'click', toggleGpsFollow);
-
-    updateGpsFollowControl();
-    return container;
-  };
-
-  gpsControl.addTo(map);
-  gpsControlPosition = 'bottomleft';
-  map.on('resize', ensureGpsControlPosition);
+function openMapToolsPanel() {
+  if (mapToolsOpen) return;
+  mapToolsOpen = true;
+  refreshMapToolsPanel();
+  refreshMapSize();                        // la carte se redimensionne
 }
+
+function closeMapToolsPanel() {
+  if (!mapToolsOpen) return;
+  mapToolsOpen = false;
+  refreshMapToolsPanel();
+  refreshMapSize();
+}
+
+function toggleMapToolsPanel() {
+  if (mapToolsOpen) closeMapToolsPanel();
+  else openMapToolsPanel();
+}
+
+// Branchement : languette (onclick inline dans index.html), clic sur la carte
+// et touche Échap. Les deux peuvent être appelés plusieurs fois sans doublon.
+function initMapToolsPanel() {
+  refreshMapToolsPanel();
+  if (map) map.on('click', closeMapToolsPanel);
+  if (mapToolsBound) return;
+  mapToolsBound = true;
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMapToolsPanel();
+  });
+}
+
+// Zoom du panneau (le contrôle zoom de Leaflet a été retiré de la carte).
+function mapZoomIn() {
+  if (map) map.zoomIn();
+}
+
+function mapZoomOut() {
+  if (map) map.zoomOut();
+}
+
+// État initial de la languette : le panneau démarre fermé.
+document.addEventListener('DOMContentLoaded', initMapToolsPanel);
 
 // Recalcule la taille de la carte après un changement de hauteur du header
 // (header rétractable, `applyHeaderCollapsed()` dans js/app.js).
@@ -669,7 +693,6 @@ function mountMapForTab(tabId) {
   setTimeout(() => {
     if (!map) return;
     map.invalidateSize({ animate: false });
-    ensureGpsControlPosition();
 
     if (tabId === 'tab-points') {
       renderMap();
@@ -727,7 +750,6 @@ function setMapFullscreen(enabled) {
   setTimeout(() => {
     if (!map) return;
     map.invalidateSize({ animate: false });
-    ensureGpsControlPosition();
     renderMap();
   }, 120);
 }

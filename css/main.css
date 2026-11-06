@@ -1416,7 +1416,6 @@ body.header-collapsed .header-actions-group {
   .btn-del,
   .drawer-project-actions button,
   .drawer-close,
-  .map-gps-btn,
   .map-float-btn {
     width:  44px;
     height: 44px;
@@ -1648,7 +1647,6 @@ body.gloves-mode .trace-fab-stakeout {
 }
 
 body.gloves-mode .map-float-btn,
-body.gloves-mode .map-gps-btn,
 body.gloves-mode .map-lock-btn {
   width:      52px;
   height:     52px;

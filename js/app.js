@@ -205,6 +205,21 @@ const ICON_CHEVRON_DOWN = `<svg xmlns="http://www.w3.org/2000/svg" width="20" he
   <path d="m6 9 6 6 6-6"/>
 </svg>`;
 
+// Languette du panneau d'outils de la carte (bord droit) : chevron vers la
+// gauche quand le panneau est fermé (on le tire vers l'écran), vers la droite
+// quand il est ouvert (on le referme).
+const ICON_CHEVRON_LEFT = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m15 18-6-6 6-6"/>
+</svg>`;
+
+const ICON_CHEVRON_RIGHT = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+  aria-hidden="true" focusable="false">
+  <path d="m9 18 6-6-6-6"/>
+</svg>`;
+
 // ─── TYPES D'OBSTACLES (SVG Lucide) ──────────────────────────
 // Les emoji ne sont plus affichés dans l'interface : `point.icon` reste une
 // donnée interne (rétrocompatibilité des parcelles existantes) mais l'icône

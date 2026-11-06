@@ -383,13 +383,28 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
 
 ### Modes et plein écran carte
 
-- `.map-floating-controls` : colonne de trois boutons **44 px** à `top: 110px` **dans
-  `#map-points-slot`** (`position: relative`, hauteur de la carte seule) — Relief, Satellite,
-  Plein écran (`#btnBaseRelief`, `#btnBaseSatellite`, `#btnMapFullscreen`). Les boutons sont
-  8 px sous le zoom Leaflet (44 px chacun). `.map-float-btn.active` = fond `--color-primary`,
-  texte blanc. Icônes **Lucide** : `map`, `satellite`, `maximize` (puis `minimize` en plein
-  écran) ; le verrou `#btnLock` utilise `lock` / `unlock` (`inline-flex` centré,
-  `svg { display: block; pointer-events: none }`).
+- **Panneau latéral des outils de la carte (4.01)** : `#mapToolsPanel` (`.map-tools-panel`,
+  `position: absolute` dans `#map-points-slot`, `top: 164px` — sous le cadenas —, `right: 10px`,
+  largeur 60 px, `padding: 8px`, fond `--color-white`, `--shadow-lg`, rayon `--radius-lg`,
+  `z-index: 1001`) regroupe **sept boutons** `.map-float-btn` de 44 px : `#btnMapZoomIn`,
+  `#btnMapZoomOut` (icônes Lucide `zoom-in` / `zoom-out` ; le contrôle zoom de Leaflet a été
+  retiré, `L.map(…, { zoomControl: false })`), `#btnBaseRelief` / `#btnBaseSatellite` (`map` /
+  `satellite`), `#btnMapCenter` (`crosshair`), `#btnFollowGps` (`navigation`, état `.active` /
+  `aria-pressed` tenu par `updateGpsFollowControl()`) et `#btnMapFullscreen`
+  (`maximize` / `minimize`). Replié, il est translaté hors écran
+  (`translateX(calc(100% + 20px))`, `opacity: 0`, `pointer-events: none`) ; `.is-open` le ramène
+  (`transform: translateX(0)`), transition 0,18 s neutralisée en `prefers-reduced-motion`.
+- `.map-tools-grabber` (`#mapToolsGrabber`) : languette semi-transparente (`rgba(255,255,255,0.8)`,
+  filet `--border`, `--shadow-sm`, 16 × 46 px, rayon à gauche) collée au bord droit et centrée
+  verticalement (`top: 50%`, `translateY(-50%)`, `z-index: 1002`). Chevron `chevron-left` fermé /
+  `chevron-right` ouvert (`ICON_CHEVRON_LEFT` / `ICON_CHEVRON_RIGHT` de `js/app.js`) ; ouverte,
+  elle glisse sur le bord gauche du panneau (`body.map-tools-open .map-tools-grabber { right: 70px }`)
+  et reste cliquable pour refermer. Fermeture aussi au **clic sur la carte** (`map.on('click',
+  closeMapToolsPanel)`) et par **Échap**. `openMapToolsPanel()` / `closeMapToolsPanel()` appellent
+  `refreshMapSize()` (`map.invalidateSize()`).
+- `.map-lock-control` (`#btnLock`, 44 px, `top: 110px`, `right: 10px`, `z-index: 1000`) reste
+  **hors du panneau**, au-dessus de lui : le verrouillage est toujours accessible, panneau ouvert
+  ou fermé. Le FAB d'enregistrement reste centré en bas, indépendant du panneau.
 - **Header non compressible** : `header { flex-shrink: 0 }` — sans cette règle, le header
   (flex item de `.app-wrapper`) était écrasé de 110 → 85 px sur HISTORIQUE et ses deux lignes
   débordaient sur le contenu.
@@ -398,9 +413,10 @@ Notes : la barre d'onglets conserve `overflow-x: auto` par sécurité, mais ne d
   commentée : `padding-top: var(--header-height, 104px)` (`--header-height: 104px` dans
   `:root`), à activer seulement si un appareil superpose encore le header. Aucun décalage sur
   TRACÉS et CAMÉRA (ils occupent l'écran).
-- `.map-gps-control` (Leaflet `bottomleft`) : recentrer `⌖` et suivi `➤`, 44 px. Si la carte
-  mesure moins de 430 px de haut (paysage), `ensureGpsControlPosition()` le bascule en
-  `bottomright` : les deux icônes restent accessibles sans croiser la colonne zoom + contrôles.
+- **Centrage / suivi GPS** : le contrôle Leaflet `bottomleft` (recentrer `⌖` + suivi `➤`) a été
+  **retiré en 4.01** ; ses deux fonctions sont désormais dans le panneau latéral
+  (`#btnMapCenter` → `centerMapOnGps()`, `#btnFollowGps` → `toggleGpsFollow()`). Plus de
+  `ensureGpsControlPosition()` : la carte n'affiche plus aucun contrôle en bas à gauche.
 - `body.map-ui-fullscreen` : `#tab-points` passe en `position: fixed; inset: 0;
   width: 100vw; height: 100dvh; z-index: 900`. Sont masqués en `display: none !important` +
   `visibility: hidden` : `header`, `.header-top-row`, `.header-bottom-row`,
