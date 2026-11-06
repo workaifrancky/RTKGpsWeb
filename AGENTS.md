@@ -271,6 +271,14 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   (`body.map-ui-fullscreen` dans `map.css`, `body.camera-ui-fullscreen` dans `theme.css`).
   `js/projects.js` rend le focus au déclencheur du tiroir (`#btnProjectDrawer` s'il est visible,
   sinon `#btnConnectionSettings`).
+- **Diagnostic temporaire `?debug-title` (3.97)** : `debugHeaderTitle()` (`js/app.js`) s'exécute au
+  `DOMContentLoaded` **uniquement** si l'URL contient `?debug-title`, et affiche (alerte + console)
+  les styles calculés de `.header-title .logo-text` (`font-size`, `text-shadow`, `font-family`),
+  la taille d'écran et l'état des media queries 480/360 px, la position du bloc (`top`/`left`/
+  `right`/largeur du texte), la valeur du token `--text-shadow-header`, le support de `clamp()` /
+  `min()` (`CSS.supports`) et les **règles réellement chargées** pour le sélecteur
+  (`document.styleSheets`, media queries incluses). Aucun effet sans le paramètre. Bloc
+  clairement délimité dans `js/app.js` : **à retirer** une fois le sujet clos.
 - **Icônes des boutons** : les icônes d'action sont des **SVG Lucide inline**, jamais des emoji
   (rendu variable selon la plateforme). Les icônes générées en JS sont centralisées dans
   `js/app.js` — `ICON_PENCIL`, `ICON_TRASH`, `ICON_MOON`, `ICON_SUN`, `ICON_CROSSHAIR`,
@@ -1994,6 +2002,20 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   versionnés ; `node --check` inchangé (aucun JS modifié) ; accolades CSS 225/225 · 410/410 ·
   141/141 · 58/58 · 1/1. Captures comparatives : 19 px = titre ombré et centré, 22 px = le « Y »
   passe sous la roue dentée (d'où le plafond à 22 px seulement au-delà de 480 px).
+
+- **3.97 — Diagnostic temporaire du titre (`?debug-title`)** : pour comprendre un rendu mobile
+  différent sans câble USB, `js/app.js` expose `debugHeaderTitle()`, appelée au
+  `DOMContentLoaded` **seulement** si `location.search` contient `debug-title`. Elle affiche une
+  alerte (et le même contenu en `console.log` préfixé `[debug-title]`) avec : styles calculés du
+  titre (`font-size`, `text-shadow`, `font-family`), `innerWidth` / `devicePixelRatio` / état des
+  media queries `(max-width: 480px)` et `(max-width: 360px)`, `top`/`left`/`right`/`text-align` et
+  largeur du texte, valeur du token `--text-shadow-header` (`(absent)` si la feuille de tokens est
+  en cache), support de `clamp()` / `min()` via `CSS.supports`, nombre de feuilles et **règles
+  réellement chargées** pour `.header-title .logo-text` (parcours de `document.styleSheets`, media
+  queries incluses), URL et `userAgent`. Vérifié sous Chrome/CDP : à **390 px** l'alerte renvoie
+  `19.11px` / `rgba(0, 0, 0, 0.3) 0px 2px 4px` / 3 règles (base + 480 + 360) / `clamp oui | min oui` ;
+  à **1280 px** `24px` ; **sans le paramètre, aucune alerte** (`window.__alerts` vide).
+  `node --check js/app.js` OK.
 
 ## 9. Langue et communication
 

@@ -6,6 +6,18 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Diagnostic temporaire du titre du header (`?debug-title`)
+
+### Ajouté
+
+- `js/app.js` : fonction `debugHeaderTitle()`, exécutée au `DOMContentLoaded` **uniquement** si l'URL contient `?debug-title`. Elle affiche une alerte (doublée d'un `console.log` `[debug-title]`) avec les styles calculés de `.header-title .logo-text` (`font-size`, `text-shadow`, `font-family`), la taille d'écran et l'état des media queries 480/360 px, la position du bloc et la largeur du texte, la valeur du token `--text-shadow-header`, le support de `clamp()` / `min()`, et les **règles réellement chargées** pour ce sélecteur (détection d'un CSS en cache).
+
+### Notes
+
+- Utilisation sur téléphone : ouvrir `…/index.html?debug-title` (ou `…/?debug-title`) puis lire l'alerte ; le même texte est dans la console.
+- Vérifié sous Chrome/CDP : 390 px → `19.11px` + ombre + 3 règles + `clamp oui | min oui` ; 1280 px → `24px` ; sans le paramètre → aucune alerte. `node --check js/app.js` OK.
+- Bloc de diagnostic **clairement délimité** dans `js/app.js` : à retirer une fois le rendu mobile confirmé. Aucun autre comportement modifié ; aucun commit ni push.
+
 ## [2026-11-06] — Titre du header corrigé sur téléphone (replis CSS + cache-busting)
 
 ### Corrigé

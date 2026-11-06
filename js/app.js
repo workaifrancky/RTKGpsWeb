@@ -229,6 +229,66 @@ function getObstacleIconMarkup(subtype) {
   return OBSTACLE_ICON_SVG[key] || OBSTACLE_ICON_SVG.Perso;
 }
 
+// ─── DIAGNOSTIC TEMPORAIRE DU TITRE DU HEADER ────────────────
+// ⚠ Bloc de diagnostic : à retirer une fois le problème réglé.
+// Activé uniquement par `?debug-title` dans l'URL (ex. `index.html?debug-title`)
+// et pensé pour être lisible sur téléphone, sans câble : une alerte + la console.
+// Il répond aux questions utiles : styles réellement calculés, support de
+// `clamp()` / `min()`, valeur du token d'ombre et règles RÉELLEMENT chargées
+// pour le sélecteur (c'est là qu'un CSS en cache se voit).
+function debugHeaderTitle() {
+  const el = document.querySelector('.header-title .logo-text');
+  if (!el) return;
+  const box = el.closest('.header-title');
+  const cs = getComputedStyle(el);
+  const boxCs = box ? getComputedStyle(box) : null;
+  const token = getComputedStyle(document.documentElement)
+    .getPropertyValue('--text-shadow-header').trim() || '(absent)';
+  const rect = el.getBoundingClientRect();
+
+  const support = (prop, valeur) => {
+    try { return CSS.supports(prop, valeur) ? 'oui' : 'NON'; } catch { return '?'; }
+  };
+  const mq = condition => {
+    try { return matchMedia(condition).matches ? 'oui' : 'non'; } catch { return '?'; }
+  };
+
+  // Règles chargées pour `.header-title .logo-text` (media queries incluses).
+  const regles = [];
+  const inspecter = (liste, prefixe = '') => {
+    Array.from(liste || []).forEach(rule => {
+      if (rule.selectorText && rule.selectorText.indexOf('.header-title .logo-text') !== -1) {
+        regles.push(`${prefixe}${rule.cssText}`);
+      }
+      if (rule.media && rule.cssRules) {
+        inspecter(rule.cssRules, `@media ${rule.conditionText} › `);
+      }
+    });
+  };
+  Array.from(document.styleSheets).forEach(feuille => {
+    try { inspecter(feuille.cssRules); } catch { /* feuille CDN (cross-origin) */ }
+  });
+
+  const lignes = [
+    `Titre : ${cs.fontSize} | Ombre : ${cs.textShadow} | Police : ${cs.fontFamily}`,
+    `Écran : ${window.innerWidth}px @${window.devicePixelRatio || 1} | ≤480 : ${mq('(max-width: 480px)')} | ≤360 : ${mq('(max-width: 360px)')}`,
+    boxCs
+      ? `Bloc : top ${boxCs.top} | left ${boxCs.left} | right ${boxCs.right} | align ${boxCs.textAlign} | texte ${Math.round(rect.width)}px`
+      : 'Bloc .header-title introuvable',
+    `Token d'ombre : ${token}`,
+    `Support CSS : clamp ${support('font-size', 'clamp(14px, 4.5vw, 24px)')} | min ${support('left', 'min(150px, 38vw)')}`,
+    `Feuilles : ${document.styleSheets.length} | règles du titre : ${regles.length}`,
+    regles.length
+      ? `Règles chargées : ${regles.join(' || ').slice(0, 700)}`
+      : 'AUCUNE règle .header-title .logo-text chargée !',
+    `URL : ${location.pathname}${location.search}`,
+    `Navigateur : ${String(navigator.userAgent).slice(0, 100)}`,
+  ];
+
+  console.log('[debug-title]\n' + lignes.join('\n'));
+  try { alert(lignes.join('\n')); } catch { /* alerte bloquée : la console suffit */ }
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   console.log(`RTKGpsApp v${APP.version}`);
@@ -242,6 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
   checkBleSupport();
   initProjectUI();
   initAutosave();
+  // Diagnostic temporaire du titre (`?debug-title`), exécuté après la mise en page.
+  if (window.location.search.indexOf('debug-title') !== -1) {
+    setTimeout(debugHeaderTitle, 400);
+  }
   console.log('App prête ✅');
 });
 
