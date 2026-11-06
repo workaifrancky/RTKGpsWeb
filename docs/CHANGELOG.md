@@ -6,6 +6,19 @@ Historique des évolutions notables de l'application. Format inspiré de
 
 > *Note : les entrées antérieures au 2026-11-05 mentionnent "RTK Mower", qui est l'ancien nom de "Mower Survey" (renommé le 2026-11-05).*
 
+## [2026-11-06] — Panneau Connexion : modale accessible, œil dans le champ, e-mail entier
+
+### Corrigé
+
+- **« Se connecter » sans effet apparent** : le clic ouvrait bien `#authModal`, mais le panneau Connexion (`#headerMenu`, `z-index: 4000`) restait par-dessus les modales (`z-index: 1100`) — la modale s'affichait derrière lui et ses champs étaient incliquables. `openAuthModal()` ferme désormais le panneau (`closeHeaderMenu()`) avant d'afficher la modale.
+- **Bouton « œil » sous le champ / sans effet** : les règles CSS `password-*` sont portées par `.cloud-auth-form` (spécificité 0,2,0) pour qu'aucune règle de bouton générique ne puisse le ramener dans le flux ; `togglePasswordVisibility()` trace chaque clic dans la console (`[auth] affichage du mot de passe : clair|masqué`) et bascule bien `type` `password` ↔ `text` avec l'icône `eye` / `eye-off`.
+- **E-mail tronqué à côté de « Synchronisation »** : `.cloud-sync-email` passe en ligne dédiée (`flex: 1 1 100%`, `white-space: normal`, `overflow-wrap: anywhere`, plus d'ellipse) et `#cloudSyncRow` en `flex-wrap: wrap` ; l'élément est déplacé **après** le bouton dans le DOM. Mesure CDP : largeur utile 8 px → 314 px, `tronque` true → false.
+
+### Notes
+
+- Vérifications : `node --check js/cloud-sync.js` OK ; accolades CSS 210/210 · 410/410 · 141/141 · 1/1 · 58/58 ; `div` 171/171 ; mesures et captures Chrome/CDP en viewport 390 × 844 (panneau fermé après le clic, champ e-mail cliquable, œil dans le champ, e-mail sur deux lignes).
+- Contrat GeoJSON, carte, header et menu de partage inchangés. Aucun commit ni push effectué.
+
 ## [2026-11-06] — Hub de partage simplifié et modale de connexion améliorée
 
 ### Modifié

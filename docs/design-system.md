@@ -171,7 +171,8 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   pastille `.menu-switch-knob`, état porté par `aria-checked`) ; (3) libellé `Format d'export`
   + `#exportFormatSelect` (`.menu-export-select`, mêmes styles que `.menu-ntrip-select` :
   44 px, 12 px / 600), options GeoJSON / CSV / GPX ; (4) libellé « Synchronisation » +
-  `#cloudSyncEmail` (compte connecté, ellipse) + `#cloudSyncStatus` (pastille d'état colorée
+  `#cloudSyncEmail` (compte connecté, **ligne dédiée, jamais tronqué** :
+  `flex: 1 1 100%`, `white-space: normal`, `overflow-wrap: anywhere`) + `#cloudSyncStatus` (pastille d'état colorée
   par `#cloudSyncRow[data-state]` : `synced` vert, `connecting` ambre, `offline` ambre foncé,
   `error` rouge) + bouton `#btnCloudAuth` (« Se connecter » / « Se déconnecter »,
   `.cloud-sync-btn` 44 px) qui ouvre `#authModal` (`openAuthModal()`), (5) **si la file
@@ -194,6 +195,11 @@ Fermeture : `.is-closing` (fondu `--welcome-fade`, 0,3 s) → `showTab('tab-poin
   Le champ réserve `padding-right: 52px` (`--radius-md`, `:focus-visible` en
   `--color-primary-accent`). La dernière adresse utilisée est pré-remplie à l'ouverture
   (clé `mowerSurveyLastEmail`, **jamais** le mot de passe).
+  Depuis la 3.93, les trois règles (`.cloud-auth-form .password-wrapper`,
+  `.cloud-auth-form .password-wrapper .form-input`, `.cloud-auth-form .password-toggle`)
+  sont **portées par `.cloud-auth-form`** (spécificité 0,2,0) : aucune règle de bouton plus
+  générale ne peut ramener l'« œil » dans le flux (symptôme corrigé : il s'affichait sous le
+  champ au lieu de dedans).
 - `.offline-queue-indicator` : bouton d'alerte de la ligne « Hors-ligne » (44 px, fond
   `--color-warning-pale`, texte `--color-warning-text`, bordure `--color-warning-strong`,
   11 px / 800). En thème nuit, fond `--color-bg-muted` et texte `--color-warning-strong`.

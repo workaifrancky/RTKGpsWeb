@@ -598,13 +598,23 @@ function setPasswordVisible(visible) {
 function togglePasswordVisibility() {
   const input = document.getElementById('cloudAuthPassword');
   if (!input) return;
-  setPasswordVisible(input.type === 'password');
+  const visible = input.type === 'password';
+  // Trace volontaire (une ligne par clic) : permet de vérifier dans la console
+  // que le gestionnaire est bien branché sur #btnPasswordToggle.
+  console.log('[auth] affichage du mot de passe :', visible ? 'clair' : 'masqué');
+  setPasswordVisible(visible);
 }
 
 // ─── AUTHENTIFICATION (e-mail / mot de passe) ────────────────
 function openAuthModal() {
   const modal = document.getElementById('authModal');
   if (!modal) return;
+
+  // Le panneau Connexion (#headerMenu, z-index 4000) est AU-DESSUS des modales
+  // (z-index 1100) : sans cette fermeture, la modale s'ouvrait derrière lui et
+  // ses champs restaient incliquables (« Se connecter » semblait sans effet).
+  if (typeof closeHeaderMenu === 'function') closeHeaderMenu();
+
   const error = document.getElementById('cloudAuthError');
   if (error) { error.textContent = ''; error.hidden = true; }
 

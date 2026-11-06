@@ -646,13 +646,15 @@
       </select>
     </div>
 
-    <!-- Bloc 4 : synchronisation cloud (compte e-mail / mot de passe). -->
+    <!-- Bloc 4 : synchronisation cloud (compte e-mail / mot de passe).
+         L'adresse e-mail est placée APRÈS le bouton dans le DOM : elle occupe
+         ainsi une ligne dédiée (flex 100 %) et reste lisible en entier. -->
     <div id="cloudSyncRow" class="menu-row menu-row-context" data-state="signedOut">
       <span class="menu-label">Synchronisation</span>
-      <span id="cloudSyncEmail" class="cloud-sync-email">Aucun compte</span>
       <span id="cloudSyncStatus" class="cloud-sync-status" aria-live="polite">Non connecté</span>
       <button type="button" id="btnCloudAuth" class="cloud-sync-btn"
         aria-label="Se connecter au compte cloud">Se connecter</button>
+      <span id="cloudSyncEmail" class="cloud-sync-email">Aucun compte</span>
     </div>
 
     <!-- Bloc 5 : demandes d'export/partage en attente (hors-ligne). -->

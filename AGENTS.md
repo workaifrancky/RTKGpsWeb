@@ -501,6 +501,17 @@ le domaine et les zones ; **timestamp propre de l'obstacle** pour un obstacle) e
   sauvegarde au survol). `autosaveInterval` réécrit toutes les
   30 s, et `pagehide` / `visibilitychange` / `beforeunload` déclenchent
   `flushProjectStorage()`. Une erreur de quota affiche un toast et n'indique pas « Sauvegardé ».
+- **Panneau Connexion — bloc « Synchronisation » (3.93)** : la ligne `#cloudSyncRow` est en
+  `flex-wrap: wrap` ; le libellé, la pastille d'état (`#cloudSyncStatus`) et `#btnCloudAuth`
+  occupent la 1re ligne, et l'adresse du compte (`#cloudSyncEmail`, placée **après** le bouton
+  dans le DOM) occupe une **ligne dédiée** (`flex: 1 1 100%`, `white-space: normal`,
+  `overflow-wrap: anywhere`) : elle n'est **jamais tronquée** (l'ellipse la réduisait à 8 px
+  sur un écran de 390 px). `openAuthModal()` appelle `closeHeaderMenu()` **avant** d'afficher la
+  modale : le panneau est en `z-index` 4000 et les modales en 1100, sans quoi `#authModal`
+  s'ouvrait **derrière** le panneau et ses champs restaient incliquables (« Se connecter »
+  semblait sans effet). Le bouton « Se connecter » reste branché sur `toggleCloudAuth()`
+  (déconnexion quand un compte est actif), qui appelle `openAuthModal()` quand personne n'est
+  connecté.
 - **Synchronisation cloud (Firestore)** : `localStorage` reste la **source locale** (terrain
   sans réseau) ; Firestore synchronise les parcelles entre appareils. `js/firebase-config.js`
   porte `FIREBASE_CONFIG` (valeurs publiques) et `CLOUD_SYNC_ENABLED` ; `js/cloud-sync.js`
@@ -1859,6 +1870,30 @@ Historique des évolutions majeures (à compléter à chaque lot terminé) :
   présents, accolades CSS 209/209 · 410/410 · 141/141 · 1/1 · 58/58, e-mail normalisé et
   pré-rempli, saisie préservée, bascule `password` ↔ `text` avec la bonne icône et le bon
   `aria-label`, une seule clé `localStorage`, code mort absent de `export.js`).
+
+- **3.93 — Panneau Connexion : modale accessible, œil dans le champ, e-mail entier** : trois
+  défauts d'interface corrigés, mesurés sous Chrome/CDP en viewport 390 × 844.
+  1. « Se connecter » **ouvrait** bien `#authModal`, mais le panneau Connexion (z-index 4000)
+     restait au-dessus des modales (1100) : la modale s'affichait **derrière** lui et ses champs
+     étaient incliquables (`elementFromPoint` renvoyait `cloudSyncRow`). `openAuthModal()`
+     appelle désormais `closeHeaderMenu()` avant d'afficher la modale. Le bouton reste branché
+     sur `toggleCloudAuth()` (il sert aussi à « Se déconnecter ») et délègue à `openAuthModal()`
+     hors connexion.
+  2. Bouton « œil » : les règles `password-*` sont **portées par `.cloud-auth-form`**
+     (spécificité 0,2,0) pour qu'aucune règle de bouton générique ne le ramène dans le flux ;
+     `togglePasswordVisibility()` trace chaque clic dans la console
+     (`[auth] affichage du mot de passe : clair|masqué`) et `setPasswordVisible()` bascule
+     `type` `password` ↔ `text` + icône `ICON_EYE` / `ICON_EYE_OFF` + `aria-label` / `aria-pressed`.
+  3. E-mail tronqué : `.cloud-sync-email` passe en `flex: 1 1 100%` avec
+     `white-space: normal` + `overflow-wrap: anywhere` (plus d'ellipse), `#cloudSyncRow` en
+     `flex-wrap: wrap`, et `#cloudSyncEmail` est déplacé **après** `#btnCloudAuth` dans le DOM
+     (l'adresse occupe une ligne dédiée, lisible en entier, sur 1 ou 2 lignes).
+  Vérifié : `node --check js/cloud-sync.js` OK ; accolades CSS 210/210 · 410/410 · 141/141 · 1/1 ·
+  58/58 ; `div` 171/171 ; **mesures CDP** avant → après : e-mail `clientWidth` 8 → 314
+  (`tronque` true → false), panneau encore ouvert après le clic `true` → `false`, champ e-mail
+  cliquable `false` → `true`, œil `oeilDansLeChamp: true`, `type` `text` ↔ `password` et
+  `aria-label` « Masquer / Afficher le mot de passe », traces console présentes, 2 captures
+  d'écran de contrôle (e-mail sur 2 lignes, œil à droite dans le champ).
 
 ## 9. Langue et communication
 
